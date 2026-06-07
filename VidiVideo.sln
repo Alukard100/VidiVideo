@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{83CEE633-BECC-48B4-ABA2-0FE3C56F8075}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{19CCD64C-A3E8-488D-92A8-310827B8F8C7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VidiVideo.Api", "Backend\src\VidiVideo.Api\VidiVideo.Api.csproj", "{8EE7BEA3-C533-4562-B062-423B382A82F1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VidiVideo.Application", "Backend\src\VidiVideo.Application\VidiVideo.Application.csproj", "{6F270605-CE86-4B5E-8BF6-0735FB3F9BBB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VidiVideo.Domain", "Backend\src\VidiVideo.Domain\VidiVideo.Domain.csproj", "{CA96E216-7825-40EC-9C73-B1DB93C11EA4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VidiVideo.Infrastructure", "Backend\src\VidiVideo.Infrastructure\VidiVideo.Infrastructure.csproj", "{E2556C02-B348-4062-A18C-4C21DE3635AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VidiVideo.Worker", "Backend\src\VidiVideo.Worker\VidiVideo.Worker.csproj", "{DEB363DD-A805-4154-8172-513D3CCB5539}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8EE7BEA3-C533-4562-B062-423B382A82F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EE7BEA3-C533-4562-B062-423B382A82F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EE7BEA3-C533-4562-B062-423B382A82F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EE7BEA3-C533-4562-B062-423B382A82F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F270605-CE86-4B5E-8BF6-0735FB3F9BBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F270605-CE86-4B5E-8BF6-0735FB3F9BBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F270605-CE86-4B5E-8BF6-0735FB3F9BBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F270605-CE86-4B5E-8BF6-0735FB3F9BBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA96E216-7825-40EC-9C73-B1DB93C11EA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA96E216-7825-40EC-9C73-B1DB93C11EA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA96E216-7825-40EC-9C73-B1DB93C11EA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA96E216-7825-40EC-9C73-B1DB93C11EA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2556C02-B348-4062-A18C-4C21DE3635AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2556C02-B348-4062-A18C-4C21DE3635AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2556C02-B348-4062-A18C-4C21DE3635AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2556C02-B348-4062-A18C-4C21DE3635AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DEB363DD-A805-4154-8172-513D3CCB5539}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEB363DD-A805-4154-8172-513D3CCB5539}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEB363DD-A805-4154-8172-513D3CCB5539}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEB363DD-A805-4154-8172-513D3CCB5539}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{19CCD64C-A3E8-488D-92A8-310827B8F8C7} = {83CEE633-BECC-48B4-ABA2-0FE3C56F8075}
+		{8EE7BEA3-C533-4562-B062-423B382A82F1} = {19CCD64C-A3E8-488D-92A8-310827B8F8C7}
+		{6F270605-CE86-4B5E-8BF6-0735FB3F9BBB} = {19CCD64C-A3E8-488D-92A8-310827B8F8C7}
+		{CA96E216-7825-40EC-9C73-B1DB93C11EA4} = {19CCD64C-A3E8-488D-92A8-310827B8F8C7}
+		{E2556C02-B348-4062-A18C-4C21DE3635AB} = {19CCD64C-A3E8-488D-92A8-310827B8F8C7}
+		{DEB363DD-A805-4154-8172-513D3CCB5539} = {19CCD64C-A3E8-488D-92A8-310827B8F8C7}
+	EndGlobalSection
+EndGlobal
