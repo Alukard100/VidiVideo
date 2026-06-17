@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VidiVideo.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using VidiVideo.Infrastructure.Persistence;
 namespace VidiVideo.Infrastructure.Migrations
 {
     [DbContext(typeof(VidiVideoDbContext))]
-    partial class VidiVideoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260617171112_AddUserRole")]
+    partial class AddUserRole
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

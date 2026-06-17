@@ -1,4 +1,5 @@
 using VidiVideo.Domain.Common;
+using VidiVideo.Domain.Constants;
 using VidiVideo.Domain.Enums;
 
 namespace VidiVideo.Domain.Entities;
@@ -13,6 +14,7 @@ public sealed class AppUser : AuditableEntity
     public string? AvatarUrl { get; set; }
     public string? CountryCode { get; set; }
     public UserStatus Status { get; set; } = UserStatus.Active;
+    public string Role { get; set; } = AppRoles.User;
 
     public ICollection<Video> Videos { get; set; } = [];
     public ICollection<Follow> Following { get; set; } = [];
