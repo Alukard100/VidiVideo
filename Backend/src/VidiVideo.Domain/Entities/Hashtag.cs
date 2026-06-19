@@ -6,4 +6,12 @@ public sealed class Hashtag : AuditableEntity
 {
     public string Name { get; set; } = string.Empty;
     public ICollection<VideoHashtag> VideoHashtags { get; set; } = [];
+
+    protected Hashtag() { }
+
+    public Hashtag(string name)
+    {
+        Name = name;
+    }
+
 }

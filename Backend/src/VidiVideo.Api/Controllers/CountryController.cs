@@ -50,10 +50,10 @@ public class CountryController : ControllerBase
         return Ok(country);
     }
 
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> DeleteCountry(Guid Id, CancellationToken cancellationToken)
+    [HttpDelete("{countryId:guid}")]
+    public async Task<IActionResult> DeleteCountry(Guid countryId, CancellationToken cancellationToken)
     {
-        var command = new DeleteCountryCommand(Id);
+        var command = new DeleteCountryCommand(countryId);
 
         var result = await _deleteHandler.HandleAsync(command, cancellationToken);
 
