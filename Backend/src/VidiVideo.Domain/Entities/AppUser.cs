@@ -12,7 +12,8 @@ public sealed class AppUser : AuditableEntity
     public string DisplayName { get; set; } = string.Empty;
     public string? Bio { get; set; }
     public string? AvatarUrl { get; set; }
-    public string? CountryCode { get; set; }
+    public Guid? CountryId { get; set; }
+    public Country? Country { get; set; } = null!;
     public UserStatus Status { get; set; } = UserStatus.Active;
     public string Role { get; set; } = AppRoles.User;
 

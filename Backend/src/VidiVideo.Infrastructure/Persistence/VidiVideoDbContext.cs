@@ -19,6 +19,7 @@ public sealed class VidiVideoDbContext(DbContextOptions<VidiVideoDbContext> opti
     public DbSet<SearchHistory> SearchHistories => Set<SearchHistory>();
     public DbSet<VideoView> VideoViews => Set<VideoView>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<Country> Countrys => Set<Country>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

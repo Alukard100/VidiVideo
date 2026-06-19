@@ -15,7 +15,7 @@ public sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.Property(x => x.DisplayName).HasMaxLength(100).IsRequired();
         builder.Property(x => x.Bio).HasMaxLength(500);
         builder.Property(x => x.AvatarUrl).HasMaxLength(1024);
-        builder.Property(x => x.CountryCode).HasMaxLength(2);
+        builder.HasOne(x => x.Country).WithMany(c => c.Users).HasForeignKey(x => x.CountryId).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(x => x.Email).IsUnique();
         builder.HasIndex(x => x.UserName).IsUnique();
     }

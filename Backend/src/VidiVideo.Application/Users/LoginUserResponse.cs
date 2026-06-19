@@ -4,5 +4,5 @@
         Guid Id,
         string UserName,
         string Role,
-        string token);
+        string Token);
 }

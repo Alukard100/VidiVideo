@@ -25,7 +25,9 @@ public static class DependencyInjection
         services.AddScoped<IMessagePublisher, RabbitMqMessagePublisher>();
         services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
         services.AddScoped<ITokenGenerator, JwtTokenGenerator>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ICountryRepository, CountryRepository>();
 
         return services;
     }
