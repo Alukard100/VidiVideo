@@ -5,6 +5,7 @@ using VidiVideo.Api.Configuration;
 using VidiVideo.Application.Abstractions;
 using VidiVideo.Application.Abstractions.Repositories;
 using VidiVideo.Infrastructure.Authentication;
+using VidiVideo.Infrastructure.Media;
 using VidiVideo.Infrastructure.Messaging;
 using VidiVideo.Infrastructure.Persistence;
 using VidiVideo.Infrastructure.Persistence.Repositories;
@@ -29,6 +30,9 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ICountryRepository, CountryRepository>();
         services.AddScoped<IHashtagRepository, HashtagRepository>();
+        services.AddScoped<IVideoStorageService, VideoStorageService>();
+        services.AddScoped<IImageStorageService, ImageStorageService>();
+        services.AddScoped<IVideoRepository, VideoRepository>();
 
         return services;
     }

@@ -3,6 +3,9 @@ using VidiVideo.Application.Common;
 using VidiVideo.Application.Countries;
 using VidiVideo.Application.Hashtags;
 using VidiVideo.Application.Users;
+using VidiVideo.Application.Videos;
+using VidiVideo.Application.Videos.Thumbnails;
+using VidiVideo.Application.Videos.VideoFile;
 
 namespace VidiVideo.Application;
 
@@ -16,6 +19,9 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<CreateCountryCommand, Guid>, CreateCountryCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateCountryCommand, CountryDto>, UpdateCountryCommandHandler>();
         services.AddScoped<ICommandHandler<CreateHashtagCommand, Guid>, CreateHashtagCommandHandler>();
+        services.AddScoped<ICommandHandler<UploadVideoCommand, string>, UploadVideoCommandHandler>();
+        services.AddScoped<ICommandHandler<CreateVideoCommand, Guid>, CreateVideoCommandHandler>();
+        services.AddScoped<ICommandHandler<CreateThumbnailCommand, string>, CreateThumbnailCommandHandler>();
         //Queries
         services.AddScoped<IQueryHandler<GetCountryByIdQuery, CountryDto>, GetCountryByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetCountriesQuery, List<CountryDto>>, GetCountriesQueryHandler>();
