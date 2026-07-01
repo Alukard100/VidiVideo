@@ -34,13 +34,7 @@ namespace VidiVideo.Application.Users
 
             var hashedPassword = _passwordHasher.Hash(command.Password);
 
-            var user = new AppUser
-            {
-                UserName = command.UserName,
-                PasswordHash = hashedPassword,
-                Email = command.Email,
-                DisplayName = command.DisplayName
-            };
+            var user = new AppUser(command.UserName, command.Email, hashedPassword, command.DisplayName);
 
             if (await _userRepository.ExistsByEmailAsync(command.Email))
             {

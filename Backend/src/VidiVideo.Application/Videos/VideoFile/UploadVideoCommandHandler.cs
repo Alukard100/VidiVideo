@@ -15,6 +15,11 @@ namespace VidiVideo.Application.Videos.VideoFile
             ];
         const long maxSize = 500 * 1024 * 1024; //500MB
 
+        public UploadVideoCommandHandler(IVideoStorageService videoStorageService)
+        {
+            _videoStorageService = videoStorageService;
+        }
+
         public async Task<string> HandleAsync(UploadVideoCommand command, CancellationToken cancellationToken)
         {
 

@@ -21,6 +21,9 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task<bool> ExistsByEmailAsync(string email)
             => await _db.Users.AnyAsync(u => u.Email == email);
 
+        public async Task<bool> ExistsByIdAsync(Guid id)
+            => await _db.Users.AnyAsync(u => u.Id == id);
+
         public async Task<bool> ExistsByUserNameAsync(string userName)
             => await _db.Users.AnyAsync(u => u.UserName == userName);
         public async Task<AppUser?> GetByEmailAsync(string email)

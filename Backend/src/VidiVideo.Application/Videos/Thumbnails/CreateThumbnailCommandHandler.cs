@@ -41,6 +41,9 @@ namespace VidiVideo.Application.Videos.Thumbnails
                 throw new ValidationException("Invalid image file.");
             }
 
+            if (command.fileStream.CanSeek)
+                command.fileStream.Seek(0, SeekOrigin.Begin);
+
             string path = await _imageStorageService.UploadAsync(command.fileStream, command.fileName);
 
             return path;

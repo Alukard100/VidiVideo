@@ -6,4 +6,5 @@ public sealed record GetVideosQuery : PagedRequest, IQuery<PagedResult<VideoSumm
 {
     public string? Search { get; init; }
     public Guid? CategoryId { get; init; }
+    public List<string> Hashtags { get; init; } = [];
 }

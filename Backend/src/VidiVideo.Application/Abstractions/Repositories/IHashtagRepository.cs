@@ -8,5 +8,6 @@ public interface IHashtagRepository
     Task DeleteHashtagAsync(Guid id);
     Task<List<Hashtag>> GetAllHashtagsAsync();
     Task<Hashtag?> GetHashtagAsync(Guid id);
+    Task<Hashtag?> GetByNameAsync(string name);
     Task<bool> ExistByNameAsync(string name);
 }

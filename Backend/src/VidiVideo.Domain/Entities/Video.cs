@@ -30,5 +30,12 @@ public sealed class Video : AuditableEntity
         IsPublished = isPublished;
     }
 
-
+    public void AddHashtags(
+        IEnumerable<VideoHashtag> hashtags)
+    {
+        foreach (var hashtag in hashtags)
+        {
+            VideoHashtags.Add(hashtag);
+        }
+    }
 }

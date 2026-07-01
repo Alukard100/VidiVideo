@@ -21,4 +21,16 @@ public sealed class AppUser : AuditableEntity
     public ICollection<Follow> Following { get; set; } = [];
     public ICollection<Follow> Followers { get; set; } = [];
     public ICollection<Notification> Notifications { get; set; } = [];
+
+    protected AppUser() { }
+
+    public AppUser(string userName, string email, string passwordHash, string displayName, string role = AppRoles.User)
+    {
+        UserName = userName;
+        DisplayName = displayName;
+        PasswordHash = passwordHash;
+        Role = role;
+        Email = email;
+    }
+
 }

@@ -6,4 +6,12 @@ public sealed class VideoHashtag
     public Video Video { get; set; } = null!;
     public Guid HashtagId { get; set; }
     public Hashtag Hashtag { get; set; } = null!;
+
+    protected VideoHashtag() { }
+
+    public VideoHashtag(Hashtag hashtag)
+    {
+        Hashtag = hashtag;
+        HashtagId = hashtag.Id;
+    }
 }

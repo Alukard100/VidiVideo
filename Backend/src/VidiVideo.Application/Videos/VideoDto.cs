@@ -1,4 +1,6 @@
-﻿namespace VidiVideo.Application.Videos;
+﻿using VidiVideo.Domain.Enums;
+
+namespace VidiVideo.Application.Videos;
 
 public sealed record VideoDto(
     Guid Id,
@@ -7,4 +9,8 @@ public sealed record VideoDto(
     string ThumbnailUrl,
     string CreatorName,
     string CategoryName,
-    bool IsPublished);
+    bool IsPublished,
+    VideoVisibility Visibility,
+    int LikeCount,
+    int CommentCount,
+    List<string> Hashtags);

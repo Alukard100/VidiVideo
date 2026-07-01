@@ -10,5 +10,6 @@ namespace VidiVideo.Application.Abstractions.Repositories
         Task<AppUser?> GetByEmailAsync(string email);
         Task<AppUser?> GetByIdAsync(Guid id);
         Task<AppUser?> GetByUserNameAsync(string username);
+        Task<bool> ExistsByIdAsync(Guid id);
     }
 }

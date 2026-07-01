@@ -1,3 +1,4 @@
+using FFMpegCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -7,10 +8,18 @@ using VidiVideo.Api.Services;
 using VidiVideo.Application;
 using VidiVideo.Application.Abstractions;
 using VidiVideo.Infrastructure;
+using VidiVideo.Infrastructure.Persistence.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddEnvironmentVariables(prefix: "VIDIVIDEO_");
+
+GlobalFFOptions.Configure(options =>
+{
+    options.BinaryFolder = Path.Combine(
+        builder.Environment.ContentRootPath,
+        "Resources", "ffmpeg");
+});
 
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
@@ -23,6 +32,7 @@ builder.Services.AddOpenApi();
 
 var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
     ?? throw new InvalidOperationException("JWT configuration is missing.");
+
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -52,6 +62,13 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
+
+    await seeder.SeedAsync();
+}
 
 if (app.Environment.IsDevelopment())
 {

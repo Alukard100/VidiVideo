@@ -9,6 +9,7 @@ using VidiVideo.Infrastructure.Media;
 using VidiVideo.Infrastructure.Messaging;
 using VidiVideo.Infrastructure.Persistence;
 using VidiVideo.Infrastructure.Persistence.Repositories;
+using VidiVideo.Infrastructure.Persistence.Seed;
 
 namespace VidiVideo.Infrastructure;
 
@@ -33,6 +34,11 @@ public static class DependencyInjection
         services.AddScoped<IVideoStorageService, VideoStorageService>();
         services.AddScoped<IImageStorageService, ImageStorageService>();
         services.AddScoped<IVideoRepository, VideoRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IVideoRepository, VideoRepository>();
+
+        services.AddScoped<DatabaseSeeder>();
+
 
         return services;
     }

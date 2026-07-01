@@ -4,8 +4,8 @@ namespace VidiVideo.Domain.Entities;
 
 public sealed class Hashtag : AuditableEntity
 {
-    public string Name { get; set; } = string.Empty;
-    public ICollection<VideoHashtag> VideoHashtags { get; set; } = [];
+    public string Name { get; private set; } = string.Empty;
+    public ICollection<VideoHashtag> VideoHashtags { get; private set; } = [];
 
     protected Hashtag() { }
 

@@ -29,6 +29,9 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task<List<Hashtag>> GetAllHashtagsAsync()
             => await _db.Hashtags.OrderBy(h => h.Name).ToListAsync();
 
+        public async Task<Hashtag?> GetByNameAsync(string name)
+            => await _db.Hashtags.FirstOrDefaultAsync(h => h.Name == name);
+
         public async Task<Hashtag?> GetHashtagAsync(Guid id)
             => await _db.Hashtags.FirstOrDefaultAsync(h => h.Id == id);
     }
