@@ -36,6 +36,9 @@ public static class DependencyInjection
         services.AddScoped<IVideoRepository, VideoRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IVideoRepository, VideoRepository>();
+        services.AddScoped<ILikeRepository, LikeRepository>();
+        services.AddScoped<ICommentRepository, CommentRepository>();
+        services.AddScoped<IFollowersRepository, FollowersRepository>();
 
         services.AddScoped<DatabaseSeeder>();
 

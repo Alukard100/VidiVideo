@@ -38,4 +38,31 @@ public sealed class Video : AuditableEntity
             VideoHashtags.Add(hashtag);
         }
     }
+
+    public void ReplaceHashtags(
+        IEnumerable<Hashtag> hashtags)
+    {
+        var hashtagIds = hashtags.Select(x => x.Id).ToHashSet();
+
+        foreach (var existing in VideoHashtags.ToList())
+        {
+            if (!hashtagIds.Contains(existing.HashtagId))
+                VideoHashtags.Remove(existing);
+        }
+
+        foreach (var hashtag in hashtags)
+        {
+            if (!VideoHashtags.Any(x => x.HashtagId == hashtag.Id))
+                VideoHashtags.Add(new VideoHashtag(hashtag));
+        }
+    }
+
+    public void Update(Guid categoryId, string caption, string thumbnailUrl, VideoVisibility visibility, bool isPublished)
+    {
+        CategoryId = categoryId;
+        Caption = caption;
+        ThumbnailUrl = thumbnailUrl;
+        Visibility = visibility;
+        IsPublished = isPublished;
+    }
 }

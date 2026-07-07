@@ -11,5 +11,6 @@ namespace VidiVideo.Application.Abstractions.Repositories
         Task<AppUser?> GetByIdAsync(Guid id);
         Task<AppUser?> GetByUserNameAsync(string username);
         Task<bool> ExistsByIdAsync(Guid id);
+        Task<bool> BothUsersExistsById(Guid first, Guid second);
     }
 }

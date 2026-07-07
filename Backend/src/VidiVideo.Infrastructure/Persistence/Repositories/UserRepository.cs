@@ -18,6 +18,9 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             await _db.SaveChangesAsync();
         }
 
+        public async Task<bool> BothUsersExistsById(Guid first, Guid second)
+            => await _db.Users.Where(u => u.Id == first || u.Id == second).CountAsync() == 2;
+
         public async Task<bool> ExistsByEmailAsync(string email)
             => await _db.Users.AnyAsync(u => u.Email == email);
 

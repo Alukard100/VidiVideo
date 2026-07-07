@@ -9,4 +9,20 @@ public sealed class Comment : AuditableEntity
     public Guid AuthorId { get; set; }
     public AppUser Author { get; set; } = null!;
     public string Body { get; set; } = string.Empty;
+    protected Comment() { }
+
+    public Comment(Guid videoId, Guid authorId, string body)
+    {
+        VideoId = videoId;
+        AuthorId = authorId;
+        Body = body;
+    }
+
+    public void UpdateComment(string newContent)
+    {
+        Body = newContent;
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
+
+
 }

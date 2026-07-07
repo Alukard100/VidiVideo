@@ -29,6 +29,16 @@ public sealed class SocialConfiguration :
     public void Configure(EntityTypeBuilder<VideoHashtag> builder)
     {
         builder.HasKey(x => new { x.VideoId, x.HashtagId });
+
+        builder.HasOne(x => x.Video)
+            .WithMany(x => x.VideoHashtags)
+            .HasForeignKey(x => x.VideoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(x => x.Hashtag)
+            .WithMany(x => x.VideoHashtags)
+            .HasForeignKey(x => x.HashtagId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
     public void Configure(EntityTypeBuilder<Comment> builder)

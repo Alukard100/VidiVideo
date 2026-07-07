@@ -2,9 +2,12 @@ using Microsoft.Extensions.DependencyInjection;
 using VidiVideo.Application.Categories;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Countries;
+using VidiVideo.Application.Followers;
 using VidiVideo.Application.Hashtags;
 using VidiVideo.Application.Users;
 using VidiVideo.Application.Videos;
+using VidiVideo.Application.Videos.Comments;
+using VidiVideo.Application.Videos.Likes;
 using VidiVideo.Application.Videos.Thumbnails;
 using VidiVideo.Application.Videos.VideoFile;
 
@@ -26,6 +29,12 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<CreateCategoryCommand, Guid>, CreateCategoryCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateCategoryCommand, CategoryDTO>, UpdateCategoryCommandHandler>();
         services.AddScoped<ICommandHandler<CreateHashtagCommand, Guid>, CreateHashtagCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateVideoCommand, Guid>, UpdateVideoCommandHandler>();
+        services.AddScoped<ICommandHandler<LikeVideoCommand, LikeDto>, LikeVideoCommandHandler>();
+        services.AddScoped<ICommandHandler<CreateCommentCommand, Guid>, CreateCommentCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateCommentCommand, Guid>, UpdateCommentCommandHandler>();
+        services.AddScoped<ICommandHandler<FollowCommand, bool>, FollowCommandHandler>();
+        services.AddScoped<ICommandHandler<UnfollowCommand, bool>, UnfollowCommandHandler>();
         //Queries
         services.AddScoped<IQueryHandler<GetCountryByIdQuery, CountryDto>, GetCountryByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetCountriesQuery, List<CountryDto>>, GetCountriesQueryHandler>();
@@ -35,12 +44,19 @@ public static class DependencyInjection
         services.AddScoped<IQueryHandler<GetCategoriesQuery, List<CategoryDTO>>, GetCategoriesQueryHandler>();
         services.AddScoped<IQueryHandler<GetHashtagByIdQuery, HashtagDto>, GetHashtagByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetHashtagsQuery, List<HashtagDto>>, GetHashtagsQueryHandler>();
+        services.AddScoped<IQueryHandler<GetVideosQuery, PagedResult<VideoSummaryDto>>, GetVideosQueryHandler>();
+        services.AddScoped<IQueryHandler<GetVideoByIdQuery, VideoDto>, GetVideoByIdQueryHandler>();
+        services.AddScoped<IQueryHandler<GetVideoCommentsQuery, PagedResult<CommentDto>>, GetVideoCommentsQueryHandler>();
+        services.AddScoped<IQueryHandler<FollowersQuery, PagedResult<UserFollowDto>>, FollowersQueryHandler>();
+        services.AddScoped<IQueryHandler<FollowingQuery, PagedResult<UserFollowDto>>, FollowingQueryHandler>();
         //Delete Commands
         services.AddScoped<ICommandHandler<DeleteCountryCommand, bool>, DeleteCountryCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteHashtagCommand, bool>, DeleteHashtagCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteCategoryCommand, bool>, DeleteCategoryCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteHashtagCommand, bool>, DeleteHashtagCommandHandler>();
-
+        services.AddScoped<ICommandHandler<DeleteVideoCommand, bool>, DeleteVideoCommandHandler>();
+        services.AddScoped<ICommandHandler<UnlikeVideoCommand, bool>, UnlikeVideoCommandHandler>();
+        services.AddScoped<ICommandHandler<DeleteCommentCommand, bool>, DeleteCommentCommandHandler>();
 
         return services;
     }
