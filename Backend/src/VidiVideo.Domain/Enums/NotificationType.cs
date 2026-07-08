@@ -7,5 +7,6 @@ public enum NotificationType
     Comment = 3,
     Follow = 4,
     ContentReport = 5,
-    System = 6
+    System = 6,
+    Like = 7
 }

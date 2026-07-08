@@ -4,12 +4,14 @@ using VidiVideo.Application.Common;
 using VidiVideo.Application.Countries;
 using VidiVideo.Application.Followers;
 using VidiVideo.Application.Hashtags;
+using VidiVideo.Application.Notifications;
 using VidiVideo.Application.Users;
 using VidiVideo.Application.Videos;
 using VidiVideo.Application.Videos.Comments;
 using VidiVideo.Application.Videos.Likes;
 using VidiVideo.Application.Videos.Thumbnails;
 using VidiVideo.Application.Videos.VideoFile;
+using VidiVideo.Application.VideoViews;
 
 namespace VidiVideo.Application;
 
@@ -35,6 +37,8 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<UpdateCommentCommand, Guid>, UpdateCommentCommandHandler>();
         services.AddScoped<ICommandHandler<FollowCommand, bool>, FollowCommandHandler>();
         services.AddScoped<ICommandHandler<UnfollowCommand, bool>, UnfollowCommandHandler>();
+        services.AddScoped<ICommandHandler<RecordVideoViewCommand, Guid>, RecordVideoViewCommandHandler>();
+        services.AddScoped<ICommandHandler<MarkNotificationAsReadCommand, bool>, MarkNotificationAsReadCommandHandler>();
         //Queries
         services.AddScoped<IQueryHandler<GetCountryByIdQuery, CountryDto>, GetCountryByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetCountriesQuery, List<CountryDto>>, GetCountriesQueryHandler>();
@@ -49,6 +53,7 @@ public static class DependencyInjection
         services.AddScoped<IQueryHandler<GetVideoCommentsQuery, PagedResult<CommentDto>>, GetVideoCommentsQueryHandler>();
         services.AddScoped<IQueryHandler<FollowersQuery, PagedResult<UserFollowDto>>, FollowersQueryHandler>();
         services.AddScoped<IQueryHandler<FollowingQuery, PagedResult<UserFollowDto>>, FollowingQueryHandler>();
+        services.AddScoped<IQueryHandler<GetNotificationsQuery, PagedResult<NotificationMessage>>, GetNotificationsQueryHandler>();
         //Delete Commands
         services.AddScoped<ICommandHandler<DeleteCountryCommand, bool>, DeleteCountryCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteHashtagCommand, bool>, DeleteHashtagCommandHandler>();

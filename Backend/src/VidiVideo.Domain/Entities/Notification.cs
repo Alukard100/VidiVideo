@@ -12,4 +12,22 @@ public class Notification : AuditableEntity
     public bool IsRead { get; set; }
     public DateTime? ReadAtUtc { get; set; }
     public NotificationType Type { get; set; }
+
+    protected Notification() { }
+
+    public Notification(Guid userId, string title, string content, NotificationType type)
+    {
+        UserId = userId;
+        Title = title;
+        Content = content;
+        IsRead = false;
+        ReadAtUtc = null;
+        Type = type;
+    }
+
+    public void ReadNotification()
+    {
+        IsRead = true;
+        ReadAtUtc = DateTime.UtcNow;
+    }
 }

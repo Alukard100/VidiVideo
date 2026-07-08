@@ -10,4 +10,24 @@ public sealed class VideoView : AuditableEntity
     public Video Video { get; set; } = null!;
     public int WatchDurationSeconds { get; set; }
     public decimal CompletionRate { get; set; }
+
+    protected VideoView() { }
+
+    public VideoView(Guid userId, Guid videoId, int watchDurationSeconds, decimal completionRate)
+    {
+        UserId = userId;
+        VideoId = videoId;
+        WatchDurationSeconds = watchDurationSeconds;
+        CompletionRate = completionRate;
+    }
+
+    public void UpdateTimes(int watchDurationSeconds, decimal completionRate)
+    {
+        WatchDurationSeconds =
+            Math.Max(WatchDurationSeconds, watchDurationSeconds);
+
+        CompletionRate =
+            Math.Max(CompletionRate, completionRate);
+    }
+
 }

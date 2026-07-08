@@ -11,4 +11,5 @@ public interface IVideoRepository
     Task<Video?> GetVideoByIdAsync(Guid videoId);
     Task<int> CountAsync(string? search, Guid? category, List<string> hashtags);
     Task<List<Video>> GetFilteredVideosAsync(string? search, Guid? category, List<string> hashtags, int _page = 1, int _pageSize = 10);
+    Task<bool> ExistsByIdAsync(Guid videoId);
 }

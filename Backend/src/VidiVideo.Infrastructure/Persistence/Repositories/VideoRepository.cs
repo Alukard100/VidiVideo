@@ -45,6 +45,9 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
                 _db.Videos.Remove(video);
         }
 
+        public async Task<bool> ExistsByIdAsync(Guid videoId)
+            => await _db.Videos.AnyAsync(x => x.Id == videoId);
+
         public async Task<List<Video>> GetFilteredVideosAsync(string? search, Guid? category, List<string> hashtags, int _page = 1, int _pageSize = 20)
         {
             var query = _db.Videos.AsQueryable();

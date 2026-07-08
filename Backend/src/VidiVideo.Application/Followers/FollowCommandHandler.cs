@@ -2,6 +2,7 @@
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Exceptions;
 using VidiVideo.Domain.Entities;
+using VidiVideo.Domain.Enums;
 
 namespace VidiVideo.Application.Followers
 {
@@ -9,13 +10,15 @@ namespace VidiVideo.Application.Followers
     {
         private readonly IFollowersRepository _repo;
         private readonly IUserRepository _userRepository;
+        private readonly INotificationRepository _notificationRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public FollowCommandHandler(IFollowersRepository repo, IUnitOfWork unitOfWork, IUserRepository userRepository)
+        public FollowCommandHandler(IFollowersRepository repo, IUnitOfWork unitOfWork, IUserRepository userRepository, INotificationRepository notificationRepository)
         {
             _repo = repo;
             _unitOfWork = unitOfWork;
             _userRepository = userRepository;
+            _notificationRepository = notificationRepository;
         }
 
         public async Task<bool> HandleAsync(FollowCommand command, CancellationToken cancellationToken)
@@ -28,6 +31,10 @@ namespace VidiVideo.Application.Followers
             if (follow is null)
             {
                 await _repo.FollowAsync(new Follow(command.Follower, command.Creator));
+
+                var currentUser = await _userRepository.GetByIdAsync(command.Follower);
+                var notification = new Notification(command.Creator, "New follower", $"{currentUser.DisplayName} started following you", NotificationType.Follow);
+                await _notificationRepository.CreateAsync(notification);
             }
             else if (follow.IsDeleted)
             {
