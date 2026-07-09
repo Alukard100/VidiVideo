@@ -5,6 +5,7 @@ using VidiVideo.Application.Countries;
 using VidiVideo.Application.Followers;
 using VidiVideo.Application.Hashtags;
 using VidiVideo.Application.Notifications;
+using VidiVideo.Application.SearchHistories;
 using VidiVideo.Application.Users;
 using VidiVideo.Application.Videos;
 using VidiVideo.Application.Videos.Comments;
@@ -39,6 +40,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<UnfollowCommand, bool>, UnfollowCommandHandler>();
         services.AddScoped<ICommandHandler<RecordVideoViewCommand, Guid>, RecordVideoViewCommandHandler>();
         services.AddScoped<ICommandHandler<MarkNotificationAsReadCommand, bool>, MarkNotificationAsReadCommandHandler>();
+        services.AddScoped<ICommandHandler<CreateSearchHistoryCommand, Guid>, CreateSearchHistoryCommandHandler>();
         //Queries
         services.AddScoped<IQueryHandler<GetCountryByIdQuery, CountryDto>, GetCountryByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetCountriesQuery, List<CountryDto>>, GetCountriesQueryHandler>();
@@ -54,6 +56,7 @@ public static class DependencyInjection
         services.AddScoped<IQueryHandler<FollowersQuery, PagedResult<UserFollowDto>>, FollowersQueryHandler>();
         services.AddScoped<IQueryHandler<FollowingQuery, PagedResult<UserFollowDto>>, FollowingQueryHandler>();
         services.AddScoped<IQueryHandler<GetNotificationsQuery, PagedResult<NotificationMessage>>, GetNotificationsQueryHandler>();
+        services.AddScoped<IQueryHandler<GetSearchHistoryQuery, PagedResult<SearchHistoryDto>>, GetSearchHistoryQueryHandler>();
         //Delete Commands
         services.AddScoped<ICommandHandler<DeleteCountryCommand, bool>, DeleteCountryCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteHashtagCommand, bool>, DeleteHashtagCommandHandler>();
@@ -62,6 +65,8 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<DeleteVideoCommand, bool>, DeleteVideoCommandHandler>();
         services.AddScoped<ICommandHandler<UnlikeVideoCommand, bool>, UnlikeVideoCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteCommentCommand, bool>, DeleteCommentCommandHandler>();
+        services.AddScoped<ICommandHandler<DeleteSearchHistoryCommand, bool>, DeleteSearchHistoryCommandHandler>();
+        services.AddScoped<ICommandHandler<ClearSearchHistoryCommand, bool>, ClearSearchHistoryCommandHandler>();
 
         return services;
     }

@@ -7,4 +7,13 @@ public sealed class SearchHistory : AuditableEntity
     public Guid UserId { get; set; }
     public AppUser User { get; set; } = null!;
     public string Query { get; set; } = string.Empty;
+
+    protected SearchHistory() { }
+
+    public SearchHistory(Guid userId, string query)
+    {
+        UserId = userId;
+        Query = query;
+    }
+
 }
