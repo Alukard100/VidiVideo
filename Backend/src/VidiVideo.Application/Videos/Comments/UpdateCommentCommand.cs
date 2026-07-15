@@ -2,5 +2,5 @@
 
 namespace VidiVideo.Application.Videos.Comments;
 
-public sealed record UpdateCommentCommand(Guid id, string content) : ICommand<Guid>;
+public sealed record UpdateCommentCommand(Guid Id, string Content) : ICommand<Guid>;
 

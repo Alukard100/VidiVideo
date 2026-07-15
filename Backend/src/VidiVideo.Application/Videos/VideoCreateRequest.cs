@@ -3,10 +3,9 @@
 namespace VidiVideo.Application.Videos;
 
 public sealed record VideoCreateRequest(
-        Guid creatorId,
-        Guid categoryId,
-        string caption,
-        string videoUrl,
-        string thumbnailUrl,
-        VideoVisibility visibility,
-        bool isPublished);
+        Guid CategoryId,
+        string Caption,
+        string VideoUrl,
+        string ThumbnailUrl,
+        VideoVisibility Visibility,
+        bool IsPublished);

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Videos;
 using VidiVideo.Application.Videos.Thumbnails;
@@ -29,16 +30,18 @@ public class VideoController : ControllerBase
         _updateHandler = updateHandler;
     }
 
+    [Authorize]
     [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] VideoCreateRequest request, CancellationToken cancellation)
     {
-        var command = new CreateVideoCommand(request.creatorId, request.categoryId, request.caption, request.videoUrl, request.thumbnailUrl, request.visibility, request.isPublished);
+        var command = new CreateVideoCommand(request.CategoryId, request.Caption, request.VideoUrl, request.ThumbnailUrl, request.Visibility, request.IsPublished);
 
         var videoId = await _createVideoHandler.HandleAsync(command, cancellation);
 
         return Ok(videoId);
     }
 
+    [Authorize]
     [HttpPost("upload-video")]
     [RequestSizeLimit(524288000)]
     public async Task<IActionResult> UploadVideo(IFormFile formFile, CancellationToken cancellation)
@@ -50,6 +53,7 @@ public class VideoController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize]
     [HttpPost("upload-thumbnail")]
     [RequestSizeLimit(5242880)]
     public async Task<IActionResult> UploadImage(IFormFile formFile, CancellationToken cancellation)
@@ -78,6 +82,7 @@ public class VideoController : ControllerBase
         return Ok(video);
     }
 
+    [Authorize]
     [HttpDelete("{videoId:guid}")]
     public async Task<IActionResult> DeleteVideo(Guid videoId, CancellationToken cancellationToken)
     {
@@ -88,10 +93,11 @@ public class VideoController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize]
     [HttpPatch("update")]
     public async Task<IActionResult> UpdateVideo([FromBody] VideoUpdateRequest request, CancellationToken cancellationToken)
     {
-        var command = new UpdateVideoCommand(request.videoId, request.categoryId, request.caption, request.thumbnailUrl, request.visibility, request.isPublished);
+        var command = new UpdateVideoCommand(request.VideoId, request.CategoryId, request.Caption, request.ThumbnailUrl, request.Visibility, request.IsPublished);
 
         var result = await _updateHandler.HandleAsync(command, cancellationToken);
 

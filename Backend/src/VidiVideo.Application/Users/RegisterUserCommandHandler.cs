@@ -36,13 +36,13 @@ namespace VidiVideo.Application.Users
 
             var user = new AppUser(command.UserName, command.Email, hashedPassword, command.DisplayName);
 
-            if (await _userRepository.ExistsByEmailAsync(command.Email))
+            if (!await _userRepository.ExistsByEmailAsync(command.Email))
             {
                 throw new ConflictException(
                     "User with this email already exists.");
             }
 
-            if (await _userRepository.ExistsByUserNameAsync(command.UserName))
+            if (!await _userRepository.ExistsByUserNameAsync(command.UserName))
             {
                 throw new ConflictException(
                     "User with this username already exists. ");

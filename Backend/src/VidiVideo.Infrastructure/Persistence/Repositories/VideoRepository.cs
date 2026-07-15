@@ -13,6 +13,10 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             _db = db;
         }
 
+        public async Task<bool> CheckOwnershipAsync(Guid creatorId, Guid videoId)
+            => await _db.Videos.AnyAsync(x => x.Id == videoId && x.CreatorId == creatorId);
+
+
         public async Task<int> CountAsync(string? search, Guid? category, List<string> hashtags)
         {
             var query = _db.Videos.AsQueryable();

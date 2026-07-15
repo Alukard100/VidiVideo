@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.SearchHistories;
 
@@ -25,6 +26,7 @@ public class SearchHistoryController : ControllerBase
         _getHandler = getHandler;
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create(
         CreateSearchHistoryCommand command,
@@ -33,6 +35,7 @@ public class SearchHistoryController : ControllerBase
         return Ok(await _createHandler.HandleAsync(command, cancellation));
     }
 
+    [Authorize]
     [HttpGet("history")]
     public async Task<IActionResult> Get(
         [FromQuery] GetSearchHistoryQuery query,
@@ -41,6 +44,7 @@ public class SearchHistoryController : ControllerBase
         return Ok(await _getHandler.HandleAsync(query, cancellation));
     }
 
+    [Authorize]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(
         Guid id,
@@ -51,6 +55,7 @@ public class SearchHistoryController : ControllerBase
             cancellation));
     }
 
+    [Authorize]
     [HttpDelete("clear/{userId:guid}")]
     public async Task<IActionResult> Clear(
         Guid userId,

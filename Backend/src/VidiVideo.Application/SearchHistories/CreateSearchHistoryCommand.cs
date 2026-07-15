@@ -2,4 +2,4 @@
 
 namespace VidiVideo.Application.SearchHistories;
 
-public sealed record CreateSearchHistoryCommand(Guid UserId, string Query) : ICommand<Guid>;
+public sealed record CreateSearchHistoryCommand(string Query) : ICommand<Guid>;

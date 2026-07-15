@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VidiVideo.Application.Categories;
 using VidiVideo.Application.Common;
+using VidiVideo.Domain.Constants;
 
 namespace VidiVideo.Api.Controllers
 {
@@ -23,6 +25,7 @@ namespace VidiVideo.Api.Controllers
             _getCategoriesHandler = getCategoriesHandler;
         }
 
+        [Authorize(Roles = AppRoles.Admin)]
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] CreateCategoryRequest request, CancellationToken cancellationToken)
         {
@@ -33,6 +36,7 @@ namespace VidiVideo.Api.Controllers
             return Ok(categoryId);
         }
 
+        [Authorize(Roles = AppRoles.Admin)]
         [HttpPatch("update")]
         public async Task<IActionResult> Update([FromBody] UpdateCategoryRequest request, CancellationToken cancellationToken)
         {
@@ -43,6 +47,7 @@ namespace VidiVideo.Api.Controllers
             return Ok(category);
         }
 
+        [Authorize(Roles = AppRoles.Admin)]
         [HttpDelete("{categoryId:guid}")]
         public async Task<IActionResult> DeleteCountry(Guid categoryId, CancellationToken cancellationToken)
         {

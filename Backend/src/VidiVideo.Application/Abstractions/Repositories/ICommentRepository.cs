@@ -10,6 +10,6 @@ namespace VidiVideo.Application.Abstractions.Repositories
         Task<List<Comment>> GetVideoCommentsAsync(Guid videoId, int _page = 1, int _pageSize = 20);
         Task<int> CountVideoCommentsAsync(Guid videoId);
         Task<Comment?> GetCommentByIdAsync(Guid commentId);
-
+        Task<bool> CheckOwnershipAsync(Guid userId, Guid commentId);
     }
 }

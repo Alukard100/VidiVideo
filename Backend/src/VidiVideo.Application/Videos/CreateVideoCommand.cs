@@ -3,5 +3,5 @@ using VidiVideo.Domain.Enums;
 
 namespace VidiVideo.Application.Videos;
 
-public sealed record CreateVideoCommand(Guid CreatorId, Guid CategoryId, string Caption, string VideoUrl, string ThumbnailUrl, VideoVisibility Visibility, bool IsPublished) : ICommand<Guid>;
+public sealed record CreateVideoCommand(Guid CategoryId, string Caption, string VideoUrl, string ThumbnailUrl, VideoVisibility Visibility, bool IsPublished) : ICommand<Guid>;
 

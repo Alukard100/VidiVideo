@@ -13,6 +13,9 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             _db = db;
         }
 
+        public async Task<bool> CheckOwnershipAsync(Guid userId, Guid commentId)
+            => await _db.Comments.AnyAsync(x => x.Id == commentId && x.AuthorId == userId);
+
         public async Task<int> CountVideoCommentsAsync(Guid videoId)
             => await _db.Comments.CountAsync(c => c.VideoId == videoId);
 

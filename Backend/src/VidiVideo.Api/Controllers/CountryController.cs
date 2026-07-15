@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Countries;
+using VidiVideo.Domain.Constants;
 
 namespace VidiVideo.Api.Controllers;
 
@@ -22,6 +24,7 @@ public class CountryController : ControllerBase
         _updateCountryHandler = updateCountryHandler;
     }
 
+    [Authorize(Roles = AppRoles.Admin)]
     [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] CreateCountryRequest request, CancellationToken cancellationToken)
     {
@@ -50,6 +53,7 @@ public class CountryController : ControllerBase
         return Ok(country);
     }
 
+    [Authorize(Roles = AppRoles.Admin)]
     [HttpDelete("{countryId:guid}")]
     public async Task<IActionResult> DeleteCountry(Guid countryId, CancellationToken cancellationToken)
     {
@@ -60,6 +64,7 @@ public class CountryController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Roles = AppRoles.Admin)]
     [HttpPatch("update")]
     public async Task<IActionResult> Update([FromBody] UpdateCountryRequest request, CancellationToken cancellationToken)
     {

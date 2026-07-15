@@ -2,4 +2,4 @@
 
 namespace VidiVideo.Application.Videos.Comments;
 
-public sealed record CreateCommentCommand(Guid UserID, Guid VideoId, string Content) : ICommand<Guid>;
+public sealed record CreateCommentCommand(Guid VideoId, string Content) : ICommand<Guid>;

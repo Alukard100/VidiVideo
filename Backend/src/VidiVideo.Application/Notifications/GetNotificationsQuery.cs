@@ -2,4 +2,4 @@
 
 namespace VidiVideo.Application.Notifications;
 
-public sealed record GetNotificationsQuery(Guid UserId) : PagedRequest, IQuery<PagedResult<NotificationMessage>>;
+public sealed record GetNotificationsQuery() : PagedRequest, IQuery<PagedResult<NotificationMessage>>;

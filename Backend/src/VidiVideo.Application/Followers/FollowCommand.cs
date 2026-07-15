@@ -2,5 +2,5 @@
 
 namespace VidiVideo.Application.Followers;
 
-public sealed record FollowCommand(Guid Follower, Guid Creator) : ICommand<bool>;
+public sealed record FollowCommand(Guid Creator) : ICommand<bool>;
 

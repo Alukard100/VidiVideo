@@ -2,4 +2,4 @@
 
 namespace VidiVideo.Application.Followers;
 
-public sealed record UnfollowCommand(Guid Follower, Guid Creator) : ICommand<bool>;
+public sealed record UnfollowCommand(Guid Creator) : ICommand<bool>;

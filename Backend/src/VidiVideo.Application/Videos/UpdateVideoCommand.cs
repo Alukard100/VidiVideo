@@ -3,4 +3,4 @@ using VidiVideo.Domain.Enums;
 
 namespace VidiVideo.Application.Videos;
 
-public sealed record UpdateVideoCommand(Guid videoId, Guid categoryId, string caption, string thumbnailUrl, VideoVisibility visibility, bool isPublished) : ICommand<Guid>;
+public sealed record UpdateVideoCommand(Guid VideoId, Guid CategoryId, string Caption, string ThumbnailUrl, VideoVisibility Visibility, bool IsPublished) : ICommand<Guid>;

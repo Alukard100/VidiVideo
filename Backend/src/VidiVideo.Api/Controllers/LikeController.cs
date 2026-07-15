@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Videos.Likes;
 
@@ -17,19 +18,21 @@ public class LikeController : ControllerBase
         _unlikeHandler = unlikeHandler;
     }
 
+    [Authorize]
     [HttpPost("like")]
-    public async Task<IActionResult> Like([FromBody] LikeDto request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Like([FromBody] LikeRequest request, CancellationToken cancellationToken)
     {
-        var command = new LikeVideoCommand(request.UserId, request.VideoId);
+        var command = new LikeVideoCommand(request.VideoId);
 
         var response = await _likeHandler.HandleAsync(command, cancellationToken);
 
         return Ok(response);
     }
+    [Authorize]
     [HttpDelete("unlike")]
-    public async Task<IActionResult> Unlike([FromBody] LikeDto request, CancellationToken cancellation)
+    public async Task<IActionResult> Unlike([FromBody] LikeRequest request, CancellationToken cancellation)
     {
-        var command = new UnlikeVideoCommand(request.UserId, request.VideoId);
+        var command = new UnlikeVideoCommand(request.VideoId);
 
         var response = await _unlikeHandler.HandleAsync(command, cancellation);
 

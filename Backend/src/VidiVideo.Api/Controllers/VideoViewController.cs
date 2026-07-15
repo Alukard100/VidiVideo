@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.VideoViews;
 
@@ -14,10 +15,11 @@ namespace VidiVideo.Api.Controllers
             _commandHandler = commandHandler;
         }
 
+        [Authorize]
         [HttpPost("record")]
         public async Task<IActionResult> Record([FromBody] RecordVideoViewRequest request, CancellationToken cancellationToken)
         {
-            var command = new RecordVideoViewCommand(request.UserId, request.VideoId, request.WatchDurationSeconds, request.CompletionRate);
+            var command = new RecordVideoViewCommand(request.VideoId, request.WatchDurationSeconds, request.CompletionRate);
 
             var resultId = await _commandHandler.HandleAsync(command, cancellationToken);
 

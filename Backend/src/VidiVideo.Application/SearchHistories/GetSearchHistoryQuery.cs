@@ -2,4 +2,4 @@
 
 namespace VidiVideo.Application.SearchHistories;
 
-public sealed record GetSearchHistoryQuery(Guid UserId) : PagedRequest, IQuery<PagedResult<SearchHistoryDto>>;
+public sealed record GetSearchHistoryQuery() : PagedRequest, IQuery<PagedResult<SearchHistoryDto>>;

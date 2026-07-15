@@ -5,6 +5,7 @@ using VidiVideo.Application.Countries;
 using VidiVideo.Application.Followers;
 using VidiVideo.Application.Hashtags;
 using VidiVideo.Application.Notifications;
+using VidiVideo.Application.Payments.PayPal;
 using VidiVideo.Application.SearchHistories;
 using VidiVideo.Application.Users;
 using VidiVideo.Application.Videos;
@@ -41,6 +42,8 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<RecordVideoViewCommand, Guid>, RecordVideoViewCommandHandler>();
         services.AddScoped<ICommandHandler<MarkNotificationAsReadCommand, bool>, MarkNotificationAsReadCommandHandler>();
         services.AddScoped<ICommandHandler<CreateSearchHistoryCommand, Guid>, CreateSearchHistoryCommandHandler>();
+        services.AddScoped<ICommandHandler<CreatePayPalOrderCommand, string>, CreatePayPalOrderCommandHandler>();
+        services.AddScoped<ICommandHandler<CapturePayPalOrderCommand, bool>, CapturePayPalOrderCommandHandler>();
         //Queries
         services.AddScoped<IQueryHandler<GetCountryByIdQuery, CountryDto>, GetCountryByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetCountriesQuery, List<CountryDto>>, GetCountriesQueryHandler>();

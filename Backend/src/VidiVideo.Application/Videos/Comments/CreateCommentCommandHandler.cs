@@ -1,4 +1,5 @@
-﻿using VidiVideo.Application.Abstractions.Repositories;
+﻿using VidiVideo.Application.Abstractions;
+using VidiVideo.Application.Abstractions.Repositories;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Exceptions;
 using VidiVideo.Domain.Entities;
@@ -13,13 +14,15 @@ namespace VidiVideo.Application.Videos.Comments
         private readonly IVideoRepository _videoRepository;
         private readonly INotificationRepository _notificationRepository;
         private readonly IUnitOfWork _unitOfWork;
-        public CreateCommentCommandHandler(ICommentRepository repo, IUserRepository userRepository, IVideoRepository videoRepository, IUnitOfWork unitOfWork, INotificationRepository notificationRepository)
+        private readonly ICurrentUser _currentUser;
+        public CreateCommentCommandHandler(ICommentRepository repo, IUserRepository userRepository, IVideoRepository videoRepository, IUnitOfWork unitOfWork, INotificationRepository notificationRepository, ICurrentUser currentUser)
         {
             _repo = repo;
             _userRepository = userRepository;
             _videoRepository = videoRepository;
             _unitOfWork = unitOfWork;
             _notificationRepository = notificationRepository;
+            _currentUser = currentUser;
         }
 
         public async Task<Guid> HandleAsync(CreateCommentCommand command, CancellationToken cancellationToken)
@@ -27,11 +30,13 @@ namespace VidiVideo.Application.Videos.Comments
             if (string.IsNullOrWhiteSpace(command.Content))
                 throw new ValidationException("Can't post an empty comment");
 
-            var currentUser = await _userRepository.GetByIdAsync(command.UserID) ?? throw new UnauthorizedException("You must login");
+            var creatorId = _currentUser.UserId ?? throw new UnauthorizedException("Must be logged in");
+
+            var currentUser = await _userRepository.GetByIdAsync(creatorId) ?? throw new UnauthorizedException("You must login");
 
             var video = await _videoRepository.GetVideoByIdAsync(command.VideoId) ?? throw new NotFoundException("Video doesn't exist");
 
-            var comment = new Comment(command.VideoId, command.UserID, command.Content);
+            var comment = new Comment(command.VideoId, creatorId, command.Content);
 
             await _repo.CreateCommentAsync(comment);
 

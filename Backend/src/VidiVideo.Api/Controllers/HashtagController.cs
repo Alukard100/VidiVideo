@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Hashtags;
+using VidiVideo.Domain.Constants;
 
 namespace VidiVideo.Api.Controllers;
 
@@ -21,6 +23,7 @@ public class HashtagController : ControllerBase
         _deleteHandler = deleteHandler;
     }
 
+    [Authorize]
     [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] CreateHashtagRequest request, CancellationToken cancellationToken)
     {
@@ -49,6 +52,7 @@ public class HashtagController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Roles = AppRoles.Admin)]
     [HttpDelete("{hashtagId:guid}")]
     public async Task<IActionResult> DeleteHashtag(Guid hashtagId, CancellationToken cancellationToken)
     {

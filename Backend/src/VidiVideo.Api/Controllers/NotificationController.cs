@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Notifications;
 
@@ -17,6 +18,7 @@ namespace VidiVideo.Api.Controllers
             _queryHandler = queryHandler;
         }
 
+        [Authorize]
         [HttpPatch("read")]
         public async Task<IActionResult> Read([FromBody] Guid notificationId, CancellationToken cancellationToken)
         {
@@ -27,6 +29,7 @@ namespace VidiVideo.Api.Controllers
             return Ok(result);
         }
 
+        [Authorize]
         [HttpGet("mynotifications")]
         public async Task<IActionResult> GetNotifications([FromQuery] GetNotificationsQuery query, CancellationToken cancellationToken)
         {

@@ -1,4 +1,4 @@
 ﻿namespace VidiVideo.Application.Videos.Comments;
 
-public sealed record CreateCommentRequest(Guid UserId, Guid VideoId, string Content);
+public sealed record CreateCommentRequest(Guid VideoId, string Content);
 

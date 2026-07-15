@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Videos.Comments;
 
@@ -23,16 +24,18 @@ namespace VidiVideo.Api.Controllers
             _queryHandler = queryHandler;
         }
 
+        [Authorize]
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] CreateCommentRequest request, CancellationToken cancellationToken)
         {
-            var command = new CreateCommentCommand(request.UserId, request.VideoId, request.Content);
+            var command = new CreateCommentCommand(request.VideoId, request.Content);
 
             var commentId = await _createHandler.HandleAsync(command, cancellationToken);
 
             return Ok(commentId);
         }
 
+        [Authorize]
         [HttpPatch("update")]
         public async Task<IActionResult> Update([FromBody] UpdateCommentRequest request, CancellationToken cancellationToken)
         {
@@ -43,6 +46,7 @@ namespace VidiVideo.Api.Controllers
             return Ok(commentId);
         }
 
+        [Authorize]
         [HttpDelete("{commentId:guid}")]
         public async Task<IActionResult> DeleteComment(Guid commentId, CancellationToken cancellationToken)
         {

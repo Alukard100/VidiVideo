@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Followers;
 
@@ -21,6 +22,7 @@ namespace VidiVideo.Api.Controllers
             _followersHandler = followersHandler;
         }
 
+        [Authorize]
         [HttpPost("follow")]
         public async Task<IActionResult> Follow([FromBody] FollowRequest request, CancellationToken cancellationToken)
         {
@@ -31,6 +33,7 @@ namespace VidiVideo.Api.Controllers
             return Ok(response);
         }
 
+        [Authorize]
         [HttpDelete("unfollow")]
         public async Task<IActionResult> Unfollow([FromBody] FollowRequest request, CancellationToken cancellationToken)
         {
@@ -41,6 +44,7 @@ namespace VidiVideo.Api.Controllers
             return Ok(response);
         }
 
+        [Authorize]
         [HttpGet("followers")]
         public async Task<IActionResult> Followers([FromQuery] FollowersQuery query, CancellationToken cancellationToken)
         {
@@ -49,6 +53,7 @@ namespace VidiVideo.Api.Controllers
             return Ok(results);
         }
 
+        [Authorize]
         [HttpGet("following")]
         public async Task<IActionResult> Following([FromQuery] FollowingQuery query, CancellationToken cancellationToken)
         {

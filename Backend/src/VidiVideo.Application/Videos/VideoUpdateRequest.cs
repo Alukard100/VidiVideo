@@ -2,4 +2,4 @@
 
 namespace VidiVideo.Application.Videos;
 
-public sealed record VideoUpdateRequest(Guid videoId, Guid categoryId, string caption, string thumbnailUrl, VideoVisibility visibility, bool isPublished);
+public sealed record VideoUpdateRequest(Guid VideoId, Guid CategoryId, string Caption, string ThumbnailUrl, VideoVisibility Visibility, bool IsPublished);
