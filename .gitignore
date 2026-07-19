@@ -81,6 +81,10 @@ Backend/src/**/appsettings.Development.json
 
 recommender-documentation.md
 
+# Uploaded media
+Backend/src/VidiVideo.Api/wwwroot/images/
+Backend/src/VidiVideo.Api/wwwroot/videos/
+
 # Miscellaneous
 *.class
 *.log
