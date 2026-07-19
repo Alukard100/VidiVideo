@@ -26,7 +26,7 @@ namespace VidiVideo.Api.Controllers
         [HttpPost("follow")]
         public async Task<IActionResult> Follow([FromBody] FollowRequest request, CancellationToken cancellationToken)
         {
-            var command = new FollowCommand(request.CurrentUserId, request.TargeTuserId);
+            var command = new FollowCommand(request.TargeTuserId);
 
             var response = await _followHandler.HandleAsync(command, cancellationToken);
 
@@ -37,7 +37,7 @@ namespace VidiVideo.Api.Controllers
         [HttpDelete("unfollow")]
         public async Task<IActionResult> Unfollow([FromBody] FollowRequest request, CancellationToken cancellationToken)
         {
-            var command = new UnfollowCommand(request.CurrentUserId, request.TargeTuserId);
+            var command = new UnfollowCommand(request.TargeTuserId);
 
             var response = await _unfollowHandler.HandleAsync(command, cancellationToken);
 

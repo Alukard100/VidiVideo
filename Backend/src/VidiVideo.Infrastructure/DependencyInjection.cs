@@ -43,6 +43,7 @@ public static class DependencyInjection
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<ISearchHistoryRepository, SearchHistoryRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
+        services.AddScoped<IContentReportRepository, ContentReportRepository>();
 
         services.AddHttpClient<IPayPalService, IPayPalService>();
 

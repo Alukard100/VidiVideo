@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using VidiVideo.Application.Categories;
 using VidiVideo.Application.Common;
+using VidiVideo.Application.ContentReports;
 using VidiVideo.Application.Countries;
 using VidiVideo.Application.Followers;
 using VidiVideo.Application.Hashtags;
@@ -44,6 +45,8 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<CreateSearchHistoryCommand, Guid>, CreateSearchHistoryCommandHandler>();
         services.AddScoped<ICommandHandler<CreatePayPalOrderCommand, string>, CreatePayPalOrderCommandHandler>();
         services.AddScoped<ICommandHandler<CapturePayPalOrderCommand, bool>, CapturePayPalOrderCommandHandler>();
+        services.AddScoped<ICommandHandler<CreateContentReportCommand, Guid>, CreateContentReportCommandHandler>();
+        services.AddScoped<ICommandHandler<ReviewContentReportCommand, Guid>, ReviewContentReportCommandHandler>();
         //Queries
         services.AddScoped<IQueryHandler<GetCountryByIdQuery, CountryDto>, GetCountryByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetCountriesQuery, List<CountryDto>>, GetCountriesQueryHandler>();
@@ -60,6 +63,7 @@ public static class DependencyInjection
         services.AddScoped<IQueryHandler<FollowingQuery, PagedResult<UserFollowDto>>, FollowingQueryHandler>();
         services.AddScoped<IQueryHandler<GetNotificationsQuery, PagedResult<NotificationMessage>>, GetNotificationsQueryHandler>();
         services.AddScoped<IQueryHandler<GetSearchHistoryQuery, PagedResult<SearchHistoryDto>>, GetSearchHistoryQueryHandler>();
+        services.AddScoped<IQueryHandler<GetContentReportsQuery, PagedResult<ContentReportDto>>, GetContentReportsQueryHandler>();
         //Delete Commands
         services.AddScoped<ICommandHandler<DeleteCountryCommand, bool>, DeleteCountryCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteHashtagCommand, bool>, DeleteHashtagCommandHandler>();

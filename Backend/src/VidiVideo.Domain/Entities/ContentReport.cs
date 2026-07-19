@@ -17,4 +17,22 @@ public sealed class ContentReport : AuditableEntity
     public AppUser? ReviewedBy { get; set; }
     public DateTime? ReviewedAtUtc { get; set; }
     public string? ResolutionNote { get; set; }
+
+    protected ContentReport() { }
+
+    public ContentReport(Guid reporterId, Guid? videoId, Guid? commentId, string reason)
+    {
+        ReporterId = reporterId;
+        VideoId = videoId;
+        CommentId = commentId;
+        Reason = reason;
+    }
+
+    public void Review(Guid reviewerId, string resolutionNote, ReportStatus reportStatus)
+    {
+        ReviewedById = reviewerId;
+        ReviewedAtUtc = DateTime.UtcNow;
+        ResolutionNote = resolutionNote;
+        Status = reportStatus;
+    }
 }
