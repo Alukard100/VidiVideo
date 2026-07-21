@@ -21,18 +21,21 @@ namespace VidiVideo.Application.ContentReports
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<System.Guid> HandleAsync(CreateContentReportCommand command, CancellationToken cancellationToken)
+        public async Task<Guid> HandleAsync(CreateContentReportCommand command, CancellationToken cancellationToken)
         {
-            if (command.CommentId == null && command.VideoId == null)
+            if (command.CommentId is null && command.VideoId is null)
+                throw new ValidationException("Invalid request");
+
+            if (command.CommentId is not null && command.VideoId is not null)
                 throw new ValidationException("Invalid request");
 
             var creatorId = _currentUser.UserId ?? throw new UnauthorizedException("Must be logged in");
 
-            if (command.CommentId is System.Guid commentId)
+            if (command.CommentId is Guid commentId)
                 if (!await _commentRepository.ExistsByIdAsync(commentId))
                     throw new NotFoundException("Invalid request");
 
-            if (command.VideoId is System.Guid videoId)
+            if (command.VideoId is Guid videoId)
                 if (!await _videoRepository.ExistsByIdAsync(videoId))
                     throw new NotFoundException("Invalid request");
 

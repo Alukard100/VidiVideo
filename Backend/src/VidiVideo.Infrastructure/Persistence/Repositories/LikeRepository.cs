@@ -13,6 +13,15 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             _db = db;
         }
 
+        public async Task<int> CountTotalLikesAsync(DateTime? f)
+        {
+            var query = _db.Likes.AsQueryable();
+            if (f.HasValue)
+                query = query.Where(x => x.CreatedAtUtc >= f.Value);
+            return await query.CountAsync();
+
+        }
+
         public async Task<bool> IsLikedByCurrentUser(Guid videoId, Guid userId)
             => await _db.Likes.AnyAsync(x => x.VideoId == videoId && x.UserId == userId);
 

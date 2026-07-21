@@ -7,9 +7,11 @@ using VidiVideo.Application.Abstractions.Repositories;
 using VidiVideo.Infrastructure.Authentication;
 using VidiVideo.Infrastructure.Media;
 using VidiVideo.Infrastructure.Messaging;
+using VidiVideo.Infrastructure.Payments;
 using VidiVideo.Infrastructure.Persistence;
 using VidiVideo.Infrastructure.Persistence.Repositories;
 using VidiVideo.Infrastructure.Persistence.Seed;
+using VidiVideo.Infrastructure.Reports;
 
 namespace VidiVideo.Infrastructure;
 
@@ -44,8 +46,10 @@ public static class DependencyInjection
         services.AddScoped<ISearchHistoryRepository, SearchHistoryRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddScoped<IContentReportRepository, ContentReportRepository>();
+        services.AddScoped<IRevenueReportGenerator, RevenueReportGenerator>();
+        services.AddScoped<IVideoAnalyticsReportGenerator, VideoAnalyticsReportGenerator>();
 
-        services.AddHttpClient<IPayPalService, IPayPalService>();
+        services.AddHttpClient<IPayPalService, PayPalService>();
 
         services.AddScoped<DatabaseSeeder>();
 

@@ -18,6 +18,7 @@ public sealed class Video : AuditableEntity
     public ICollection<Comment> Comments { get; private set; } = [];
     public ICollection<Like> Likes { get; private set; } = [];
     public ICollection<VideoHashtag> VideoHashtags { get; private set; } = [];
+    public ICollection<VideoView> VideoViews { get; private set; } = [];
     protected Video() { }
     public Video(Guid creatorId, Guid categoryId, string caption, string videoUrl, string thumbnailUrl, VideoVisibility visibility, bool isPublished)
     {

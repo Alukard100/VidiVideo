@@ -1,6 +1,7 @@
 using FFMpegCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using QuestPDF.Infrastructure;
 using System.Text;
 using VidiVideo.Api.Configuration;
 using VidiVideo.Api.Exceptions;
@@ -12,6 +13,7 @@ using VidiVideo.Infrastructure.Persistence.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 builder.Configuration.AddEnvironmentVariables(prefix: "VIDIVIDEO_");
 
 GlobalFFOptions.Configure(options =>
@@ -20,6 +22,8 @@ GlobalFFOptions.Configure(options =>
         builder.Environment.ContentRootPath,
         "Resources", "ffmpeg");
 });
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();

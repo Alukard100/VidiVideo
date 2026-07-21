@@ -12,6 +12,15 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             _db = db;
         }
 
+        public async Task<int> CountTotalViewsAsync(DateTime? f)
+        {
+            var query = _db.VideoViews.AsQueryable();
+            if (f.HasValue)
+                query = query.Where(x => x.CreatedAtUtc >= f.Value);
+            return await query.CountAsync();
+
+        }
+
         public async Task<int> CountViewsAsync(Guid videoId)
             => await _db.VideoViews.CountAsync(x => x.VideoId == videoId);
 

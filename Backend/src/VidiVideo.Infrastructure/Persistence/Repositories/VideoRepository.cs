@@ -38,6 +38,39 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             return await query.CountAsync();
         }
 
+        public async Task<int> CountPublicAsync(DateTime? f)
+        {
+            var query = _db.Videos.AsQueryable();
+            if (f.HasValue)
+                query = query.Where(x => x.CreatedAtUtc >= f.Value);
+            return await query.CountAsync(x => x.Visibility == Domain.Enums.VideoVisibility.Public);
+
+        }
+        public async Task<int> CountPublishedAsync(DateTime? f)
+        {
+            var query = _db.Videos.AsQueryable();
+            if (f.HasValue)
+                query = query.Where(x => x.CreatedAtUtc >= f.Value);
+            return await query.CountAsync(x => x.IsPublished);
+
+        }
+        public async Task<int> CountSubscriberAsync(DateTime? f)
+        {
+            var query = _db.Videos.AsQueryable();
+            if (f.HasValue)
+                query = query.Where(x => x.CreatedAtUtc >= f.Value);
+            return await query.CountAsync(x => x.Visibility == Domain.Enums.VideoVisibility.SubscribersOnly);
+
+        }
+
+        public async Task<int> CountVideosFromAsync(DateTime? f = null)
+        {
+            var query = _db.Videos.AsQueryable();
+            if (f.HasValue)
+                query = query.Where(x => x.CreatedAtUtc >= f.Value);
+            return await query.CountAsync();
+        }
+
         public async Task CreateVideoAsync(Video video)
             => await _db.Videos.AddAsync(video);
 
@@ -101,6 +134,26 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public Task<List<Video>> GetVideosAsync()
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<List<Video>> TopVideosAsync(DateTime? f = null)
+        {
+            var query = _db.Videos
+                .Include(v => v.Creator)
+                .Include(v => v.VideoViews)
+                .Include(v => v.Likes)
+                .Include(v => v.Comments)
+                .AsQueryable();
+
+            if (f.HasValue)
+                query = query.Where(v => v.CreatedAtUtc >= f.Value);
+
+            return await query
+                .OrderByDescending(v => v.VideoViews.Count)
+                .ThenByDescending(v => v.Likes.Count)
+                .ThenByDescending(v => v.Comments.Count)
+                .Take(30)
+                .ToListAsync();
         }
     }
 }
