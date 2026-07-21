@@ -31,6 +31,54 @@ Frontend/
   lib/                         Flutter desktop/mobile starter
 ```
 
+## Features
+
+### Authentication
+- JWT authentication
+- Role-based authorization
+- BCrypt password hashing
+- Current user abstraction
+
+### Video Management
+- Upload video metadata
+- Update video
+- Delete video
+- Pagination
+- Search
+- Category filtering
+- Hashtag filtering
+- Video visibility
+- Publish / unpublish
+
+### Social Features
+- Like / Unlike videos
+- Follow / Unfollow creators
+- Comments
+- Search history
+- Video watch history
+- Notifications
+
+### Creator Features
+- Creator subscriptions
+- Premium subscriptions
+- PayPal Sandbox integration
+- Payment verification
+
+### Moderation
+- Content reports
+- Review reports
+- Admin moderation endpoints
+
+### Reports
+- Revenue Analytics PDF
+- Video Analytics PDF
+
+### Infrastructure
+- RabbitMQ
+- SQL Server
+- CQRS architecture
+- Docker Compose
+
 ## Getting Started
 
 1. Copy `.env.example` to `.env`.
@@ -64,7 +112,7 @@ flutter pub get
 
 ## Development Accounts
 
-Seed users are not implemented yet. The final README must include the course-required credentials:
+The database is seeded automatically on first startup.
 
 | Context | Username | Password |
 | --- | --- | --- |
@@ -72,12 +120,94 @@ Seed users are not implemented yet. The final README must include the course-req
 | Mobile version | mobile | test |
 | Admin role | admin | test |
 
-## Next Backend Milestones
+## Backend Status
 
-1. Add authentication endpoints and password hashing.
-2. Add migrations and seed data for `190103`.
-3. Implement CRUD endpoints for reference data.
-4. Implement video upload metadata, comments, likes, follows, reports, and subscriptions.
-5. Implement PayPal sandbox payment verification on the server side.
-6. Replace worker heartbeat with real notification/email processing from RabbitMQ.
-7. Add two PDF reports for the admin application.
+Implemented:
+
+- Authentication
+- Authorization
+- Seed data
+- CRUD endpoints
+- Categories
+- Countries
+- Hashtags
+- Videos
+- Comments
+- Likes
+- Follows
+- Notifications
+- Search History
+- Video Views
+- Content Reports
+- Creator Subscriptions
+- Payments
+- PayPal Sandbox verification
+- Revenue PDF report
+- Video Analytics PDF report
+
+## API Overview
+
+Main endpoints include:
+
+- Authentication
+- Users
+- Videos
+- Categories
+- Countries
+- Hashtags
+- Comments
+- Likes
+- Follows
+- Notifications
+- Search History
+- Video Views
+- Reports
+- PayPal
+
+## Technologies
+
+Backend
+
+- .NET 9
+- ASP.NET Core
+- Entity Framework Core
+- SQL Server
+- JWT
+- BCrypt
+- RabbitMQ
+- QuestPDF
+- FFMpegCore
+
+Frontend
+
+- Flutter
+
+## Architecture
+
+The backend follows a layered architecture.
+
+- Domain
+- Application
+- Infrastructure
+- API
+- Worker
+
+Application logic is implemented using CQRS with Commands and Queries.
+
+Persistence is handled through repositories and a Unit of Work.
+
+Authentication is based on JWT access tokens.
+
+Background processing is handled through RabbitMQ.
+
+## Reporting
+
+The administrator can generate PDF reports.
+
+Available reports:
+
+- Revenue Analytics Report
+- Video Analytics Report
+
+Reports support optional date filtering and are generated using QuestPDF.
+
