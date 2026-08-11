@@ -1,5 +1,6 @@
 using FFMpegCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using QuestPDF.Infrastructure;
 using System.Text;
@@ -9,6 +10,7 @@ using VidiVideo.Api.Services;
 using VidiVideo.Application;
 using VidiVideo.Application.Abstractions;
 using VidiVideo.Infrastructure;
+using VidiVideo.Infrastructure.Persistence;
 using VidiVideo.Infrastructure.Persistence.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,9 +20,12 @@ builder.Configuration.AddEnvironmentVariables(prefix: "VIDIVIDEO_");
 
 GlobalFFOptions.Configure(options =>
 {
-    options.BinaryFolder = Path.Combine(
-        builder.Environment.ContentRootPath,
-        "Resources", "ffmpeg");
+    options.BinaryFolder = OperatingSystem.IsWindows()
+        ? Path.Combine(
+            builder.Environment.ContentRootPath,
+            "Resources",
+            "ffmpeg")
+        : "/usr/bin";
 });
 
 QuestPDF.Settings.License = LicenseType.Community;
@@ -32,7 +37,14 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Servers.Clear();
+        return Task.CompletedTask;
+    });
+});
 
 var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
     ?? throw new InvalidOperationException("JWT configuration is missing.");
@@ -69,6 +81,10 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
+    var db = scope.ServiceProvider.GetRequiredService<VidiVideoDbContext>();
+
+    await db.Database.MigrateAsync();
+
     var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
 
     await seeder.SeedAsync();

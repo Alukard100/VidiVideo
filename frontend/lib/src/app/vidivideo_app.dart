@@ -6,11 +6,12 @@ import '../features/admin/presentation/content_reports_page.dart';
 import '../features/admin/presentation/staff_management_page.dart';
 import '../features/admin/presentation/users_management_page.dart';
 import '../features/auth/presentation/login_page.dart';
-import '../features/mobile/presentation/create_video_page.dart';
+import '../features/mobile/presentation/create/create_video_page.dart';
 import '../features/mobile/presentation/feed_page.dart';
 import '../features/mobile/presentation/profile_page.dart';
 import '../features/mobile/presentation/search_page.dart';
 import '../features/mobile/presentation/subscriptions_page.dart';
+import '../features/mobile/presentation/mobile_shell_page.dart';
 import 'app_routes.dart';
 
 class VidiVideoApp extends StatelessWidget {
@@ -35,6 +36,7 @@ class VidiVideoApp extends StatelessWidget {
         AppRoutes.following: (_) => const FeedPage(feedMode: FeedMode.following),
         AppRoutes.profile: (_) => const ProfilePage(),
         AppRoutes.subscriptions: (_) => const SubscriptionsPage(),
+        AppRoutes.mobileShell: (_) => const MobileShellPage(),
       },
     );
   }

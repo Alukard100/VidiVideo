@@ -48,9 +48,12 @@ public class VideoController : ControllerBase
     {
         var command = new UploadVideoCommand(formFile.OpenReadStream(), formFile.FileName);
 
-        string result = await _videoFileHandler.HandleAsync(command, cancellation);
+        string videoUrl = await _videoFileHandler.HandleAsync(command, cancellation);
 
-        return Ok(result);
+        return Ok(new
+        {
+            videoUrl
+        });
     }
 
     [Authorize]
@@ -60,9 +63,12 @@ public class VideoController : ControllerBase
     {
         var command = new CreateThumbnailCommand(formFile.OpenReadStream(), formFile.FileName);
 
-        string result = await _thumbnailFileHandler.HandleAsync(command, cancellation);
+        string thumbnailUrl = await _thumbnailFileHandler.HandleAsync(command, cancellation);
 
-        return Ok(result);
+        return Ok(new
+        {
+            thumbnailUrl
+        });
     }
 
     [HttpGet("getall")]

@@ -12,4 +12,5 @@ class AppRoutes {
   static const following = '/following';
   static const profile = '/profile';
   static const subscriptions = '/subscriptions';
+  static const mobileShell = '/mobile';
 }

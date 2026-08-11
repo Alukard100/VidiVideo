@@ -4,7 +4,10 @@ class SessionStore {
 
   String? get accessToken => _accessToken;
   String? get role => _role;
-  bool get isAuthenticated => _accessToken != null;
+
+  bool get isAuthenticated {
+    return _accessToken != null && _accessToken!.isNotEmpty;
+  }
 
   void saveSession({
     required String accessToken,
@@ -14,7 +17,7 @@ class SessionStore {
     _role = role;
   }
 
-  void clear() {
+  void clearSession() {
     _accessToken = null;
     _role = null;
   }

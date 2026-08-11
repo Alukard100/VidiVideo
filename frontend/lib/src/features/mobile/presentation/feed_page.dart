@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../app/app_routes.dart';
-
 enum FeedMode { recommended, following }
 
 class FeedPage extends StatelessWidget {
@@ -11,9 +9,9 @@ class FeedPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: PageView.builder(
+    return ColoredBox(
+      color: Colors.black,
+      child: PageView.builder(
         scrollDirection: Axis.vertical,
         itemCount: 4,
         itemBuilder: (context, index) {
@@ -38,13 +36,6 @@ class FeedPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: IconButton.filledTonal(
-                          onPressed: () => Navigator.of(context).pushNamed(AppRoutes.search),
-                          icon: const Icon(Icons.search),
-                        ),
-                      ),
                       const Spacer(),
                       Text(
                         feedMode == FeedMode.following ? 'Following feed' : 'Recommended feed',
@@ -54,14 +45,14 @@ class FeedPage extends StatelessWidget {
                       Text(
                         '@creator${index + 1}',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Colors.white,
+                              color: Colors.white70,
                               fontWeight: FontWeight.bold,
                             ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Short video caption with hashtags, like/comment/report actions, and recommendation explanation.',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white70),
                       ),
                       const SizedBox(height: 24),
                     ],
@@ -71,26 +62,6 @@ class FeedPage extends StatelessWidget {
             ],
           );
         },
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: feedMode == FeedMode.following ? 3 : 0,
-        onDestinationSelected: (index) {
-          final route = switch (index) {
-            0 => AppRoutes.feed,
-            1 => AppRoutes.search,
-            2 => AppRoutes.createVideo,
-            3 => AppRoutes.following,
-            _ => AppRoutes.profile,
-          };
-          Navigator.of(context).pushReplacementNamed(route);
-        },
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.search), label: 'Search'),
-          NavigationDestination(icon: Icon(Icons.add_box_outlined), label: 'Create'),
-          NavigationDestination(icon: Icon(Icons.subscriptions_outlined), label: 'Following'),
-          NavigationDestination(icon: Icon(Icons.person_outline), label: 'Profile'),
-        ],
       ),
     );
   }

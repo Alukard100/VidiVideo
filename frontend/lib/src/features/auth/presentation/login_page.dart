@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:vidivideo_app/src/core/dependency/app_services.dart';
+import 'package:vidivideo_app/src/core/network/api_client.dart';
 
 import '../../../app/app_routes.dart';
 
@@ -14,11 +16,82 @@ class _LoginPageState extends State<LoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  final _authService = AppServices.authService;
+  final _sessionStore = AppServices.sessionStore;
+
+  bool _isLoading = false;
+
   @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (_formKey.currentState?.validate() != true) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await _authService.login(
+        _usernameController.text.trim(),
+        _passwordController.text,
+      );
+
+      _sessionStore.saveSession(
+        accessToken: response.token,
+        role: response.role,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      if (response.role.toLowerCase() == 'admin') {
+        Navigator.of(context).pushReplacementNamed(
+          AppRoutes.adminDashboard,
+        );
+      } else {
+        Navigator.of(context).pushReplacementNamed(
+          AppRoutes.mobileShell,
+        );
+      }
+    } on ApiException catch (exception) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Login failed (${exception.statusCode}).',
+          ),
+        ),
+      );
+    } catch (exception) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Unable to connect to the server.',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -36,38 +109,71 @@ class _LoginPageState extends State<LoginPage> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('VidiVideo', style: Theme.of(context).textTheme.headlineMedium),
+                    Text(
+                      'VidiVideo',
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
                     const SizedBox(height: 4),
-                    Text('Sign in to continue', style: Theme.of(context).textTheme.bodyMedium),
+                    Text(
+                      'Sign in to continue',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                     const SizedBox(height: 24),
                     TextFormField(
                       controller: _usernameController,
-                      decoration: const InputDecoration(labelText: 'Username'),
-                      validator: (value) =>
-                          value == null || value.trim().isEmpty ? 'Username is required.' : null,
+                      enabled: !_isLoading,
+                      textInputAction: TextInputAction.next,
+                      decoration: const InputDecoration(
+                        labelText: 'Username',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Username is required.';
+                        }
+
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _passwordController,
+                      enabled: !_isLoading,
                       obscureText: true,
-                      decoration: const InputDecoration(labelText: 'Password'),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? 'Password is required.' : null,
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => _login(),
+                      decoration: const InputDecoration(
+                        labelText: 'Password',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Password is required.';
+                        }
+
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 20),
                     FilledButton(
-                      onPressed: () {
-                        if (_formKey.currentState?.validate() != true) {
-                          return;
-                        }
-
-                        Navigator.of(context).pushReplacementNamed(AppRoutes.adminDashboard);
-                      },
-                      child: const Text('Sign in as admin'),
+                      onPressed: _isLoading ? null : _login,
+                      child: _isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text('Sign in'),
                     ),
                     const SizedBox(height: 8),
                     OutlinedButton(
-                      onPressed: () => Navigator.of(context).pushReplacementNamed(AppRoutes.feed),
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              Navigator.of(context).pushReplacementNamed(
+                                AppRoutes.mobileShell,
+                              );
+                            },
                       child: const Text('Open mobile preview'),
                     ),
                   ],

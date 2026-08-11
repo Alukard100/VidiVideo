@@ -154,3 +154,6 @@ frontend/build/
 # Mac
 .AppleDouble
 .LSOverride
+
+# ffmpeg
+Backend/src/VidiVideo.Api/Resources/ffmpeg/*.exe
