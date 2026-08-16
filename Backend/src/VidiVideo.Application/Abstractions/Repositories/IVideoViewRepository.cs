@@ -12,4 +12,6 @@ public interface IVideoViewRepository
 
     Task<int> CountViewsAsync(Guid videoId);
     Task<int> CountTotalViewsAsync(DateTime? f = null);
+    Task<List<VideoView>> GetUserVideoViewsAsync(Guid userId);
+
 }

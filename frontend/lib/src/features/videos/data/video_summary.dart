@@ -7,6 +7,7 @@ class VideoSummary {
     required this.visibility,
     required this.likeCount,
     required this.commentCount,
+    required this.viewCount,
   });
 
   final String id;
@@ -16,6 +17,7 @@ class VideoSummary {
   final String visibility;
   final int likeCount;
   final int commentCount;
+  final int viewCount;
 
   factory VideoSummary.fromJson(Map<String, dynamic> json) {
     return VideoSummary(
@@ -24,8 +26,17 @@ class VideoSummary {
       creatorDisplayName: json['creatorDisplayName'] as String,
       thumbnailUrl: json['thumbnailUrl'] as String,
       visibility: json['visibility'] as String,
-      likeCount: json['likeCount'] as int,
-      commentCount: json['commentCount'] as int,
+      likeCount: _readInt(json['likeCount']),
+      commentCount: _readInt(json['commentCount']),
+      viewCount: _readInt(json['viewCount']),
     );
+  }
+
+  static int _readInt(dynamic value) {
+    if (value is int) {
+      return value;
+    }
+
+    return int.tryParse(value?.toString() ?? '') ?? 0;
   }
 }

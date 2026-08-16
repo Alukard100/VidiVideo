@@ -21,6 +21,7 @@ namespace VidiVideo.Application.Videos
                 video.Caption,
                 video.VideoUrl,
                 video.ThumbnailUrl,
+                video.CreatorId,
                 video.Creator.DisplayName,
                 video.Category.Name,
                 video.IsPublished,

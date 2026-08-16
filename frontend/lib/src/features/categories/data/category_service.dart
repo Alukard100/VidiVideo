@@ -2,6 +2,7 @@ import '../../../core/network/api_client.dart';
 import '../models/category.dart';
 
 class CategoryService {
+  // ignore: prefer_initializing_formals
   CategoryService({
     required ApiClient apiClient,
   }) : _apiClient = apiClient;

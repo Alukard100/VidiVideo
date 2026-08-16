@@ -19,6 +19,19 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task CreateSubscriptionAsync(CreatorSubscription Subscription)
             => await _db.CreatorSubscriptions.AddAsync(Subscription);
 
+        public async Task<HashSet<Guid>> GetActiveSubscribedCreatorIdsAsync(Guid subscriberId)
+        {
+            var creatorIds = await _db.CreatorSubscriptions
+                .Where(s =>
+                    s.SubscriberId == subscriberId &&
+                    s.IsActive &&
+                    s.EndsAtUtc > DateTime.UtcNow)
+                .Select(s => s.CreatorId)
+                .ToListAsync();
+
+            return creatorIds.ToHashSet();
+        }
+
         public async Task<Payment?> GetPaymentByProviderIdAsync(string ProviderPaymentId)
             => await _db.Payments.FirstOrDefaultAsync(x => x.ProviderPaymentId == ProviderPaymentId);
 

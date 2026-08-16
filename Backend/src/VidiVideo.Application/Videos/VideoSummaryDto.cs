@@ -7,4 +7,5 @@ public sealed record VideoSummaryDto(
     string ThumbnailUrl,
     string Visibility,
     int LikeCount,
-    int CommentCount);
+    int CommentCount,
+    int ViewCount);

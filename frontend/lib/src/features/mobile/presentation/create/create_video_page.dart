@@ -14,7 +14,9 @@ import '../../../videos/models/video_create_request.dart';
 import '../../../videos/models/video_visibility.dart';
 
 class CreateVideoPage extends StatefulWidget {
-  const CreateVideoPage({super.key});
+  final VoidCallback? onPublished;
+
+  const CreateVideoPage({this.onPublished, super.key});
 
   @override
   State<CreateVideoPage> createState() => _CreateVideoPageState();
@@ -352,10 +354,13 @@ class _CreateVideoPageState extends State<CreateVideoPage> {
 
       debugPrint('Created video ID: $videoId');
 
+      AppServices.profileRefreshNotifier.refresh();
+
       _showMessage(
         'Video published successfully.',
       );
       _resetForm();
+      widget.onPublished?.call();
     } on ApiException catch (exception) {
       if (!mounted) {
         return;

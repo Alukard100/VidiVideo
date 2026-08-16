@@ -6,6 +6,7 @@ import '../config/app_config.dart';
 import '../storage/session_store.dart';
 
 class ApiClient {
+  // ignore: prefer_initializing_formals
   ApiClient({
     required SessionStore sessionStore,
   }) : _sessionStore = sessionStore;
@@ -21,11 +22,29 @@ class ApiClient {
       return uri;
     }
 
-    return uri.replace(
-      queryParameters: queryParameters.map(
-        (key, value) => MapEntry(key, value.toString()),
-      ),
-    );
+    final queryItems = <String>[];
+
+    for (final entry in queryParameters.entries) {
+      final value = entry.value;
+
+      if (value == null) {
+        continue;
+      }
+
+      if (value is Iterable) {
+        for (final item in value) {
+          queryItems.add(
+            '${Uri.encodeQueryComponent(entry.key)}=${Uri.encodeQueryComponent(item.toString())}',
+          );
+        }
+      } else {
+        queryItems.add(
+          '${Uri.encodeQueryComponent(entry.key)}=${Uri.encodeQueryComponent(value.toString())}',
+        );
+      }
+    }
+
+    return uri.replace(query: queryItems.join('&'));
   }
 
   void _addDefaultHeaders(HttpHeaders headers) {
@@ -76,6 +95,88 @@ class ApiClient {
       }
 
       // Endpoint /create vraća samo Guid string, a ne JSON objekat.
+      return <String, dynamic>{
+        'value': decoded,
+      };
+    } finally {
+      client.close(force: true);
+    }
+  }
+
+  Future<Map<String, dynamic>> patchJson(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
+    final client = HttpClient();
+
+    try {
+      final request = await client.patchUrl(_buildUri(path));
+
+      _addDefaultHeaders(request.headers);
+
+      request.write(jsonEncode(body));
+
+      final response = await request.close();
+      final responseBody = await response.transform(utf8.decoder).join();
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw ApiException(
+          statusCode: response.statusCode,
+          message: _extractErrorMessage(responseBody),
+        );
+      }
+
+      if (responseBody.trim().isEmpty) {
+        return <String, dynamic>{};
+      }
+
+      final decoded = jsonDecode(responseBody);
+
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+
+      return <String, dynamic>{
+        'value': decoded,
+      };
+    } finally {
+      client.close(force: true);
+    }
+  }
+
+  Future<Map<String, dynamic>> deleteJson(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
+    final client = HttpClient();
+
+    try {
+      final request = await client.deleteUrl(_buildUri(path));
+
+      _addDefaultHeaders(request.headers);
+
+      request.write(jsonEncode(body));
+
+      final response = await request.close();
+      final responseBody = await response.transform(utf8.decoder).join();
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw ApiException(
+          statusCode: response.statusCode,
+          message: _extractErrorMessage(responseBody),
+        );
+      }
+
+      if (responseBody.trim().isEmpty) {
+        return <String, dynamic>{};
+      }
+
+      final decoded = jsonDecode(responseBody);
+
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+
       return <String, dynamic>{
         'value': decoded,
       };

@@ -12,6 +12,7 @@ import '../features/mobile/presentation/profile_page.dart';
 import '../features/mobile/presentation/search_page.dart';
 import '../features/mobile/presentation/subscriptions_page.dart';
 import '../features/mobile/presentation/mobile_shell_page.dart';
+import '../features/videos/presentation/video_viewer_page.dart';
 import 'app_routes.dart';
 
 class VidiVideoApp extends StatelessWidget {
@@ -37,6 +38,36 @@ class VidiVideoApp extends StatelessWidget {
         AppRoutes.profile: (_) => const ProfilePage(),
         AppRoutes.subscriptions: (_) => const SubscriptionsPage(),
         AppRoutes.mobileShell: (_) => const MobileShellPage(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == AppRoutes.userProfile) {
+          final userId = settings.arguments?.toString();
+
+          return MaterialPageRoute<void>(
+            builder: (_) => ProfilePage(userId: userId),
+          );
+        }
+
+        if (settings.name == AppRoutes.videoViewer) {
+          final args = settings.arguments;
+
+          if (args is VideoViewerRouteArguments) {
+            return MaterialPageRoute<void>(
+              builder: (_) => VideoViewerPage(
+                videoId: args.videoId,
+                showBackButton: args.showBackButton,
+              ),
+            );
+          }
+
+          final videoId = args?.toString() ?? '';
+
+          return MaterialPageRoute<void>(
+            builder: (_) => VideoViewerPage(videoId: videoId),
+          );
+        }
+
+        return null;
       },
     );
   }

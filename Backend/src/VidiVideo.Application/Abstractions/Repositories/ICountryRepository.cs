@@ -10,5 +10,6 @@ namespace VidiVideo.Application.Abstractions.Repositories
         Task DeleteAsync(Guid id);
         Task<bool> ExistsByCodeAsync(string code);
         Task<bool> ExistsByCodeUpdateAsync(Guid id, string code);
+        Task<bool> ExistsByIdAsync(Guid id);
     }
 }

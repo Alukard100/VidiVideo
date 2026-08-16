@@ -11,6 +11,18 @@ class AppRoutes {
   static const createVideo = '/create-video';
   static const following = '/following';
   static const profile = '/profile';
+  static const userProfile = '/user-profile';
+  static const videoViewer = '/video-viewer';
   static const subscriptions = '/subscriptions';
   static const mobileShell = '/mobile';
+}
+
+class VideoViewerRouteArguments {
+  const VideoViewerRouteArguments({
+    required this.videoId,
+    this.showBackButton = true,
+  });
+
+  final String videoId;
+  final bool showBackButton;
 }

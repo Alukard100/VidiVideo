@@ -1,9 +1,14 @@
 import 'dart:typed_data';
 
 import '../../../core/network/api_client.dart';
+import '../../../core/utils/file_name_utils.dart';
 import '../models/video_create_request.dart';
+import '../models/video_comment.dart';
+import '../models/video_detail.dart';
+import 'video_summary.dart';
 
 class VideoService {
+  // ignore: prefer_initializing_formals
   VideoService({
     required ApiClient apiClient,
   }) : _apiClient = apiClient;
@@ -17,7 +22,7 @@ class VideoService {
     final response = await _apiClient.uploadMultipartFile(
       path: '/api/Video/upload-video',
       fieldName: 'formFile',
-      fileName: fileName,
+      fileName: safeUploadFileName(fileName),
       bytes: bytes,
     );
 
@@ -40,7 +45,7 @@ class VideoService {
     final response = await _apiClient.uploadMultipartFile(
       path: '/api/Video/upload-thumbnail',
       fieldName: 'formFile',
-      fileName: fileName,
+      fileName: safeUploadFileName(fileName),
       bytes: bytes,
     );
 
@@ -72,5 +77,157 @@ class VideoService {
     }
 
     return value.toString();
+  }
+
+  Future<List<VideoSummary>> searchVideos({
+    required String? search,
+    required String? categoryId,
+    required List<String> hashtags,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    final response = await _apiClient.getJson(
+      '/api/Video/getall',
+      queryParameters: {
+        'Search': search,
+        'CategoryId': categoryId,
+        'Hashtags': hashtags,
+        'Page': page,
+        'PageSize': pageSize,
+      },
+    );
+
+    if (response is! Map<String, dynamic>) {
+      throw const ApiException(
+        statusCode: 500,
+        message: 'Unexpected search response.',
+      );
+    }
+
+    final items = response['items'];
+
+    if (items is! List) {
+      return const [];
+    }
+
+    return items
+        .map((item) => VideoSummary.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> recordSearch(String query) async {
+    final trimmed = query.trim();
+
+    if (trimmed.isEmpty) {
+      return;
+    }
+
+    await _apiClient.postJson(
+      '/api/SearchHistory',
+      {
+        'query': trimmed,
+      },
+    );
+  }
+
+  Future<void> recordVideoView({
+    required String videoId,
+    required int watchDurationSeconds,
+    required double completionRate,
+  }) async {
+    await _apiClient.postJson(
+      '/api/VideoView/record',
+      {
+        'videoId': videoId,
+        'watchDurationSeconds': watchDurationSeconds,
+        'completionRate': completionRate,
+      },
+    );
+  }
+
+  Future<VideoDetail> getVideo(String videoId) async {
+    final response = await _apiClient.getJson('/api/Video/$videoId');
+
+    if (response is! Map<String, dynamic>) {
+      throw const ApiException(
+        statusCode: 500,
+        message: 'Unexpected video response.',
+      );
+    }
+
+    return VideoDetail.fromJson(response);
+  }
+
+  Future<List<VideoComment>> getComments(String videoId) async {
+    final response = await _apiClient.getJson(
+      '/api/Comment/getComments',
+      queryParameters: {
+        'videoId': videoId,
+        'page': 1,
+        'pageSize': 50,
+      },
+    );
+
+    if (response is! Map<String, dynamic>) {
+      throw const ApiException(
+        statusCode: 500,
+        message: 'Unexpected comments response.',
+      );
+    }
+
+    final items = response['items'];
+
+    if (items is! List) {
+      return const [];
+    }
+
+    return items
+        .map((item) => VideoComment.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> addComment({
+    required String videoId,
+    required String content,
+  }) async {
+    await _apiClient.postJson(
+      '/api/Comment/create',
+      {
+        'videoId': videoId,
+        'content': content,
+      },
+    );
+  }
+
+  Future<void> likeVideo(String videoId) async {
+    await _apiClient.postJson(
+      '/api/Like/like',
+      {
+        'videoId': videoId,
+      },
+    );
+  }
+
+  Future<void> unlikeVideo(String videoId) async {
+    await _apiClient.deleteJson(
+      '/api/Like/unlike',
+      {
+        'videoId': videoId,
+      },
+    );
+  }
+
+  Future<void> reportVideo({
+    required String videoId,
+    required String reason,
+  }) async {
+    await _apiClient.postJson(
+      '/api/ContentReport/report',
+      {
+        'videoId': videoId,
+        'commentId': null,
+        'reason': reason,
+      },
+    );
   }
 }

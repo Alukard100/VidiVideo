@@ -66,5 +66,15 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
 
         public async Task<int> CountFollowingAsync(Guid targetId)
             => await _db.Follows.CountAsync(f => f.FollowerId == targetId);
+
+        public async Task<HashSet<Guid>> GetFollowingCreatorIdsAsync(Guid userId)
+        {
+            var ids = await _db.Follows
+                .Where(f => f.FollowerId == userId)
+                .Select(f => f.CreatorId)
+                .ToListAsync();
+
+            return ids.ToHashSet();
+        }
     }
 }

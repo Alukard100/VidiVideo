@@ -13,4 +13,5 @@ public interface IFollowersRepository
     Task<List<UserFollowDto>> ViewFollowingAsync(Guid currentUserId, Guid targetId, int _page = 1, int _pageSize = 20);
     Task<int> CountFollowersAsync(Guid targetId);
     Task<int> CountFollowingAsync(Guid targetId);
+    Task<HashSet<Guid>> GetFollowingCreatorIdsAsync(Guid userId);
 }

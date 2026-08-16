@@ -7,6 +7,9 @@ services:
       - .env
     ports:
       - "5000:8080"
+    volumes:
+      - image-data:/app/wwwroot/images
+      - video-data:/app/wwwroot/videos
     depends_on:
       - sqlserver
       - rabbitmq
@@ -42,3 +45,5 @@ services:
 
 volumes:
   sqlserver-data:
+  image-data:
+  video-data:

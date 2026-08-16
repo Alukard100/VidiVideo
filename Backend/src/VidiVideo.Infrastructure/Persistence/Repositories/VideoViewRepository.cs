@@ -30,6 +30,18 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task<VideoView?> GetByUserAndVideoAsync(Guid userId, Guid videoId)
             => await _db.VideoViews.FirstOrDefaultAsync(x => x.UserId == userId && x.VideoId == videoId);
 
+        public async Task<List<VideoView>> GetUserVideoViewsAsync(Guid userId)
+        {
+            return await _db.VideoViews
+                .Where(v => v.UserId == userId)
+                .Include(v => v.Video)
+                    .ThenInclude(video => video.Category)
+                .Include(v => v.Video)
+                    .ThenInclude(video => video.VideoHashtags)
+                        .ThenInclude(vh => vh.Hashtag)
+                .ToListAsync();
+        }
+
         public async Task<List<VideoView>> GetVideoViewsAsync(Guid videoId)
             => await _db.VideoViews.Where(x => x.VideoId == videoId).ToListAsync();
     }

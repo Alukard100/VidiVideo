@@ -93,12 +93,17 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
                     .Include(q => q.Creator)
                     .Include(q => q.Likes)
                     .Include(q => q.Comments)
+                    .Include(q => q.VideoViews)
                     .Include(q => q.VideoHashtags)
                         .ThenInclude(vh => vh.Hashtag)
                     .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(q => q.Caption.Contains(search));
+                query = query.Where(q =>
+                    q.Caption.Contains(search) ||
+                    q.Creator.UserName.Contains(search) ||
+                    q.Creator.DisplayName.Contains(search) ||
+                    q.VideoHashtags.Any(vh => vh.Hashtag.Name.Contains(search)));
 
             if (category.HasValue)
                 query = query.Where(q => q.CategoryId == category.Value);
@@ -117,6 +122,35 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
                     .Take(_pageSize);
 
             return await query.ToListAsync();
+        }
+
+        public async Task<List<Video>> GetRecommendationCandidatesAsync(Guid? userId, int limit = 300)
+        {
+            var query = _db.Videos
+                .AsNoTracking()
+                .Include(v => v.Creator)
+                    .ThenInclude(c => c.Country)
+                .Include(v => v.Category)
+                .Include(v => v.VideoHashtags)
+                    .ThenInclude(vh => vh.Hashtag)
+                .Include(v => v.Likes)
+                .Include(v => v.Comments)
+                .Include(v => v.VideoViews)
+                .Where(v =>
+                    v.IsPublished &&
+                    !v.IsDeleted);
+
+            if (userId.HasValue)
+            {
+                query = query.Where(v =>
+                    v.CreatorId != userId.Value);
+            }
+
+            return await query
+                .OrderByDescending(v => v.CreatedAtUtc)
+                .Take(limit)
+                .AsSplitQuery()
+                .ToListAsync();
         }
 
         public async Task<Video?> GetVideoByIdAsync(Guid videoId)

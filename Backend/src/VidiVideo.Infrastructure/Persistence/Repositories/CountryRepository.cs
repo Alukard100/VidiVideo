@@ -30,12 +30,15 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task<bool> ExistsByCodeUpdateAsync(Guid id, string code)
             => await _db.Countrys.AnyAsync(c => id != c.Id && code == c.Code);
 
+        public async Task<bool> ExistsByIdAsync(Guid id)
+            => await _db.Countrys.AnyAsync(c => id == c.Id);
+
         public async Task<List<Country>> GetAllAsync()
         {
             return await _db.Countrys.OrderBy(c => c.Name).ToListAsync();
         }
 
-        public Task<Country?> GetByIdAsync(Guid id)
-            => _db.Countrys.FirstOrDefaultAsync(c => c.Id.Equals(id));
+        public async Task<Country?> GetByIdAsync(Guid id)
+            => await _db.Countrys.FirstOrDefaultAsync(c => c.Id.Equals(id));
     }
 }

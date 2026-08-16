@@ -14,4 +14,5 @@ public interface IPaymentRepository
     Task<int> TotalPaymentsAsync(DateTime? f = null);
     Task<int> TotalActiveSubsAsync();
     Task<List<CreatorRevenueStats>> TopCreatorsAsync(DateTime? f = null);
+    Task<HashSet<Guid>> GetActiveSubscribedCreatorIdsAsync(Guid subscriberId);
 }

@@ -33,4 +33,16 @@ public sealed class AppUser : AuditableEntity
         Email = email;
     }
 
+    public void UpdateProfile(string displayName, string? bio, Guid? countryId)
+    {
+        DisplayName = displayName;
+        Bio = bio;
+        CountryId = countryId;
+    }
+
+    public void UpdateAvatar(string avatarUrl)
+    {
+        AvatarUrl = avatarUrl;
+    }
+
 }

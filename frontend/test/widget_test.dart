@@ -6,6 +6,6 @@ void main() {
     await tester.pumpWidget(const VidiVideoApp());
 
     expect(find.text('VidiVideo'), findsOneWidget);
-    expect(find.text('Sign in as admin'), findsOneWidget);
+    expect(find.text('Sign in'), findsOneWidget);
   });
 }

@@ -11,6 +11,7 @@ using VidiVideo.Application.Reports.RevenueReport;
 using VidiVideo.Application.Reports.VideosReport;
 using VidiVideo.Application.SearchHistories;
 using VidiVideo.Application.Users;
+using VidiVideo.Application.Users.Activities;
 using VidiVideo.Application.Videos;
 using VidiVideo.Application.Videos.Comments;
 using VidiVideo.Application.Videos.Likes;
@@ -49,6 +50,8 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<CapturePayPalOrderCommand, bool>, CapturePayPalOrderCommandHandler>();
         services.AddScoped<ICommandHandler<CreateContentReportCommand, Guid>, CreateContentReportCommandHandler>();
         services.AddScoped<ICommandHandler<ReviewContentReportCommand, Guid>, ReviewContentReportCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateMyProfileCommand, Guid>, UpdateMyProfileCommandHandler>();
+        services.AddScoped<ICommandHandler<UploadAvatarCommand, string>, UploadAvatarCommandHandler>();
         //Queries
         services.AddScoped<IQueryHandler<GetCountryByIdQuery, CountryDto>, GetCountryByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetCountriesQuery, List<CountryDto>>, GetCountriesQueryHandler>();
@@ -68,6 +71,8 @@ public static class DependencyInjection
         services.AddScoped<IQueryHandler<GetContentReportsQuery, PagedResult<ContentReportDto>>, GetContentReportsQueryHandler>();
         services.AddScoped<IQueryHandler<GenerateVideosReportQuery, byte[]>, GenerateVideosReportQueryHandler>();
         services.AddScoped<IQueryHandler<GenerateRevenueReportQuery, byte[]>, GenerateRevenueReportQueryHandler>();
+        services.AddScoped<IQueryHandler<GetUserProfileQuery, UserProfileDto>, GetUserProfileQueryHandler>();
+        services.AddScoped<IQueryHandler<GetMyProfileQuery, CurrentUserProfileDto>, GetMyProfileQueryHandler>();
         //Delete Commands
         services.AddScoped<ICommandHandler<DeleteCountryCommand, bool>, DeleteCountryCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteHashtagCommand, bool>, DeleteHashtagCommandHandler>();

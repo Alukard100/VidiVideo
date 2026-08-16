@@ -16,13 +16,25 @@ class MobileShellPage extends StatefulWidget {
 class _MobileShellPageState extends State<MobileShellPage> {
   int _selectedIndex = 0;
 
-  final List<Widget> _pages = const [
-    FeedPage(),
-    SearchPage(),
-    CreateVideoPage(),
-    FeedPage(feedMode: FeedMode.following),
-    ProfilePage(),
-  ];
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      FeedPage(),
+      SearchPage(),
+      CreateVideoPage(
+        onPublished: () {
+          setState(() {
+            _selectedIndex = 4;
+          });
+        },
+      ),
+      FeedPage(feedMode: FeedMode.following),
+      ProfilePage(),
+    ];
+  }
 
   void _selectPage(int index) {
     setState(() {

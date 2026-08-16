@@ -12,5 +12,9 @@ namespace VidiVideo.Application.Abstractions.Repositories
         Task<AppUser?> GetByUserNameAsync(string username);
         Task<bool> ExistsByIdAsync(Guid id);
         Task<bool> BothUsersExistsById(Guid first, Guid second);
+        Task<AppUser?> GetProfileByIdAsync(Guid userId);
+        Task<int> FollowersCountAsync(Guid userId);
+        Task<int> FollowingCountAsync(Guid userId);
+        Task<bool> HasActiveSubscriptionAsync(Guid subscriberId, Guid creatorId);
     }
 }

@@ -24,7 +24,8 @@ namespace VidiVideo.Application.Videos
                 ThumbnailUrl: v.ThumbnailUrl,
                 Visibility: v.Visibility.ToString(),
                 LikeCount: v.Likes.Count,
-                CommentCount: v.Comments.Count
+                CommentCount: v.Comments.Count,
+                ViewCount: v.VideoViews.Count
             )).ToList();
 
             return new PagedResult<VideoSummaryDto>(

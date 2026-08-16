@@ -18,4 +18,7 @@ public interface IVideoRepository
     Task<int> CountPublicAsync(DateTime? from = null);
     Task<int> CountSubscriberAsync(DateTime? from = null);
     Task<int> CountVideosFromAsync(DateTime? from = null);
+    Task<List<Video>> GetRecommendationCandidatesAsync(
+    Guid? userId,
+    int limit = 300);
 }

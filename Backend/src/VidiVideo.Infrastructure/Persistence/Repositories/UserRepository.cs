@@ -39,5 +39,37 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
 
         public async Task<AppUser?> GetByUserNameAsync(string username)
             => await _db.Users.FirstOrDefaultAsync(u => u.UserName == username);
+
+        public async Task<AppUser?> GetProfileByIdAsync(Guid userId)
+        {
+            return await _db.Users
+                .Include(x => x.Country)
+                .Include(x => x.Videos.Where(v => !v.IsDeleted && v.IsPublished))
+                .FirstOrDefaultAsync(x =>
+                    x.Id == userId &&
+                    !x.IsDeleted);
+        }
+
+        public async Task<int> FollowersCountAsync(Guid userId)
+        {
+            return await _db.Follows
+                .CountAsync(x => x.CreatorId == userId);
+        }
+
+        public async Task<int> FollowingCountAsync(Guid userId)
+        {
+            return await _db.Follows
+                .CountAsync(x => x.FollowerId == userId);
+        }
+
+        public async Task<bool> HasActiveSubscriptionAsync(Guid subscriberId, Guid creatorId)
+        {
+            return await _db.CreatorSubscriptions.AnyAsync(x =>
+                x.SubscriberId == subscriberId &&
+                x.CreatorId == creatorId &&
+                x.IsActive &&
+                x.EndsAtUtc != null &&
+                x.EndsAtUtc > DateTime.UtcNow);
+        }
     }
 }

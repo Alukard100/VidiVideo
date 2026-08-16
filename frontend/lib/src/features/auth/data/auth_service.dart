@@ -4,6 +4,7 @@ import 'package:vidivideo_app/src/features/auth/models/login_response.dart';
 
 class AuthService {
 
+  // ignore: prefer_initializing_formals
   AuthService({required ApiClient apiClient}) : _apiClient = apiClient;
 
   final ApiClient _apiClient;

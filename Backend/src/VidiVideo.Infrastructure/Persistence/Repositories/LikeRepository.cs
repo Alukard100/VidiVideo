@@ -22,6 +22,70 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
 
         }
 
+        public async Task<Dictionary<Guid, double>> GetCollaborativeVideoScoreAsync(Guid userId)
+        {
+            var currentUserLikedVideoIds = await _db.Likes
+                .Where(l => l.UserId == userId)
+                .Select(l => l.VideoId)
+                .ToListAsync();
+
+            if (currentUserLikedVideoIds.Count == 0)
+                return [];
+
+            var similarUsers = await _db.Likes
+                .Where(l =>
+                    l.UserId != userId &&
+                    currentUserLikedVideoIds.Contains(l.VideoId))
+                .GroupBy(l => l.UserId)
+                .Select(group => new
+                {
+                    UserId = group.Key,
+                    SharedLikes = group.Count()
+                })
+                .ToListAsync();
+
+            if (similarUsers.Count == 0)
+                return [];
+
+            var similarUserIds = similarUsers
+                .Select(x => x.UserId)
+                .ToList();
+
+            var similarityLookup = similarUsers
+                .ToDictionary(
+                    x => x.UserId,
+                    x => (double)x.SharedLikes);
+
+            var recommendations = await _db.Likes
+                .Where(l =>
+                    similarUserIds.Contains(l.UserId) &&
+                    !currentUserLikedVideoIds.Contains(l.VideoId))
+                .Select(l => new
+                {
+                    l.UserId,
+                    l.VideoId
+                })
+                .ToListAsync();
+
+            return recommendations
+                .GroupBy(x => x.VideoId)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.Sum(
+                        x => similarityLookup[x.UserId]));
+        }
+
+        public async Task<List<Video>> GetLikedVideosByUserAsync(Guid userId)
+        {
+            return await _db.Likes
+            .Where(l => l.UserId == userId)
+            .Select(l => l.Video)
+            .Include(v => v.Category)
+            .Include(v => v.VideoHashtags)
+                .ThenInclude(vh => vh.Hashtag)
+            .ToListAsync();
+        }
+
         public async Task<bool> IsLikedByCurrentUser(Guid videoId, Guid userId)
             => await _db.Likes.AnyAsync(x => x.VideoId == videoId && x.UserId == userId);
 
