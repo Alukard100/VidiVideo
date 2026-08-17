@@ -1,13 +1,14 @@
 ﻿using VidiVideo.Application.Abstractions;
 using VidiVideo.Application.Abstractions.Recommendations;
 using VidiVideo.Application.Common;
+using VidiVideo.Application.Videos;
 
 namespace VidiVideo.Application.Recommendations;
 
 public sealed class GetRecommendedVideosQueryHandler
     : IQueryHandler<
         GetRecommendedVideosQuery,
-        PagedResult<RecommendedVideoDto>>
+        PagedResult<VideoFeedDto>>
 {
     private readonly IRecommendationService _recommendationService;
     private readonly ICurrentUser _currentUser;
@@ -20,7 +21,7 @@ public sealed class GetRecommendedVideosQueryHandler
         _currentUser = currentUser;
     }
 
-    public async Task<PagedResult<RecommendedVideoDto>> HandleAsync(
+    public async Task<PagedResult<VideoFeedDto>> HandleAsync(
         GetRecommendedVideosQuery query,
         CancellationToken cancellationToken)
     {

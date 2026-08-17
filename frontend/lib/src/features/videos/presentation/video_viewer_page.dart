@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../../app/app_routes.dart';
 import '../../../core/dependency/app_services.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/media_url.dart';
@@ -12,13 +11,21 @@ import '../models/video_detail.dart';
 
 class VideoViewerPage extends StatefulWidget {
   const VideoViewerPage({
-    required this.videoId,
+    String? videoId,
+    List<String>? videoIds,
+    String? initialVideoId,
+    this.initialVideos = const [],
     this.showBackButton = true,
+    this.sourceCreatorId,
     super.key,
-  });
+  })  : videoIds = videoIds ?? const [],
+        initialVideoId = initialVideoId ?? videoId ?? '';
 
-  final String videoId;
+  final List<String> videoIds;
+  final String initialVideoId;
+  final List<VideoDetail> initialVideos;
   final bool showBackButton;
+  final String? sourceCreatorId;
 
   @override
   State<VideoViewerPage> createState() => _VideoViewerPageState();
@@ -27,37 +34,166 @@ class VideoViewerPage extends StatefulWidget {
 class _VideoViewerPageState extends State<VideoViewerPage> {
   final _videoService = AppServices.videoService;
 
+  late final PageController _pageController;
+  late final List<String> _videoIds;
   late Future<VideoDetail> _videoFuture;
+  final Map<String, Future<VideoDetail>> _videoFutures = {};
+  final Map<String, VideoDetail> _videoDetails = {};
   VideoPlayerController? _controller;
   String? _loadedVideoUrl;
   DateTime? _openedAtUtc;
+  String? _activeVideoId;
   bool _recordedView = false;
   bool _isLiked = false;
+  bool _isMuted = false;
   int _likeCount = 0;
   int _commentCount = 0;
+  int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _videoFuture = _loadVideo();
+    _videoIds = widget.videoIds.isEmpty ? [widget.initialVideoId] : widget.videoIds;
+    for (final video in widget.initialVideos) {
+      if (video.id.isNotEmpty) {
+        _videoDetails[video.id] = video;
+      }
+    }
+    _currentIndex = _videoIds.indexOf(widget.initialVideoId);
+    if (_currentIndex < 0) {
+      _currentIndex = 0;
+    }
+    _pageController = PageController(initialPage: _currentIndex);
+    _videoFuture = _loadVideo(_videoIds[_currentIndex]);
   }
 
   @override
   void dispose() {
     _recordVideoView();
     _controller?.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
-  Future<VideoDetail> _loadVideo() async {
-    final video = await _videoService.getVideo(widget.videoId);
+  Future<VideoDetail> _loadVideo(String videoId) async {
+    _recordVideoView();
+
+    final previousController = _controller;
+    previousController?.removeListener(_onVideoTick);
+    _controller = null;
+    _loadedVideoUrl = null;
+
+    if (previousController != null && mounted) {
+      setState(() {});
+    }
+
+    await previousController?.dispose();
+
+    if (videoId.isEmpty) {
+      throw const ApiException(
+        statusCode: 404,
+        message: 'Video could not be loaded.',
+      );
+    }
+
+    _activeVideoId = videoId;
+    _recordedView = false;
+    _openedAtUtc = DateTime.now().toUtc();
+    _isLiked = false;
+
+    final video = await _getVideoFuture(videoId);
+
+    if (_activeVideoId != videoId) {
+      return video;
+    }
 
     _likeCount = video.likeCount;
     _commentCount = video.commentCount;
-    _openedAtUtc = DateTime.now().toUtc();
-    await _prepareController(video.videoUrl);
+    if (!video.isLocked) {
+      await _prepareController(video.videoUrl);
+    }
 
     return video;
+  }
+
+  Future<VideoDetail> _getVideoFuture(String videoId) {
+    final existing = _videoDetails[videoId];
+
+    if (existing != null) {
+      return Future.value(existing);
+    }
+
+    return _videoFutures.putIfAbsent(
+      videoId,
+      () async {
+        final video = await _videoService.getVideo(videoId);
+        _videoDetails[videoId] = video;
+        return video;
+      },
+    );
+  }
+
+  Future<void> _prepareController(String videoUrl) async {
+    final resolvedUrl = resolveMediaUrl(videoUrl);
+
+    if (resolvedUrl.isEmpty || resolvedUrl == _loadedVideoUrl) {
+      return;
+    }
+
+    final controller = VideoPlayerController.networkUrl(
+      Uri.parse(resolvedUrl),
+      httpHeaders: _streamHeaders(),
+    );
+
+    _loadedVideoUrl = resolvedUrl;
+    _controller = controller;
+
+    await controller.initialize();
+    await controller.setLooping(true);
+    await controller.setVolume(_isMuted ? 0 : 1);
+    await controller.play();
+    controller.addListener(_onVideoTick);
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _onVideoTick() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Map<String, String> _streamHeaders() {
+    final token = AppServices.sessionStore.accessToken;
+
+    if (token == null || token.isEmpty) {
+      return const {};
+    }
+
+    return {'Authorization': 'Bearer $token'};
+  }
+
+  Future<void> _showCaughtUpPage() async {
+    _recordVideoView();
+
+    final previousController = _controller;
+    previousController?.removeListener(_onVideoTick);
+
+    if (!mounted) {
+      await previousController?.dispose();
+      return;
+    }
+
+    setState(() {
+      _controller = null;
+      _loadedVideoUrl = null;
+      _activeVideoId = null;
+      _recordedView = true;
+    });
+
+    await previousController?.dispose();
   }
 
   void _recordVideoView() {
@@ -66,8 +202,9 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
     }
 
     final openedAtUtc = _openedAtUtc;
+    final videoId = _activeVideoId;
 
-    if (openedAtUtc == null) {
+    if (openedAtUtc == null || videoId == null || videoId.isEmpty) {
       return;
     }
 
@@ -80,37 +217,20 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
 
     unawaited(
       _videoService.recordVideoView(
-        videoId: widget.videoId,
+        videoId: videoId,
         watchDurationSeconds: watchedSeconds < 1 ? 1 : watchedSeconds,
         completionRate: completionRate,
       ).catchError((_) {}),
     );
   }
 
-  Future<void> _prepareController(String videoUrl) async {
-    final resolvedUrl = resolveMediaUrl(videoUrl);
+  Future<void> _toggleLike() async {
+    final videoId = _activeVideoId;
 
-    if (resolvedUrl.isEmpty || resolvedUrl == _loadedVideoUrl) {
+    if (videoId == null) {
       return;
     }
 
-    final previousController = _controller;
-    final controller = VideoPlayerController.networkUrl(Uri.parse(resolvedUrl));
-
-    _loadedVideoUrl = resolvedUrl;
-    _controller = controller;
-    await previousController?.dispose();
-
-    await controller.initialize();
-    await controller.setLooping(true);
-    await controller.play();
-
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  Future<void> _toggleLike() async {
     final nextLiked = !_isLiked;
 
     setState(() {
@@ -120,34 +240,43 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
 
     try {
       if (nextLiked) {
-        await _videoService.likeVideo(widget.videoId);
+        await _videoService.likeVideo(videoId);
       } else {
-        await _videoService.unlikeVideo(widget.videoId);
+        await _videoService.unlikeVideo(videoId);
       }
     } on ApiException catch (exception) {
+      _rollbackLike(nextLiked);
       _showMessage('Like action failed (${exception.statusCode}): ${exception.message}');
-      setState(() {
-        _isLiked = !nextLiked;
-        _likeCount += nextLiked ? -1 : 1;
-      });
     } catch (exception) {
+      _rollbackLike(nextLiked);
       _showMessage('Like action failed: $exception');
-      setState(() {
-        _isLiked = !nextLiked;
-        _likeCount += nextLiked ? -1 : 1;
-      });
     }
   }
 
+  void _rollbackLike(bool failedLikedState) {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isLiked = !failedLikedState;
+      _likeCount += failedLikedState ? -1 : 1;
+    });
+  }
+
   Future<void> _openComments() async {
+    final videoId = _activeVideoId;
+
+    if (videoId == null) {
+      return;
+    }
+
     final addedComment = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.white,
-      builder: (context) {
-        return _CommentsSheet(videoId: widget.videoId);
-      },
+      builder: (context) => _CommentsSheet(videoId: videoId),
     );
 
     if (addedComment == true && mounted) {
@@ -158,11 +287,15 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
   }
 
   Future<void> _reportVideo() async {
+    final videoId = _activeVideoId;
+
+    if (videoId == null) {
+      return;
+    }
+
     final reason = await showDialog<String>(
       context: context,
-      builder: (context) {
-        return const _ReportDialog();
-      },
+      builder: (context) => const _ReportDialog(),
     );
 
     if (reason == null || reason.trim().isEmpty) {
@@ -171,10 +304,9 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
 
     try {
       await _videoService.reportVideo(
-        videoId: widget.videoId,
+        videoId: videoId,
         reason: reason.trim(),
       );
-
       _showMessage('Report submitted.');
     } on ApiException catch (exception) {
       _showMessage('Report failed (${exception.statusCode}): ${exception.message}');
@@ -183,11 +315,22 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
     }
   }
 
-  void _showCreatorProfile(VideoDetail video) {
-    Navigator.of(context).pushNamed(
-      AppRoutes.userProfile,
-      arguments: video.creatorId,
-    );
+  Future<void> _showCreatorProfile(VideoDetail video) async {
+    await _controller?.pause();
+    AppServices.mobileNavigation.openUserProfile(video.creatorId);
+  }
+
+  Future<void> _toggleMute() async {
+    final controller = _controller;
+
+    if (controller == null) {
+      return;
+    }
+
+    setState(() {
+      _isMuted = !_isMuted;
+    });
+    await controller.setVolume(_isMuted ? 0 : 1);
   }
 
   void _showMessage(String message) {
@@ -202,95 +345,208 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: FutureBuilder<VideoDetail>(
-        future: _videoFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return PageView.builder(
+      controller: _pageController,
+      scrollDirection: Axis.vertical,
+      itemCount: _videoIds.length + 1,
+      onPageChanged: (index) {
+        if (index >= _videoIds.length) {
+          unawaited(_showCaughtUpPage());
+          return;
+        }
 
-          if (snapshot.hasError) {
-            return _VideoError(
-              message: snapshot.error.toString(),
-              onRetry: () {
-                setState(() {
-                  _videoFuture = _loadVideo();
-                });
-              },
-            );
-          }
+        setState(() {
+          _currentIndex = index;
+          _videoFuture = _loadVideo(_videoIds[index]);
+        });
+      },
+      itemBuilder: (context, index) {
+        if (index >= _videoIds.length) {
+          return const _CaughtUpPage();
+        }
 
-          final video = snapshot.data;
+        return _VideoPageSurface(
+          videoFuture: index == _currentIndex
+              ? _videoFuture
+              : _getVideoFuture(_videoIds[index]),
+          controller: index == _currentIndex ? _controller : null,
+          showBackButton: widget.showBackButton,
+          isLiked: _isLiked,
+          isMuted: _isMuted,
+          likeCount: _likeCount,
+          commentCount: _commentCount,
+          onBack: AppServices.mobileNavigation.closeOverlay,
+          onLike: _toggleLike,
+          onComments: _openComments,
+          onReport: _reportVideo,
+          onSound: _toggleMute,
+          onCreator: _showCreatorProfile,
+        );
+      },
+    );
+  }
+}
 
-          if (video == null) {
-            return _VideoError(
-              message: 'Video could not be loaded.',
-              onRetry: () {
-                setState(() {
-                  _videoFuture = _loadVideo();
-                });
-              },
-            );
-          }
+class _VideoPageSurface extends StatelessWidget {
+  const _VideoPageSurface({
+    required this.videoFuture,
+    required this.controller,
+    required this.showBackButton,
+    required this.isLiked,
+    required this.isMuted,
+    required this.likeCount,
+    required this.commentCount,
+    required this.onBack,
+    required this.onLike,
+    required this.onComments,
+    required this.onReport,
+    required this.onSound,
+    required this.onCreator,
+  });
 
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              _VideoSurface(
-                controller: _controller,
-                thumbnailUrl: video.thumbnailUrl,
-              ),
-              _VideoGradientOverlay(),
-              SafeArea(
-                child: Stack(
-                  children: [
-                    if (widget.showBackButton)
-                      Positioned(
-                        left: 12,
-                        top: 8,
-                        child: IconButton.filledTonal(
-                          onPressed: () => Navigator.of(context).maybePop(),
-                          icon: const Icon(Icons.arrow_back),
-                        ),
-                      ),
-                    Positioned(
-                      right: 14,
-                      bottom: 72,
-                      child: _SideActions(
-                        video: video,
-                        isLiked: _isLiked,
-                        likeCount: _likeCount,
-                        commentCount: _commentCount,
-                        onCreatorPressed: () => _showCreatorProfile(video),
-                        onLikePressed: _toggleLike,
-                        onCommentsPressed: _openComments,
-                        onReportPressed: _reportVideo,
-                        onSoundPressed: () {
-                          final controller = _controller;
+  final Future<VideoDetail> videoFuture;
+  final VideoPlayerController? controller;
+  final bool showBackButton;
+  final bool isLiked;
+  final bool isMuted;
+  final int likeCount;
+  final int commentCount;
+  final VoidCallback onBack;
+  final VoidCallback onLike;
+  final VoidCallback onComments;
+  final VoidCallback onReport;
+  final VoidCallback onSound;
+  final ValueChanged<VideoDetail> onCreator;
 
-                          if (controller == null) {
-                            return;
-                          }
-
-                          controller.setVolume(controller.value.volume > 0 ? 0 : 1);
-                          setState(() {});
-                        },
-                      ),
-                    ),
-                    Positioned(
-                      left: 16,
-                      right: 88,
-                      bottom: 80,
-                      child: _VideoCaption(video: video),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<VideoDetail>(
+      future: videoFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const ColoredBox(
+            color: Colors.black,
+            child: Center(child: CircularProgressIndicator()),
           );
-        },
+        }
+
+        if (snapshot.hasError || snapshot.data == null) {
+          return _VideoError(message: snapshot.error?.toString() ?? 'Video could not be loaded.');
+        }
+
+        final video = snapshot.data!;
+
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            _VideoSurface(
+              controller: controller,
+              thumbnailUrl: video.thumbnailUrl,
+            ),
+            _VideoGradientOverlay(),
+            if (video.isLocked) const _LockedVideoOverlay(),
+            SafeArea(
+              bottom: false,
+              child: Stack(
+                children: [
+                  if (showBackButton)
+                    Positioned(
+                      left: 12,
+                      top: 8,
+                      child: IconButton.filledTonal(
+                        onPressed: onBack,
+                        icon: const Icon(Icons.arrow_back),
+                      ),
+                    ),
+                  Positioned(
+                    right: 14,
+                    bottom: 78,
+                    child: VideoSideActions(
+                      video: video,
+                      isLiked: isLiked,
+                      isMuted: isMuted,
+                      likeCount: likeCount,
+                      commentCount: commentCount,
+                      onCreatorPressed: () => onCreator(video),
+                      onLikePressed: onLike,
+                      onCommentsPressed: onComments,
+                      onReportPressed: onReport,
+                      onSoundPressed: onSound,
+                    ),
+                  ),
+                  Positioned(
+                    left: 16,
+                    right: 88,
+                    bottom: 86,
+                    child: _VideoCaption(video: video),
+                  ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: _VideoProgressBar(controller: controller),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _CaughtUpPage extends StatelessWidget {
+  const _CaughtUpPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: Colors.black,
+      child: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  height: 62,
+                  width: 62,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: .10),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    color: Colors.white,
+                    size: 34,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const Text(
+                  'You are all caught up',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Check back later for more videos.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -341,6 +597,37 @@ class _VideoSurface extends StatelessWidget {
   }
 }
 
+class _LockedVideoOverlay extends StatelessWidget {
+  const _LockedVideoOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: Colors.black.withValues(alpha: .48),
+      child: const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.lock_outline_rounded,
+              color: Colors.white,
+              size: 42,
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Subscribe to view',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _VideoGradientOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -361,10 +648,11 @@ class _VideoGradientOverlay extends StatelessWidget {
   }
 }
 
-class _SideActions extends StatelessWidget {
-  const _SideActions({
+class VideoSideActions extends StatelessWidget {
+  const VideoSideActions({
     required this.video,
     required this.isLiked,
+    required this.isMuted,
     required this.likeCount,
     required this.commentCount,
     required this.onCreatorPressed,
@@ -372,10 +660,12 @@ class _SideActions extends StatelessWidget {
     required this.onCommentsPressed,
     required this.onReportPressed,
     required this.onSoundPressed,
+    super.key,
   });
 
   final VideoDetail video;
   final bool isLiked;
+  final bool isMuted;
   final int likeCount;
   final int commentCount;
   final VoidCallback onCreatorPressed;
@@ -390,7 +680,7 @@ class _SideActions extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _CreatorButton(
-          label: video.creatorName,
+          avatarUrl: video.creatorAvatarUrl,
           onPressed: onCreatorPressed,
         ),
         const SizedBox(height: 18),
@@ -413,7 +703,7 @@ class _SideActions extends StatelessWidget {
         ),
         const SizedBox(height: 18),
         _ActionButton(
-          icon: Icons.volume_up_outlined,
+          icon: isMuted ? Icons.volume_off_outlined : Icons.volume_up_outlined,
           label: '',
           onPressed: onSoundPressed,
         ),
@@ -436,24 +726,29 @@ class _SideActions extends StatelessWidget {
 
 class _CreatorButton extends StatelessWidget {
   const _CreatorButton({
-    required this.label,
+    required this.avatarUrl,
     required this.onPressed,
   });
 
-  final String label;
+  final String? avatarUrl;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
+    final resolvedAvatarUrl = resolveMediaUrl(avatarUrl);
+
     return Column(
       children: [
         InkResponse(
           onTap: onPressed,
           radius: 28,
-          child: const CircleAvatar(
-            radius: 19,
+          child: CircleAvatar(
+            radius: 20,
             backgroundColor: Colors.white,
-            child: Icon(Icons.person, color: Color(0xFF111827)),
+            backgroundImage: resolvedAvatarUrl.isEmpty ? null : NetworkImage(resolvedAvatarUrl),
+            child: resolvedAvatarUrl.isEmpty
+                ? const Icon(Icons.person, color: Color(0xFF111827))
+                : null,
           ),
         ),
         Transform.translate(
@@ -550,6 +845,35 @@ class _VideoCaption extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+class _VideoProgressBar extends StatelessWidget {
+  const _VideoProgressBar({required this.controller});
+
+  final VideoPlayerController? controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final activeController = controller;
+
+    if (activeController == null || !activeController.value.isInitialized) {
+      return const SizedBox(height: 2);
+    }
+
+    return SizedBox(
+      height: 2,
+      child: VideoProgressIndicator(
+        activeController,
+        allowScrubbing: true,
+        padding: EdgeInsets.zero,
+        colors: const VideoProgressColors(
+          playedColor: Colors.white,
+          bufferedColor: Colors.white38,
+          backgroundColor: Colors.white12,
+        ),
+      ),
     );
   }
 }
@@ -786,9 +1110,7 @@ class _ReportDialogState extends State<_ReportDialog> {
       content: TextField(
         controller: _controller,
         maxLines: 3,
-        decoration: const InputDecoration(
-          labelText: 'Reason',
-        ),
+        decoration: const InputDecoration(labelText: 'Reason'),
       ),
       actions: [
         TextButton(
@@ -805,36 +1127,22 @@ class _ReportDialogState extends State<_ReportDialog> {
 }
 
 class _VideoError extends StatelessWidget {
-  const _VideoError({
-    required this.message,
-    required this.onRetry,
-  });
+  const _VideoError({required this.message});
 
   final String message;
-  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, color: Colors.white70, size: 40),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white70),
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton(
-              onPressed: onRetry,
-              style: OutlinedButton.styleFrom(foregroundColor: Colors.white),
-              child: const Text('Try again'),
-            ),
-          ],
+    return ColoredBox(
+      color: Colors.black,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white70),
+          ),
         ),
       ),
     );

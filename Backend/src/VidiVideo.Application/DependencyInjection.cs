@@ -74,7 +74,9 @@ public static class DependencyInjection
         services.AddScoped<IQueryHandler<GenerateRevenueReportQuery, byte[]>, GenerateRevenueReportQueryHandler>();
         services.AddScoped<IQueryHandler<GetUserProfileQuery, UserProfileDto>, GetUserProfileQueryHandler>();
         services.AddScoped<IQueryHandler<GetMyProfileQuery, CurrentUserProfileDto>, GetMyProfileQueryHandler>();
-        services.AddScoped<IQueryHandler<GetRecommendedVideosQuery, PagedResult<RecommendedVideoDto>>, GetRecommendedVideosQueryHandler>();
+        services.AddScoped<IQueryHandler<GetRecommendedVideosQuery, PagedResult<VideoFeedDto>>, GetRecommendedVideosQueryHandler>();
+        services.AddScoped<IQueryHandler<GetFollowingFeedQuery, PagedResult<VideoFeedDto>>, GetFollowingFeedQueryHandler>();
+        services.AddScoped<IQueryHandler<GetVideoStreamQuery, VideoStreamResult>, GetVideoStreamQueryHandler>();
         //Delete Commands
         services.AddScoped<ICommandHandler<DeleteCountryCommand, bool>, DeleteCountryCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteHashtagCommand, bool>, DeleteHashtagCommandHandler>();

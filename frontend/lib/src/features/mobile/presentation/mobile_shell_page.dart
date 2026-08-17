@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import '../../../core/dependency/app_services.dart';
+import '../navigation/mobile_navigation_controller.dart';
 import '../widgets/vidivideo_bottom_navigation.dart';
 
 import 'create/create_video_page.dart';
 import 'feed_page.dart';
 import 'profile_page.dart';
 import 'search_page.dart';
+import '../../videos/presentation/video_viewer_page.dart';
 
 class MobileShellPage extends StatefulWidget {
   const MobileShellPage({super.key});
@@ -21,6 +24,7 @@ class _MobileShellPageState extends State<MobileShellPage> {
   @override
   void initState() {
     super.initState();
+    AppServices.mobileNavigation.addListener(_onMobileNavigationChanged);
     _pages = [
       FeedPage(),
       SearchPage(),
@@ -36,7 +40,18 @@ class _MobileShellPageState extends State<MobileShellPage> {
     ];
   }
 
+  @override
+  void dispose() {
+    AppServices.mobileNavigation.removeListener(_onMobileNavigationChanged);
+    super.dispose();
+  }
+
+  void _onMobileNavigationChanged() {
+    setState(() {});
+  }
+
   void _selectPage(int index) {
+    AppServices.mobileNavigation.clearOverlays();
     setState(() {
       _selectedIndex = index;
     });
@@ -47,9 +62,19 @@ class _MobileShellPageState extends State<MobileShellPage> {
     return Scaffold(
       backgroundColor: Colors.black,
 
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
+      body: Stack(
+        children: [
+          IndexedStack(
+            index: _selectedIndex,
+            children: _pages,
+          ),
+          if (AppServices.mobileNavigation.activeOverlay != null)
+            Positioned.fill(
+              child: _MobileOverlayHost(
+                overlay: AppServices.mobileNavigation.activeOverlay!,
+              ),
+            ),
+        ],
       ),
 
       bottomNavigationBar: VidiVideoBottomNavigation(
@@ -57,6 +82,33 @@ class _MobileShellPageState extends State<MobileShellPage> {
         onItemSelected: _selectPage,
       ),
     );
+  }
+}
+
+class _MobileOverlayHost extends StatelessWidget {
+  const _MobileOverlayHost({required this.overlay});
+
+  final MobileOverlay overlay;
+
+  @override
+  Widget build(BuildContext context) {
+    final activeOverlay = overlay;
+
+    if (activeOverlay is UserProfileOverlay) {
+      return ProfilePage(userId: activeOverlay.userId);
+    }
+
+    if (activeOverlay is VideoFeedOverlay) {
+      return VideoViewerPage(
+        videoIds: activeOverlay.videoIds,
+        initialVideoId: activeOverlay.initialVideoId,
+        initialVideos: activeOverlay.initialVideos,
+        showBackButton: true,
+        sourceCreatorId: activeOverlay.sourceCreatorId,
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 }
 

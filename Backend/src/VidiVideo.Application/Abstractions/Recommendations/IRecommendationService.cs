@@ -1,11 +1,11 @@
 ﻿using VidiVideo.Application.Common;
-using VidiVideo.Application.Recommendations;
+using VidiVideo.Application.Videos;
 
 namespace VidiVideo.Application.Abstractions.Recommendations;
 
 public interface IRecommendationService
 {
-    Task<PagedResult<RecommendedVideoDto>> GetRecommendedVideosAsync(
+    Task<PagedResult<VideoFeedDto>> GetRecommendedVideosAsync(
         Guid? userId,
         int page,
         int pageSize,

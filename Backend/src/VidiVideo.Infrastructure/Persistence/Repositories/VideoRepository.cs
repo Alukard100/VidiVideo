@@ -38,6 +38,30 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             return await query.CountAsync();
         }
 
+        public async Task<int> CountFollowedFeedAsync(Guid userId)
+        {
+            var followedCreatorIds = _db.Follows
+                .Where(f => f.FollowerId == userId)
+                .Select(f => f.CreatorId);
+
+            var subscribedCreatorIds = _db.CreatorSubscriptions
+                .Where(s =>
+                    s.SubscriberId == userId &&
+                    s.IsActive &&
+                    s.EndsAtUtc > DateTime.UtcNow)
+                .Select(s => s.CreatorId);
+
+            return await _db.Videos
+                .Where(v =>
+                    v.IsPublished &&
+                    !v.IsDeleted &&
+                    (
+                        followedCreatorIds.Contains(v.CreatorId) ||
+                        subscribedCreatorIds.Contains(v.CreatorId)
+                    ))
+                    .CountAsync();
+        }
+
         public async Task<int> CountPublicAsync(DateTime? f)
         {
             var query = _db.Videos.AsQueryable();
@@ -124,6 +148,43 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             return await query.ToListAsync();
         }
 
+        public async Task<List<Video>> GetFollowedFeedAsync(Guid userId, int _page = 1, int _pageSize = 10)
+        {
+
+            var followedCreatorIds = _db.Follows
+                .Where(f => f.FollowerId == userId)
+                .Select(f => f.CreatorId);
+
+            var subscribedCreatorIds = _db.CreatorSubscriptions
+                .Where(s =>
+                    s.SubscriberId == userId &&
+                    s.IsActive &&
+                    s.EndsAtUtc > DateTime.UtcNow)
+                .Select(s => s.CreatorId);
+
+            return await _db.Videos
+                .AsNoTracking()
+                .Include(v => v.Creator)
+                .Include(v => v.Category)
+                .Include(v => v.VideoHashtags)
+                    .ThenInclude(vh => vh.Hashtag)
+                .Include(v => v.Likes)
+                .Include(v => v.Comments)
+                .Include(v => v.VideoViews)
+                .Where(v =>
+                    v.IsPublished &&
+                    !v.IsDeleted &&
+                    (
+                        followedCreatorIds.Contains(v.CreatorId) ||
+                        subscribedCreatorIds.Contains(v.CreatorId)
+                    ))
+                .OrderByDescending(v => v.CreatedAtUtc)
+                .Skip((_page - 1) * _pageSize)
+                    .Take(_pageSize)
+                    .AsSplitQuery()
+                    .ToListAsync();
+        }
+
         public async Task<List<Video>> GetRecommendationCandidatesAsync(Guid? userId, int limit = 300)
         {
             var query = _db.Videos
@@ -162,6 +223,13 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
                 .Include(v => v.Comments)
                 .Include(v => v.VideoHashtags)
                     .ThenInclude(vh => vh.Hashtag)
+                .FirstOrDefaultAsync(v => v.Id == videoId);
+        }
+
+        public async Task<Video?> GetVideoForStreamingAsync(Guid videoId)
+        {
+            return await _db.Videos
+                .AsNoTracking()
                 .FirstOrDefaultAsync(v => v.Id == videoId);
         }
 

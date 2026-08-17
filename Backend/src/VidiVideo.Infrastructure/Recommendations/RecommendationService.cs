@@ -3,6 +3,7 @@ using VidiVideo.Application.Abstractions.Repositories;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Exceptions;
 using VidiVideo.Application.Recommendations;
+using VidiVideo.Application.Videos;
 using VidiVideo.Domain.Entities;
 using VidiVideo.Domain.Enums;
 
@@ -32,7 +33,7 @@ public sealed class RecommendationService : IRecommendationService
         _followRepository = followersRepository;
         _videoViewRepository = videoViewRepository;
     }
-    public async Task<PagedResult<RecommendedVideoDto>> GetRecommendedVideosAsync(Guid? userId, int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<PagedResult<VideoFeedDto>> GetRecommendedVideosAsync(Guid? userId, int page, int pageSize, CancellationToken cancellationToken)
     {
         if (!userId.HasValue)
             return await BuildPopularityRecommendations(page, pageSize, cancellationToken);
@@ -126,6 +127,15 @@ public sealed class RecommendationService : IRecommendationService
                 Content = contentScore,
                 Collaborative = collaborativeScore
             };
+
+            candidate.RecommendationReason = DetermineRecommendationReason(
+                candidate.Video,
+                currentUser,
+                subscribedCreatorIds,
+                followedCreatorsIds,
+                categoryScores,
+                hashtagScores,
+                collaborativeScore);
         }
 
         var minContent = candidates.Count == 0
@@ -187,23 +197,25 @@ public sealed class RecommendationService : IRecommendationService
         {
             var video = candidate.Video;
 
-            return new RecommendedVideoDto(
+            return new VideoFeedDto(
                 video.Id,
                 video.Caption,
-                candidate.IsLocked ? null : video.VideoUrl,
+                candidate.IsLocked ? null : $"/api/Video/{video.Id}/stream",
                 video.ThumbnailUrl,
                 video.CreatorId,
                 video.Creator.DisplayName,
-                video.Visibility.ToString(),
+                video.Creator.AvatarUrl,
+                video.Visibility,
                 video.Likes.Count,
                 video.Comments.Count,
                 video.VideoViews.Count,
                 candidate.IsLocked,
+                candidate.RecommendationReason,
                 candidate.Score.Total);
         })
         .ToList();
 
-        return new PagedResult<RecommendedVideoDto>(
+        return new PagedResult<VideoFeedDto>(
             items,
             page,
             pageSize,
@@ -333,7 +345,7 @@ public sealed class RecommendationService : IRecommendationService
         return (value - min) / (max - min);
     }
 
-    private async Task<PagedResult<RecommendedVideoDto>> BuildPopularityRecommendations(int page, int pageSize, CancellationToken cancellationToken)
+    private async Task<PagedResult<VideoFeedDto>> BuildPopularityRecommendations(int page, int pageSize, CancellationToken cancellationToken)
     {
         var videos =
             await _videoRepository.GetRecommendationCandidatesAsync(null);
@@ -344,6 +356,7 @@ public sealed class RecommendationService : IRecommendationService
             {
                 Video = video,
                 IsLocked = false,
+                RecommendationReason = "Trending now",
                 Score = new RecommendationScore(
                     Content: 0,
                     Collaborative: 0,
@@ -382,22 +395,66 @@ public sealed class RecommendationService : IRecommendationService
             {
                 var video = candidate.Video;
 
-                return new RecommendedVideoDto(
+                return new VideoFeedDto(
                     video.Id,
                     video.Caption,
-                    candidate.IsLocked ? null : video.VideoUrl,
+                    candidate.IsLocked ? null : $"/api/Video/{video.Id}/stream",
                     video.ThumbnailUrl,
                     video.CreatorId,
                     video.Creator.DisplayName,
-                    video.Visibility.ToString(),
+                    video.Creator.AvatarUrl,
+                    video.Visibility,
                     video.Likes.Count,
                     video.Comments.Count,
                     video.VideoViews.Count,
                     false,
+                    candidate.RecommendationReason,
                     candidate.Score.Popularity);
             })
             .ToList();
 
-        return new PagedResult<RecommendedVideoDto>(items, page, pageSize, total);
+        return new PagedResult<VideoFeedDto>(items, page, pageSize, total);
+    }
+
+    private static string DetermineRecommendationReason(Video video, AppUser currentUser, HashSet<Guid> subscribedCreatorIds, HashSet<Guid> followedCreatorIds, Dictionary<Guid, double> categoryScores, Dictionary<Guid, double> hashtagScores, double collaborativeScore)
+    {
+        if (subscribedCreatorIds.Contains(video.CreatorId))
+        {
+            return $"From {video.Creator.DisplayName} you are subscribed to";
+        }
+
+        if (followedCreatorIds.Contains(video.CreatorId))
+        {
+            return $"From {video.Creator.DisplayName} you follow";
+        }
+
+        var matchingHashtag = video.VideoHashtags
+            .Where(vh => hashtagScores.ContainsKey(vh.HashtagId))
+            .OrderByDescending(vh => hashtagScores[vh.HashtagId])
+            .FirstOrDefault();
+
+        if (matchingHashtag is not null)
+        {
+            return $"Because you like #{matchingHashtag.Hashtag.Name}";
+        }
+
+        if (categoryScores.ContainsKey(video.CategoryId))
+        {
+            return $"Because you like {video.Category.Name}";
+        }
+
+        if (collaborativeScore > 0)
+        {
+            return "People with similar interests liked this";
+        }
+
+        if (currentUser.CountryId.HasValue &&
+        video.Creator.CountryId.HasValue &&
+        currentUser.CountryId == video.Creator.CountryId)
+        {
+            return "Popular with creators from your region";
+        }
+
+        return "Trending now";
     }
 }

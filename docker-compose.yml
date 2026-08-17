@@ -9,7 +9,7 @@ services:
       - "5000:8080"
     volumes:
       - image-data:/app/wwwroot/images
-      - video-data:/app/wwwroot/videos
+      - video-data:/app/storage/videos
     depends_on:
       - sqlserver
       - rabbitmq

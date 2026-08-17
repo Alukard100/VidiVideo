@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../../app/app_routes.dart';
 import '../../../core/dependency/app_services.dart';
 import '../../../core/network/api_client.dart';
 import '../../categories/models/category.dart';
@@ -141,9 +140,9 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _openVideo(VideoSummary video) {
-    Navigator.of(context).pushNamed(
-      AppRoutes.videoViewer,
-      arguments: VideoViewerRouteArguments(videoId: video.id),
+    AppServices.mobileNavigation.openVideoFeed(
+      videoIds: _videos.map((item) => item.id).toList(),
+      initialVideoId: video.id,
     );
   }
 

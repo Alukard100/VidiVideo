@@ -1,5 +1,6 @@
 import '../../features/categories/data/category_service.dart';
 import '../../features/countries/data/country_service.dart';
+import '../../features/mobile/navigation/mobile_navigation_controller.dart';
 import '../../features/profile/data/profile_service.dart';
 import '../../features/videos/data/video_service.dart';
 import '../../features/auth/data/auth_service.dart';
@@ -9,6 +10,9 @@ import '../utils/profile_refresh_notifier.dart';
 
 class AppServices {
   AppServices._();
+
+  static final MobileNavigationController mobileNavigation =
+      MobileNavigationController();
 
   static final SessionStore sessionStore = SessionStore();
 

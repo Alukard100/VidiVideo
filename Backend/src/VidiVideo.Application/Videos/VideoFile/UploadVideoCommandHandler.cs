@@ -13,7 +13,7 @@ namespace VidiVideo.Application.Videos.VideoFile
             ".mov",
             ".webm"
             ];
-        const long maxSize = 500 * 1024 * 1024; //500MB
+        const long maxSize = 72L * 1024 * 1024; //72MB
 
         public UploadVideoCommandHandler(IVideoStorageService videoStorageService)
         {

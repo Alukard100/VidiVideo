@@ -115,6 +115,66 @@ class VideoService {
         .toList();
   }
 
+  Future<List<VideoDetail>> getRecommendedVideos({
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    final response = await _apiClient.getJson(
+      '/api/Video/recommended',
+      queryParameters: {
+        'Page': page,
+        'PageSize': pageSize,
+      },
+    );
+
+    if (response is! Map<String, dynamic>) {
+      throw const ApiException(
+        statusCode: 500,
+        message: 'Unexpected recommended videos response.',
+      );
+    }
+
+    final items = response['items'];
+
+    if (items is! List) {
+      return const [];
+    }
+
+    return items
+        .map((item) => VideoDetail.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<VideoDetail>> getFollowingVideos({
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    final response = await _apiClient.getJson(
+      '/api/Video/following',
+      queryParameters: {
+        'Page': page,
+        'PageSize': pageSize,
+      },
+    );
+
+    if (response is! Map<String, dynamic>) {
+      throw const ApiException(
+        statusCode: 500,
+        message: 'Unexpected following videos response.',
+      );
+    }
+
+    final items = response['items'];
+
+    if (items is! List) {
+      return const [];
+    }
+
+    return items
+        .map((item) => VideoDetail.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<void> recordSearch(String query) async {
     final trimmed = query.trim();
 

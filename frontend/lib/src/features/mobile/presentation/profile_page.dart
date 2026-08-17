@@ -1,7 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
-import '../../../app/app_routes.dart';
 import '../../../core/dependency/app_services.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/media_url.dart';
@@ -40,7 +39,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   @override
-    void dispose() {
+  void dispose() {
     AppServices.profileRefreshNotifier.removeListener(_refreshProfile);
     super.dispose();
   }
@@ -145,13 +144,24 @@ class _ProfilePageState extends State<ProfilePage> {
             foregroundColor: const Color(0xFF111827),
             elevation: 0,
             centerTitle: false,
-            leading: Navigator.of(context).canPop()
-            ? IconButton(
-              tooltip: 'Back',
-              onPressed: () => Navigator.of(context).maybePop(),
-              icon: const Icon(Icons.arrow_back),
-            )
-            : null,
+            leading: _isVisitingProfile
+                ? IconButton(
+                    tooltip: 'Back',
+                    onPressed: () {
+                      if (_showPublicPreview) {
+                        setState(() {
+                          _showPublicPreview = false;
+                          _profileFuture = _loadProfile();
+                        });
+                      } else if (AppServices.mobileNavigation.activeOverlay != null) {
+                        AppServices.mobileNavigation.closeOverlay();
+                      } else {
+                        Navigator.of(context).maybePop();
+                      }
+                    },
+                    icon: const Icon(Icons.arrow_back),
+                  )
+                : null,
             title: Text(
               profile?.userName ?? (_isMyProfile ? 'my profile' : 'profile'),
               style: const TextStyle(
@@ -222,6 +232,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   const SizedBox(height: 16),
                   _ProfileTabs(
+                    profileId: profile.id,
                     publicVideos: profile.publicVideos,
                     subscriberOnlyVideos: profile.subscriberOnlyVideos,
                     forceSubscriberLocks: _isVisitingProfile && !profile.isSubscribed,
@@ -281,6 +292,9 @@ class _ProfileHeader extends StatelessWidget {
                       padding: EdgeInsets.zero,
                       onPressed: onChangeAvatar,
                       iconSize: 18,
+                      style: IconButton.styleFrom(
+                        backgroundColor: const Color(0xFF111827),
+                      ),
                       icon: const Icon(Icons.camera_alt_outlined),
                     ),
                   ),
@@ -488,11 +502,13 @@ class _ProfileActionButton extends StatelessWidget {
 
 class _ProfileTabs extends StatelessWidget {
   const _ProfileTabs({
+    required this.profileId,
     required this.publicVideos,
     required this.subscriberOnlyVideos,
     required this.forceSubscriberLocks,
   });
 
+  final String profileId;
   final List<ProfileVideo> publicVideos;
   final List<ProfileVideo> subscriberOnlyVideos;
   final bool forceSubscriberLocks;
@@ -528,10 +544,12 @@ class _ProfileTabs extends StatelessWidget {
           child: TabBarView(
             children: [
               _VideoGrid(
+                profileId: profileId,
                 videos: publicVideos,
                 emptyMessage: 'No public videos yet.',
               ),
               _VideoGrid(
+                profileId: profileId,
                 videos: subscriberOnlyVideos,
                 emptyMessage: 'No subscriber-only videos yet.',
                 forceLocked: forceSubscriberLocks,
@@ -551,11 +569,13 @@ class _ProfileTabs extends StatelessWidget {
 
 class _VideoGrid extends StatelessWidget {
   const _VideoGrid({
+    required this.profileId,
     required this.videos,
     required this.emptyMessage,
     this.forceLocked = false,
   });
 
+  final String profileId;
   final List<ProfileVideo> videos;
   final String emptyMessage;
   final bool forceLocked;
@@ -583,9 +603,13 @@ class _VideoGrid extends StatelessWidget {
           video: video,
           forceLocked: forceLocked,
           onTap: () {
-            Navigator.of(context).pushNamed(
-              AppRoutes.videoViewer,
-              arguments: VideoViewerRouteArguments(videoId: video.id),
+            AppServices.mobileNavigation.openVideoFeed(
+              videoIds: videos
+                  .where((item) => !item.isLocked && !forceLocked)
+                  .map((item) => item.id)
+                  .toList(),
+              initialVideoId: video.id,
+              sourceCreatorId: profileId,
             );
           },
         );

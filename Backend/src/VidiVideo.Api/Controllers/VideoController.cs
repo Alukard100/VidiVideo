@@ -19,9 +19,11 @@ public class VideoController : ControllerBase
     private readonly IQueryHandler<GetVideosQuery, PagedResult<VideoSummaryDto>> _videosQuery;
     private readonly ICommandHandler<DeleteVideoCommand, bool> _deleteHandler;
     private readonly ICommandHandler<UpdateVideoCommand, Guid> _updateHandler;
-    private readonly IQueryHandler<GetRecommendedVideosQuery, PagedResult<RecommendedVideoDto>> _recommendedHandler;
+    private readonly IQueryHandler<GetRecommendedVideosQuery, PagedResult<VideoFeedDto>> _recommendedHandler;
+    private readonly IQueryHandler<GetFollowingFeedQuery, PagedResult<VideoFeedDto>> _followingHandler;
+    private readonly IQueryHandler<GetVideoStreamQuery, VideoStreamResult> _videoStreamHandler;
 
-    public VideoController(ICommandHandler<CreateVideoCommand, Guid> videoHandler, ICommandHandler<CreateThumbnailCommand, string> thumbnailFileHandler, ICommandHandler<UploadVideoCommand, string> videoFileHandler, IQueryHandler<GetVideoByIdQuery, VideoDto> videoByIdQuery, IQueryHandler<GetVideosQuery, PagedResult<VideoSummaryDto>> videosQuery, ICommandHandler<DeleteVideoCommand, bool> deleteHandler, ICommandHandler<UpdateVideoCommand, Guid> updateHandler, IQueryHandler<GetRecommendedVideosQuery, PagedResult<RecommendedVideoDto>> recommendedHandler)
+    public VideoController(ICommandHandler<CreateVideoCommand, Guid> videoHandler, ICommandHandler<CreateThumbnailCommand, string> thumbnailFileHandler, ICommandHandler<UploadVideoCommand, string> videoFileHandler, IQueryHandler<GetVideoByIdQuery, VideoDto> videoByIdQuery, IQueryHandler<GetVideosQuery, PagedResult<VideoSummaryDto>> videosQuery, ICommandHandler<DeleteVideoCommand, bool> deleteHandler, ICommandHandler<UpdateVideoCommand, Guid> updateHandler, IQueryHandler<GetRecommendedVideosQuery, PagedResult<VideoFeedDto>> recommendedHandler, IQueryHandler<GetFollowingFeedQuery, PagedResult<VideoFeedDto>> followingHandler, IQueryHandler<GetVideoStreamQuery, VideoStreamResult> videoStreamHandler)
     {
         _createVideoHandler = videoHandler;
         _thumbnailFileHandler = thumbnailFileHandler;
@@ -31,6 +33,8 @@ public class VideoController : ControllerBase
         _deleteHandler = deleteHandler;
         _updateHandler = updateHandler;
         _recommendedHandler = recommendedHandler;
+        _followingHandler = followingHandler;
+        _videoStreamHandler = videoStreamHandler;
     }
 
     [Authorize]
@@ -46,7 +50,7 @@ public class VideoController : ControllerBase
 
     [Authorize]
     [HttpPost("upload-video")]
-    [RequestSizeLimit(524288000)]
+    [RequestSizeLimit(75497472)]
     public async Task<IActionResult> UploadVideo(IFormFile formFile, CancellationToken cancellation)
     {
         var command = new UploadVideoCommand(formFile.OpenReadStream(), formFile.FileName);
@@ -123,5 +127,36 @@ public class VideoController : ControllerBase
             cancellationToken);
 
         return Ok(result);
+    }
+
+    [HttpGet("following")]
+    public async Task<IActionResult> Following(
+    [FromQuery] GetFollowingFeedQuery query,
+    CancellationToken cancellationToken)
+    {
+        var result = await _followingHandler.HandleAsync(
+            query,
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    [HttpGet("{videoId:guid}/stream")]
+    public async Task<IActionResult> StreamVideo(
+    Guid videoId,
+    CancellationToken cancellationToken)
+    {
+        var query =
+            new GetVideoStreamQuery(videoId);
+
+        var result =
+            await _videoStreamHandler.HandleAsync(
+                query,
+                cancellationToken);
+
+        return File(
+            result.Stream,
+            result.ContentType,
+            enableRangeProcessing: true);
     }
 }

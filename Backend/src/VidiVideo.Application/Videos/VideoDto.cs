@@ -9,6 +9,7 @@ public sealed record VideoDto(
     string ThumbnailUrl,
     Guid CreatorId,
     string CreatorName,
+    string? CreatorAvatarUrl,
     string CategoryName,
     bool IsPublished,
     VideoVisibility Visibility,
