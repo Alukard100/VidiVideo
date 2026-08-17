@@ -1,7 +1,6 @@
 ﻿using VidiVideo.Application.Abstractions;
 using VidiVideo.Application.Abstractions.Recommendations;
 using VidiVideo.Application.Common;
-using VidiVideo.Application.Exceptions;
 
 namespace VidiVideo.Application.Recommendations;
 
@@ -25,8 +24,7 @@ public sealed class GetRecommendedVideosQueryHandler
         GetRecommendedVideosQuery query,
         CancellationToken cancellationToken)
     {
-        var userId = _currentUser.UserId
-            ?? throw new UnauthorizedException("Must be logged in.");
+        var userId = _currentUser.UserId;
 
         return await _recommendationService.GetRecommendedVideosAsync(
             userId,

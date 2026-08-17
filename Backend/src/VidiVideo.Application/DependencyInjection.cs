@@ -7,6 +7,7 @@ using VidiVideo.Application.Followers;
 using VidiVideo.Application.Hashtags;
 using VidiVideo.Application.Notifications;
 using VidiVideo.Application.Payments.PayPal;
+using VidiVideo.Application.Recommendations;
 using VidiVideo.Application.Reports.RevenueReport;
 using VidiVideo.Application.Reports.VideosReport;
 using VidiVideo.Application.SearchHistories;
@@ -73,6 +74,7 @@ public static class DependencyInjection
         services.AddScoped<IQueryHandler<GenerateRevenueReportQuery, byte[]>, GenerateRevenueReportQueryHandler>();
         services.AddScoped<IQueryHandler<GetUserProfileQuery, UserProfileDto>, GetUserProfileQueryHandler>();
         services.AddScoped<IQueryHandler<GetMyProfileQuery, CurrentUserProfileDto>, GetMyProfileQueryHandler>();
+        services.AddScoped<IQueryHandler<GetRecommendedVideosQuery, PagedResult<RecommendedVideoDto>>, GetRecommendedVideosQueryHandler>();
         //Delete Commands
         services.AddScoped<ICommandHandler<DeleteCountryCommand, bool>, DeleteCountryCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteHashtagCommand, bool>, DeleteHashtagCommandHandler>();

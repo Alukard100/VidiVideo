@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VidiVideo.Application.Common;
+using VidiVideo.Application.Recommendations;
 using VidiVideo.Application.Videos;
 using VidiVideo.Application.Videos.Thumbnails;
 using VidiVideo.Application.Videos.VideoFile;
@@ -18,8 +19,9 @@ public class VideoController : ControllerBase
     private readonly IQueryHandler<GetVideosQuery, PagedResult<VideoSummaryDto>> _videosQuery;
     private readonly ICommandHandler<DeleteVideoCommand, bool> _deleteHandler;
     private readonly ICommandHandler<UpdateVideoCommand, Guid> _updateHandler;
+    private readonly IQueryHandler<GetRecommendedVideosQuery, PagedResult<RecommendedVideoDto>> _recommendedHandler;
 
-    public VideoController(ICommandHandler<CreateVideoCommand, Guid> videoHandler, ICommandHandler<CreateThumbnailCommand, string> thumbnailFileHandler, ICommandHandler<UploadVideoCommand, string> videoFileHandler, IQueryHandler<GetVideoByIdQuery, VideoDto> videoByIdQuery, IQueryHandler<GetVideosQuery, PagedResult<VideoSummaryDto>> videosQuery, ICommandHandler<DeleteVideoCommand, bool> deleteHandler, ICommandHandler<UpdateVideoCommand, Guid> updateHandler)
+    public VideoController(ICommandHandler<CreateVideoCommand, Guid> videoHandler, ICommandHandler<CreateThumbnailCommand, string> thumbnailFileHandler, ICommandHandler<UploadVideoCommand, string> videoFileHandler, IQueryHandler<GetVideoByIdQuery, VideoDto> videoByIdQuery, IQueryHandler<GetVideosQuery, PagedResult<VideoSummaryDto>> videosQuery, ICommandHandler<DeleteVideoCommand, bool> deleteHandler, ICommandHandler<UpdateVideoCommand, Guid> updateHandler, IQueryHandler<GetRecommendedVideosQuery, PagedResult<RecommendedVideoDto>> recommendedHandler)
     {
         _createVideoHandler = videoHandler;
         _thumbnailFileHandler = thumbnailFileHandler;
@@ -28,6 +30,7 @@ public class VideoController : ControllerBase
         _videosQuery = videosQuery;
         _deleteHandler = deleteHandler;
         _updateHandler = updateHandler;
+        _recommendedHandler = recommendedHandler;
     }
 
     [Authorize]
@@ -106,6 +109,18 @@ public class VideoController : ControllerBase
         var command = new UpdateVideoCommand(request.VideoId, request.CategoryId, request.Caption, request.ThumbnailUrl, request.Visibility, request.IsPublished);
 
         var result = await _updateHandler.HandleAsync(command, cancellationToken);
+
+        return Ok(result);
+    }
+
+    [HttpGet("recommended")]
+    public async Task<IActionResult> Recommended(
+    [FromQuery] GetRecommendedVideosQuery query,
+    CancellationToken cancellationToken)
+    {
+        var result = await _recommendedHandler.HandleAsync(
+            query,
+            cancellationToken);
 
         return Ok(result);
     }

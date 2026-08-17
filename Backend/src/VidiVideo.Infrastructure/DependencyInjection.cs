@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VidiVideo.Api.Configuration;
 using VidiVideo.Application.Abstractions;
+using VidiVideo.Application.Abstractions.Recommendations;
 using VidiVideo.Application.Abstractions.Repositories;
 using VidiVideo.Infrastructure.Authentication;
 using VidiVideo.Infrastructure.Media;
@@ -11,6 +12,7 @@ using VidiVideo.Infrastructure.Payments;
 using VidiVideo.Infrastructure.Persistence;
 using VidiVideo.Infrastructure.Persistence.Repositories;
 using VidiVideo.Infrastructure.Persistence.Seed;
+using VidiVideo.Infrastructure.Recommendations;
 using VidiVideo.Infrastructure.Reports;
 
 namespace VidiVideo.Infrastructure;
@@ -49,6 +51,7 @@ public static class DependencyInjection
         services.AddScoped<IRevenueReportGenerator, RevenueReportGenerator>();
         services.AddScoped<IVideoAnalyticsReportGenerator, VideoAnalyticsReportGenerator>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRecommendationService, RecommendationService>();
 
         services.AddHttpClient<IPayPalService, PayPalService>();
 
