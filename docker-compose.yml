@@ -32,7 +32,7 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04
     environment:
       ACCEPT_EULA: "Y"
-      SA_PASSWORD: "${VIDIVIDEO_MSSQL_SA_PASSWORD}"
+      MSSQL_SA_PASSWORD: "${VIDIVIDEO_MSSQL_SA_PASSWORD}"
     ports:
       - "14330:1433"
     volumes:
@@ -41,7 +41,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '$$SA_PASSWORD' -C -Q 'SELECT 1' || exit 1"
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' || exit 1"
         ]
       interval: 5s
       timeout: 5s
