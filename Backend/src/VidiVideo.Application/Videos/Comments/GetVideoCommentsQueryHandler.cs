@@ -28,7 +28,10 @@ namespace VidiVideo.Application.Videos.Comments
                 Id: c.Id,
                 Content: c.Body,
                 CreatedAtUtc: c.CreatedAtUtc,
-                UpdatedAtUtc: c.UpdatedAtUtc
+                UpdatedAtUtc: c.UpdatedAtUtc,
+                AuthorId: c.AuthorId,
+                AuthorDisplayName: c.Author.DisplayName,
+                AuthorAvatarUrl: c.Author.AvatarUrl
             )).ToList();
 
             return new PagedResult<CommentDto>(items, query.Page, query.PageSize, count);

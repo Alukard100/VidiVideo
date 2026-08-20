@@ -23,4 +23,21 @@ class AuthService {
     return LoginResponse.fromJson(response);
   }
 
+  Future<void> register({
+    required String username,
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
+    await _apiClient.postJson(
+      '/api/auth/register',
+      {
+        'userName': username,
+        'email': email,
+        'password': password,
+        'displayName': displayName,
+      },
+    );
+  }
+
 }

@@ -11,11 +11,13 @@ public sealed class AuthController : ControllerBase
 {
     private readonly ICommandHandler<RegisterUserCommand, Guid> _registerHandler;
     private readonly ICommandHandler<LoginUserCommand, LoginUserResponse> _loginHandler;
+    private readonly ICommandHandler<ChangePasswordCommand, bool> _changePasswordHandler;
 
-    public AuthController(ICommandHandler<RegisterUserCommand, Guid> registerHandler, ICommandHandler<LoginUserCommand, LoginUserResponse> loginHandler)
+    public AuthController(ICommandHandler<RegisterUserCommand, Guid> registerHandler, ICommandHandler<LoginUserCommand, LoginUserResponse> loginHandler, ICommandHandler<ChangePasswordCommand, bool> changePasswordHandler)
     {
         _registerHandler = registerHandler;
         _loginHandler = loginHandler;
+        _changePasswordHandler = changePasswordHandler;
     }
 
     [HttpPost("register")]
@@ -34,6 +36,21 @@ public sealed class AuthController : ControllerBase
         var command = new LoginUserCommand(request.UserName, request.Password);
 
         var response = await _loginHandler.HandleAsync(command, cancellationToken);
+
+        return Ok(response);
+    }
+
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword(
+        [FromBody] ChangePasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new ChangePasswordCommand(
+            request.OldPassword,
+            request.NewPassword);
+
+        var response = await _changePasswordHandler.HandleAsync(command, cancellationToken);
 
         return Ok(response);
     }

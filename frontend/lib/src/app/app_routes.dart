@@ -2,6 +2,7 @@ class AppRoutes {
   const AppRoutes._();
 
   static const login = '/login';
+  static const register = '/register';
   static const adminDashboard = '/admin';
   static const adminUsers = '/admin/users';
   static const adminReports = '/admin/reports';

@@ -45,4 +45,9 @@ public sealed class AppUser : AuditableEntity
         AvatarUrl = avatarUrl;
     }
 
+    public void UpdatePassword(string passwordHash)
+    {
+        PasswordHash = passwordHash;
+    }
+
 }

@@ -10,11 +10,14 @@ namespace VidiVideo.Application.Videos
         Guid CreatorId,
         string CreatorDisplayName,
         string? CreatorAvatarUrl,
+        Guid CategoryId,
         VideoVisibility Visibility,
         int LikeCount,
         int CommentCount,
         int ViewCount,
         bool IsLocked,
+        bool IsLiked,
+        bool CanEdit,
         string? RecommendationReason = null,
         double? RecommendationScore = null);
 }

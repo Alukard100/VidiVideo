@@ -175,21 +175,6 @@ class VideoService {
         .toList();
   }
 
-  Future<void> recordSearch(String query) async {
-    final trimmed = query.trim();
-
-    if (trimmed.isEmpty) {
-      return;
-    }
-
-    await _apiClient.postJson(
-      '/api/SearchHistory',
-      {
-        'query': trimmed,
-      },
-    );
-  }
-
   Future<void> recordVideoView({
     required String videoId,
     required int watchDurationSeconds,
@@ -273,6 +258,27 @@ class VideoService {
       '/api/Like/unlike',
       {
         'videoId': videoId,
+      },
+    );
+  }
+
+  Future<void> updateVideo({
+    required String videoId,
+    required String categoryId,
+    required String caption,
+    required String thumbnailUrl,
+    required int visibility,
+    required bool isPublished,
+  }) async {
+    await _apiClient.patchJson(
+      '/api/Video/update',
+      {
+        'videoId': videoId,
+        'categoryId': categoryId,
+        'caption': caption,
+        'thumbnailUrl': thumbnailUrl,
+        'visibility': visibility,
+        'isPublished': isPublished,
       },
     );
   }

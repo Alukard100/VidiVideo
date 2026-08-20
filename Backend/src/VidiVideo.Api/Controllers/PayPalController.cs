@@ -9,10 +9,10 @@ namespace VidiVideo.Api.Controllers
     [Route("api/[controller]")]
     public class PayPalController : ControllerBase
     {
-        private readonly ICommandHandler<CreatePayPalOrderCommand, string> _createHandler;
+        private readonly ICommandHandler<CreatePayPalOrderCommand, PayPalOrderDto> _createHandler;
         private readonly ICommandHandler<CapturePayPalOrderCommand, bool> _captureHandler;
 
-        public PayPalController(ICommandHandler<CreatePayPalOrderCommand, string> createHandler, ICommandHandler<CapturePayPalOrderCommand, bool> captureHandler)
+        public PayPalController(ICommandHandler<CreatePayPalOrderCommand, PayPalOrderDto> createHandler, ICommandHandler<CapturePayPalOrderCommand, bool> captureHandler)
         {
             _createHandler = createHandler;
             _captureHandler = captureHandler;
@@ -24,7 +24,7 @@ namespace VidiVideo.Api.Controllers
         {
             var result = await _createHandler.HandleAsync(command, cancellationToken);
 
-            return Ok(new { result });
+            return Ok(result);
         }
 
         [Authorize]

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import '../../../core/dependency/app_services.dart';
 import '../../../core/network/api_client.dart';
 import '../../categories/models/category.dart';
+import '../../search_history/models/search_history_item.dart';
+import '../../search_history/widgets/recent_searches.dart';
 import '../../videos/data/video_summary.dart';
 import '../../videos/widgets/search_video_tile.dart';
 
@@ -18,19 +20,23 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   final _searchController = TextEditingController();
   final _videoService = AppServices.videoService;
+  final _searchHistoryService = AppServices.searchHistoryService;
 
   List<Category> _categories = [];
   List<VideoSummary> _videos = [];
   List<String> _parsedHashtags = [];
+  List<SearchHistoryItem> _recentSearches =[];
   String? _selectedCategoryId;
   Timer? _debounce;
   bool _isLoading = true;
   String? _error;
+  bool _isLoadingHistory = false;
 
   @override
   void initState() {
     super.initState();
     _loadInitialData();
+    _loadSearchHistory();
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -114,12 +120,127 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> _recordSearch(String query) async {
+    if (!_hasSession()) {
+      return;
+    }
+
     try {
-      await _videoService.recordSearch(query);
+      await _searchHistoryService.create(query);
+
+      await _loadSearchHistory();
     } catch (_) {
-      // Search should still work for anonymous preview users.
     }
   }
+
+  Future<void> _clearSearchHistory() async {
+    try {
+      await _searchHistoryService.clear();
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _recentSearches = [];
+      });
+
+      _showMessage(
+        'Search history cleared.',
+      );
+    } on ApiException catch (exception) {
+      _showMessage(
+        'Could not clear search history '
+        '(${exception.statusCode}): '
+        '${exception.message}',
+      );
+    } catch (exception) {
+      _showMessage(
+        'Could not clear search history: $exception',
+      );
+    }
+  }
+
+  Future<void> _loadSearchHistory() async {
+    if (!_hasSession()) {
+      return;
+    }
+
+    setState(() {
+      _isLoadingHistory = true;
+    });
+
+    try {
+      final history =
+          await _searchHistoryService.getHistory(
+        page: 1,
+        pageSize: 5,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _recentSearches = history;
+        _isLoadingHistory = false;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isLoadingHistory = false;
+      });
+    }
+  }
+
+  bool _hasSession() {
+    final token =
+        AppServices.sessionStore.accessToken;
+
+    return token != null && token.isNotEmpty;
+  }
+
+  Future<void> _deleteRecentSearch(
+  SearchHistoryItem item,
+  ) async {
+    try {
+      await _searchHistoryService.delete(
+        item.id,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _recentSearches.removeWhere(
+          (entry) => entry.id == item.id,
+        );
+      });
+    } on ApiException catch (exception) {
+      _showMessage(
+        'Could not delete search '
+        '(${exception.statusCode}): '
+        '${exception.message}',
+      );
+    }
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+  }
+
+
 
   void _setError(String message) {
     if (!mounted) {
@@ -137,6 +258,23 @@ class _SearchPageState extends State<SearchPage> {
       _selectedCategoryId = categoryId;
     });
     _performSearch(recordHistory: false);
+  }
+
+  void _useRecentSearch(
+    SearchHistoryItem item,
+  ) {
+    _debounce?.cancel();
+
+    _searchController.text = item.query;
+
+    _searchController.selection =
+        TextSelection.collapsed(
+      offset: item.query.length,
+    );
+
+    _performSearch(
+      recordHistory: false,
+    );
   }
 
   void _openVideo(VideoSummary video) {
@@ -193,6 +331,16 @@ class _SearchPageState extends State<SearchPage> {
                         ),
                 ),
               ),
+            ),
+            if (_searchController.text
+              .trim()
+              .isEmpty)
+            RecentSearches(
+              items: _recentSearches,
+              isLoading: _isLoadingHistory,
+              onPressed: _useRecentSearch,
+              onDelete: _deleteRecentSearch,
+              onClearAll: _clearSearchHistory,
             ),
             _CategoryFilters(
               categories: _categories,

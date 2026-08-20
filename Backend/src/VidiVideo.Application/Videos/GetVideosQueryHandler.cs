@@ -14,13 +14,13 @@ namespace VidiVideo.Application.Videos
 
         public async Task<PagedResult<VideoSummaryDto>> HandleAsync(GetVideosQuery query, CancellationToken cancellationToken)
         {
-            var count = await _repo.CountAsync(query.Search, query.CategoryId, query.Hashtags);
-            var videos = await _repo.GetFilteredVideosAsync(query.Search, query.CategoryId, query.Hashtags, query.Page, query.PageSize);
+            var count = await _repo.CountAsync(query.Search, query.CategoryId, query.Hashtags, cancellationToken);
+            var videos = await _repo.GetFilteredVideosAsync(query.Search, query.CategoryId, query.Hashtags, query.Page, query.PageSize, cancellationToken);
 
             var items = videos.Select(v => new VideoSummaryDto(
                 Id: v.Id,
                 Caption: v.Caption,
-                CreatorDisplayName: v.Creator.UserName,
+                CreatorDisplayName: v.Creator.DisplayName,
                 ThumbnailUrl: v.ThumbnailUrl,
                 Visibility: v.Visibility.ToString(),
                 LikeCount: v.Likes.Count,

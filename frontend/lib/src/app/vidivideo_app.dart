@@ -6,9 +6,10 @@ import '../features/admin/presentation/content_reports_page.dart';
 import '../features/admin/presentation/staff_management_page.dart';
 import '../features/admin/presentation/users_management_page.dart';
 import '../features/auth/presentation/login_page.dart';
+import '../features/auth/presentation/register_page.dart';
 import '../features/mobile/presentation/create/create_video_page.dart';
 import '../features/mobile/presentation/feed_page.dart';
-import '../features/mobile/presentation/profile_page.dart';
+import '../features/profile/presentation/profile_page.dart';
 import '../features/mobile/presentation/search_page.dart';
 import '../features/mobile/presentation/subscriptions_page.dart';
 import '../features/mobile/presentation/mobile_shell_page.dart';
@@ -27,6 +28,7 @@ class VidiVideoApp extends StatelessWidget {
       initialRoute: AppRoutes.login,
       routes: {
         AppRoutes.login: (_) => const LoginPage(),
+        AppRoutes.register: (_) => const RegisterPage(),
         AppRoutes.adminDashboard: (_) => const AdminDashboardPage(),
         AppRoutes.adminUsers: (_) => const UsersManagementPage(),
         AppRoutes.adminReports: (_) => const ContentReportsPage(),

@@ -56,13 +56,11 @@ public class SearchHistoryController : ControllerBase
     }
 
     [Authorize]
-    [HttpDelete("clear/{userId:guid}")]
-    public async Task<IActionResult> Clear(
-        Guid userId,
-        CancellationToken cancellation)
+    [HttpDelete("clear")]
+    public async Task<IActionResult> Clear(CancellationToken cancellation)
     {
         return Ok(await _clearHandler.HandleAsync(
-            new ClearSearchHistoryCommand(userId),
+            new ClearSearchHistoryCommand(),
             cancellation));
     }
 

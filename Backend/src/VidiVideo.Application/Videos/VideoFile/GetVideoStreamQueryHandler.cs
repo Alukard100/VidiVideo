@@ -31,44 +31,36 @@ public sealed class GetVideoStreamQueryHandler : IQueryHandler<GetVideoStreamQue
             await _videoRepository.GetVideoForStreamingAsync(query.VideoId)
             ?? throw new NotFoundException("Video doesn't exist.");
 
-        if (!video.IsPublished || video.IsDeleted)
+        if (video.IsDeleted)
             throw new NotFoundException("Video doesn't exist.");
+
+        var userId = _currentUser.UserId;
+
+        var isOwner =
+            userId.HasValue &&
+            video.CreatorId == userId.Value;
+
+        if (!video.IsPublished && !isOwner)
+            throw new NotFoundException("Video doesn't exist");
 
         if (video.Visibility == VideoVisibility.SubscribersOnly)
         {
-            var userId = _currentUser.UserId
-                ?? throw new UnauthorizedException(
-                    "Must be logged in.");
-
-            var isOwner =
-                video.CreatorId == userId;
-
             if (!isOwner)
             {
-                var hasSubscription =
-                    await _paymentRepository.HasActiveSubscriptionAsync(
-                        userId,
-                        video.CreatorId);
+                if (!userId.HasValue)
+                    throw new UnauthorizedException("Must be logged in.");
+
+                var hasSubscription = await _paymentRepository.HasActiveSubscriptionAsync(userId.Value, video.CreatorId);
 
                 if (!hasSubscription)
-                {
-                    throw new ForbiddenException(
-                        "Subscription required.");
-                }
+                    throw new ForbiddenException("Subscription required");
             }
         }
 
-        var stream =
-            await _videoStorageService.OpenReadAsync(
-                video.VideoUrl,
-                cancellationToken);
+        var stream = await _videoStorageService.OpenReadAsync(video.VideoUrl, cancellationToken);
 
-        var contentType =
-            _videoStorageService.GetContentType(
-                video.VideoUrl);
+        var contentType = _videoStorageService.GetContentType(video.VideoUrl);
 
-        return new VideoStreamResult(
-            stream,
-            contentType);
+        return new VideoStreamResult(stream, contentType);
     }
 }

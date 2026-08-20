@@ -28,12 +28,14 @@ public sealed class GetMyProfileQueryHandler : IQueryHandler<GetMyProfileQuery, 
         var followers = await _repo.FollowersCountAsync(user.Id);
         var following = await _repo.FollowingCountAsync(user.Id);
         var publicVideos = user.Videos
-            .Where(v => v.Visibility == VideoVisibility.Public)
-            .Select(v => new ProfileVideoDto(v.Id, v.Caption, v.ThumbnailUrl, IsLocked: false))
+            .Where(v => v.Visibility == VideoVisibility.Public && !v.IsDeleted)
+            .OrderByDescending(v => v.CreatedAtUtc)
+            .Select(v => new ProfileVideoDto(v.Id, v.Caption, v.ThumbnailUrl, v.Visibility, v.IsPublished, IsLocked: false))
             .ToList();
         var subscriberOnlyVideos = user.Videos
-            .Where(v => v.Visibility == VideoVisibility.SubscribersOnly)
-            .Select(v => new ProfileVideoDto(v.Id, v.Caption, v.ThumbnailUrl, IsLocked: false))
+            .Where(v => v.Visibility == VideoVisibility.SubscribersOnly && !v.IsDeleted)
+            .OrderByDescending(v => v.CreatedAtUtc)
+            .Select(v => new ProfileVideoDto(v.Id, v.Caption, v.ThumbnailUrl, v.Visibility, v.IsPublished, IsLocked: false))
             .ToList();
 
         return new CurrentUserProfileDto(

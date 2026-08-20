@@ -5,7 +5,7 @@ import '../widgets/vidivideo_bottom_navigation.dart';
 
 import 'create/create_video_page.dart';
 import 'feed_page.dart';
-import 'profile_page.dart';
+import '../../profile/presentation/profile_page.dart';
 import 'search_page.dart';
 import '../../videos/presentation/video_viewer_page.dart';
 
@@ -19,25 +19,11 @@ class MobileShellPage extends StatefulWidget {
 class _MobileShellPageState extends State<MobileShellPage> {
   int _selectedIndex = 0;
 
-  late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
     AppServices.mobileNavigation.addListener(_onMobileNavigationChanged);
-    _pages = [
-      FeedPage(),
-      SearchPage(),
-      CreateVideoPage(
-        onPublished: () {
-          setState(() {
-            _selectedIndex = 4;
-          });
-        },
-      ),
-      FeedPage(feedMode: FeedMode.following),
-      ProfilePage(),
-    ];
   }
 
   @override
@@ -59,25 +45,55 @@ class _MobileShellPageState extends State<MobileShellPage> {
 
   @override
   Widget build(BuildContext context) {
+    final activeOverlay =
+        AppServices.mobileNavigation.activeOverlay;
+
+    final pages = <Widget>[
+      FeedPage(
+        isActive:
+            _selectedIndex == 0 &&
+            activeOverlay == null,
+      ),
+
+      const SearchPage(),
+
+      CreateVideoPage(
+        onPublished: () {
+          setState(() {
+            _selectedIndex = 4;
+          });
+        },
+      ),
+
+      FeedPage(
+        feedMode: FeedMode.following,
+        isActive:
+            _selectedIndex == 3 &&
+            activeOverlay == null,
+      ),
+
+      const ProfilePage(),
+    ];
+
     return Scaffold(
       backgroundColor: Colors.black,
-
       body: Stack(
         children: [
           IndexedStack(
             index: _selectedIndex,
-            children: _pages,
+            children: pages,
           ),
-          if (AppServices.mobileNavigation.activeOverlay != null)
+
+          if (activeOverlay != null)
             Positioned.fill(
               child: _MobileOverlayHost(
-                overlay: AppServices.mobileNavigation.activeOverlay!,
+                overlay: activeOverlay,
               ),
             ),
         ],
       ),
-
-      bottomNavigationBar: VidiVideoBottomNavigation(
+      bottomNavigationBar:
+          VidiVideoBottomNavigation(
         selectedIndex: _selectedIndex,
         onItemSelected: _selectPage,
       ),
@@ -105,6 +121,7 @@ class _MobileOverlayHost extends StatelessWidget {
         initialVideos: activeOverlay.initialVideos,
         showBackButton: true,
         sourceCreatorId: activeOverlay.sourceCreatorId,
+        isActive: true,
       );
     }
 

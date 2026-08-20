@@ -10,13 +10,14 @@ public sealed class GetUserProfileQueryHandler
 {
     private readonly IUserRepository _repo;
     private readonly ICurrentUser _currentUser;
-    private readonly IVideoRepository _videoRepository;
+    private readonly IFollowersRepository _followersRepository;
 
-    public GetUserProfileQueryHandler(IUserRepository repo, ICurrentUser currentUser, IVideoRepository videoRepository)
+    public GetUserProfileQueryHandler(IUserRepository repo, ICurrentUser currentUser, IFollowersRepository followersRepository)
     {
         _repo = repo;
         _currentUser = currentUser;
-        _videoRepository = videoRepository;
+        _followersRepository = followersRepository;
+
     }
 
     public async Task<UserProfileDto> HandleAsync(
@@ -33,16 +34,17 @@ public sealed class GetUserProfileQueryHandler
         var isSubscribed = isOwnProfile ||
             (currentUserId.HasValue &&
              await _repo.HasActiveSubscriptionAsync(currentUserId.Value, user.Id));
+        var isFollowing = currentUserId.HasValue && !isOwnProfile && await _followersRepository.IsFollowingAsync(currentUserId.Value, user.Id);
 
         var publicVideos = user.Videos
-            .Where(v => v.Visibility == VideoVisibility.Public)
+            .Where(v => v.Visibility == VideoVisibility.Public && !v.IsDeleted && (v.IsPublished || isOwnProfile))
             .OrderByDescending(v => v.CreatedAtUtc)
-            .Select(v => new ProfileVideoDto(v.Id, v.Caption, v.ThumbnailUrl, IsLocked: false))
+            .Select(v => new ProfileVideoDto(v.Id, v.Caption, v.ThumbnailUrl, v.Visibility, v.IsPublished, IsLocked: false))
             .ToList();
         var subscriberOnlyVideos = user.Videos
-            .Where(v => v.Visibility == VideoVisibility.SubscribersOnly)
+            .Where(v => v.Visibility == VideoVisibility.SubscribersOnly && !v.IsDeleted && (isOwnProfile || v.IsPublished))
             .OrderByDescending(v => v.CreatedAtUtc)
-            .Select(v => new ProfileVideoDto(v.Id, v.Caption, v.ThumbnailUrl, IsLocked: !isSubscribed))
+            .Select(v => new ProfileVideoDto(v.Id, v.Caption, v.ThumbnailUrl, v.Visibility, v.IsPublished, IsLocked: !isSubscribed))
             .ToList();
 
         return new UserProfileDto(
@@ -56,6 +58,7 @@ public sealed class GetUserProfileQueryHandler
             followers,
             following,
             isSubscribed,
+            isFollowing,
             publicVideos,
             subscriberOnlyVideos);
     }

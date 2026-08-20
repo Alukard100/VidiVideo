@@ -11,18 +11,20 @@ namespace VidiVideo.Api.Controllers
     {
         private readonly ICommandHandler<MarkNotificationAsReadCommand, bool> _markHandler;
         private readonly IQueryHandler<GetNotificationsQuery, PagedResult<NotificationMessage>> _queryHandler;
+        private readonly ICommandHandler<MarkAllNotificationsAsReadCommand, bool> _markAllHandler;
 
-        public NotificationController(ICommandHandler<MarkNotificationAsReadCommand, bool> markHandler, IQueryHandler<GetNotificationsQuery, PagedResult<NotificationMessage>> queryHandler)
+        public NotificationController(ICommandHandler<MarkNotificationAsReadCommand, bool> markHandler, IQueryHandler<GetNotificationsQuery, PagedResult<NotificationMessage>> queryHandler, ICommandHandler<MarkAllNotificationsAsReadCommand, bool> markAllHandler)
         {
             _markHandler = markHandler;
             _queryHandler = queryHandler;
+            _markAllHandler = markAllHandler;
         }
 
         [Authorize]
         [HttpPatch("read")]
-        public async Task<IActionResult> Read([FromBody] Guid notificationId, CancellationToken cancellationToken)
+        public async Task<IActionResult> Read([FromBody] MarkNotificationReadRequest request, CancellationToken cancellationToken)
         {
-            var command = new MarkNotificationAsReadCommand(notificationId);
+            var command = new MarkNotificationAsReadCommand(request.NotificationId);
 
             var result = await _markHandler.HandleAsync(command, cancellationToken);
 
@@ -38,6 +40,16 @@ namespace VidiVideo.Api.Controllers
             return Ok(notifications);
         }
 
+        [Authorize]
+        [HttpPatch("read-all")]
+        public async Task<IActionResult> ReadAll(CancellationToken cancellationToken)
+        {
+            var result =
+                await _markAllHandler.HandleAsync(
+                    new MarkAllNotificationsAsReadCommand(),
+                    cancellationToken);
 
+            return Ok(result);
+        }
     }
 }

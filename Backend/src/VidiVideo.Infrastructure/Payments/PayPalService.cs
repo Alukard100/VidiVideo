@@ -5,6 +5,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using VidiVideo.Application.Abstractions;
+using VidiVideo.Application.Payments.PayPal;
 
 namespace VidiVideo.Infrastructure.Payments
 {
@@ -36,7 +37,7 @@ namespace VidiVideo.Infrastructure.Payments
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<string> CreateOrderAsync(decimal amount)
+        public async Task<PayPalOrderDto> CreateOrderAsync(decimal amount)
         {
             var token = await GetAccessTokenAsync();
 
@@ -53,6 +54,12 @@ namespace VidiVideo.Infrastructure.Payments
                             value = amount.ToString("F2", CultureInfo.InvariantCulture)
                         }
                     }
+                },
+                application_context = new
+                {
+                    return_url = "https://vidivideo.local/paypal/success",
+                    cancel_url = "https://vidivideo.local/paypal/cancel",
+                    user_action = "PAY_NOW"
                 }
             };
 
@@ -66,8 +73,22 @@ namespace VidiVideo.Infrastructure.Payments
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadAsStringAsync();
-            return JsonDocument.Parse(json)
-                .RootElement.GetProperty("id").GetString()!;
+
+            using var document = JsonDocument.Parse(json);
+
+            var root = document.RootElement;
+
+            var orderId = root.GetProperty("id").GetString() ?? throw new InvalidOperationException("PayPal did not return an order ID");
+
+            var approvalUrl = root.GetProperty("links").EnumerateArray()
+                .First(LinkedList =>
+                    LinkedList.GetProperty("rel")
+                    .GetString() == "approve")
+                .GetProperty("href")
+                .GetString()
+            ?? throw new InvalidOperationException("PayPal did not return an approval URL.");
+
+            return new PayPalOrderDto(orderId, approvalUrl);
 
         }
 

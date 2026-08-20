@@ -12,6 +12,7 @@ class UserProfile {
     required this.followersCount,
     required this.followingCount,
     required this.isSubscribed,
+    required this.isFollowing,
     required this.publicVideos,
     required this.subscriberOnlyVideos,
     this.email,
@@ -28,6 +29,7 @@ class UserProfile {
   final int followersCount;
   final int followingCount;
   final bool isSubscribed;
+  final bool isFollowing;
   final List<ProfileVideo> publicVideos;
   final List<ProfileVideo> subscriberOnlyVideos;
   final String? email;
@@ -45,6 +47,7 @@ class UserProfile {
       followersCount: _readInt(json['followersCount']),
       followingCount: _readInt(json['followingCount']),
       isSubscribed: json['isSubscribed'] == true,
+      isFollowing: json['isFollowing'] == true,
       publicVideos: _readVideos(json['publicVideos']),
       subscriberOnlyVideos: _readVideos(json['subscriberOnlyVideos']),
       email: json['email']?.toString(),

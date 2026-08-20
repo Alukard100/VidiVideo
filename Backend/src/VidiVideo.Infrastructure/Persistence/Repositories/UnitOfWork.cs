@@ -18,12 +18,12 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             await _db.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task BeginAsync()
+        public async Task BeginAsync(CancellationToken cancellationToken = default)
         {
             if (_transaction != null)
                 throw new InvalidOperationException("Transaction already started");
 
-            _transaction = await _db.Database.BeginTransactionAsync();
+            _transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
         }
 
         public async Task CommitAsync(CancellationToken cancellationToken = default)
@@ -33,19 +33,19 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
 
             await _db.SaveChangesAsync(cancellationToken);
 
-            await _transaction.CommitAsync();
+            await _transaction.CommitAsync(cancellationToken);
 
             await _transaction.DisposeAsync();
 
             _transaction = null;
         }
 
-        public async Task RollbackAsync()
+        public async Task RollbackAsync(CancellationToken cancellationToken = default)
         {
             if (_transaction is null)
                 return;
 
-            await _transaction.RollbackAsync();
+            await _transaction.RollbackAsync(cancellationToken);
 
             await _transaction.DisposeAsync();
 

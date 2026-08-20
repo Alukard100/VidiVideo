@@ -29,6 +29,7 @@ public static class DependencyInjection
         //Commands
         services.AddScoped<ICommandHandler<RegisterUserCommand, Guid>, RegisterUserCommandHandler>();
         services.AddScoped<ICommandHandler<LoginUserCommand, LoginUserResponse>, LoginUserCommandHandler>();
+        services.AddScoped<ICommandHandler<ChangePasswordCommand, bool>, ChangePasswordCommandHandler>();
         services.AddScoped<ICommandHandler<CreateCountryCommand, Guid>, CreateCountryCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateCountryCommand, CountryDto>, UpdateCountryCommandHandler>();
         services.AddScoped<ICommandHandler<CreateHashtagCommand, Guid>, CreateHashtagCommandHandler>();
@@ -46,8 +47,9 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<UnfollowCommand, bool>, UnfollowCommandHandler>();
         services.AddScoped<ICommandHandler<RecordVideoViewCommand, Guid>, RecordVideoViewCommandHandler>();
         services.AddScoped<ICommandHandler<MarkNotificationAsReadCommand, bool>, MarkNotificationAsReadCommandHandler>();
+        services.AddScoped<ICommandHandler<MarkAllNotificationsAsReadCommand, bool>, MarkAllNotificationsAsReadCommandHandler>();
         services.AddScoped<ICommandHandler<CreateSearchHistoryCommand, Guid>, CreateSearchHistoryCommandHandler>();
-        services.AddScoped<ICommandHandler<CreatePayPalOrderCommand, string>, CreatePayPalOrderCommandHandler>();
+        services.AddScoped<ICommandHandler<CreatePayPalOrderCommand, PayPalOrderDto>, CreatePayPalOrderCommandHandler>();
         services.AddScoped<ICommandHandler<CapturePayPalOrderCommand, bool>, CapturePayPalOrderCommandHandler>();
         services.AddScoped<ICommandHandler<CreateContentReportCommand, Guid>, CreateContentReportCommandHandler>();
         services.AddScoped<ICommandHandler<ReviewContentReportCommand, Guid>, ReviewContentReportCommandHandler>();

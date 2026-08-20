@@ -21,15 +21,15 @@ namespace VidiVideo.Application.Notifications
         {
             var userId = _currentUser.UserId ?? throw new UnauthorizedException("You must be logged in");
 
-            if (await _userRepository.ExistsByIdAsync(userId))
+            if (!await _userRepository.ExistsByIdAsync(userId))
                 throw new NotFoundException("User doesn't exist");
 
             var notifications = await _repo.GetUserNotificationsAsync(userId, query.Page, query.PageSize);
 
-            var count = await _repo.CoutnAsync(userId);
+            var count = await _repo.CountAsync(userId);
 
             var items = notifications.Select(n => new NotificationMessage(
-                n.UserId, n.Title, n.Content, n.Type.ToString(), n.IsRead, n.CreatedAtUtc)).ToList();
+                n.Id, n.UserId, n.Title, n.Content, n.Type.ToString(), n.IsRead, n.CreatedAtUtc)).ToList();
 
             return new PagedResult<NotificationMessage>(items, query.Page, query.PageSize, count);
 

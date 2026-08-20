@@ -75,15 +75,16 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
                         x => similarityLookup[x.UserId]));
         }
 
-        public async Task<List<Video>> GetLikedVideosByUserAsync(Guid userId)
+        public async Task<List<Video>> GetLikedVideosByUserAsync(Guid userId, CancellationToken cancellationToken = default)
         {
-            return await _db.Likes
-            .Where(l => l.UserId == userId)
-            .Select(l => l.Video)
-            .Include(v => v.Category)
-            .Include(v => v.VideoHashtags)
-                .ThenInclude(vh => vh.Hashtag)
-            .ToListAsync();
+            return await _db.Videos
+                .AsNoTracking()
+                .Include(v => v.Category)
+                .Include(v => v.VideoHashtags)
+                    .ThenInclude(vh => vh.Hashtag)
+                .Where(v =>
+                    v.Likes.Any(l => l.UserId == userId))
+                .ToListAsync(cancellationToken);
         }
 
         public async Task<bool> IsLikedByCurrentUser(Guid videoId, Guid userId)

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/app_routes.dart';
 import '../../../core/dependency/app_services.dart';
 import '../../../core/network/api_client.dart';
 import '../../videos/models/video_detail.dart';
@@ -8,9 +9,15 @@ import '../../videos/presentation/video_viewer_page.dart';
 enum FeedMode { recommended, following }
 
 class FeedPage extends StatefulWidget {
-  const FeedPage({this.feedMode = FeedMode.recommended, super.key});
+  const FeedPage({
+    this.feedMode = FeedMode.recommended,
+    this.isActive = true,
+
+    super.key
+    });
 
   final FeedMode feedMode;
+  final bool isActive;
 
   @override
   State<FeedPage> createState() => _FeedPageState();
@@ -61,6 +68,10 @@ class _FeedPageState extends State<FeedPage> {
         }
 
         if (snapshot.hasError) {
+          if (widget.feedMode == FeedMode.following) {
+            _redirectToRegisterIfAuthRequired(snapshot.error);
+          }
+
           return _FeedMessage(
             message: _errorMessage(snapshot.error),
             onRetry: _retry,
@@ -84,6 +95,8 @@ class _FeedPageState extends State<FeedPage> {
           initialVideoId: videoIds.first,
           initialVideos: videos,
           showBackButton: false,
+          showRecommendationReason: widget.feedMode == FeedMode.recommended,
+          isActive: widget.isActive,
         );
       },
     );
@@ -95,6 +108,24 @@ class _FeedPageState extends State<FeedPage> {
     }
 
     return 'Feed failed: $error';
+  }
+
+  void _redirectToRegisterIfAuthRequired(Object? error) {
+    if (error is! ApiException) {
+      return;
+    }
+
+    if (error.statusCode != 401 && error.statusCode != 403) {
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context).pushNamed(AppRoutes.register);
+    });
   }
 }
 

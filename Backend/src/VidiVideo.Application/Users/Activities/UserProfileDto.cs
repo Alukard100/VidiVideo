@@ -11,5 +11,6 @@ public sealed record UserProfileDto(
     int FollowersCount,
     int FollowingCount,
     bool IsSubscribed,
+    bool IsFollowing,
     IReadOnlyList<ProfileVideoDto> PublicVideos,
     IReadOnlyList<ProfileVideoDto> SubscriberOnlyVideos);

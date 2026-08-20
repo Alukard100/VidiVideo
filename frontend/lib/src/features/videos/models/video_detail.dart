@@ -7,6 +7,7 @@ class VideoDetail {
     required this.creatorId,
     required this.creatorName,
     required this.creatorAvatarUrl,
+    required this.categoryId,
     required this.categoryName,
     required this.isPublished,
     required this.visibility,
@@ -14,6 +15,8 @@ class VideoDetail {
     required this.commentCount,
     required this.viewCount,
     required this.isLocked,
+    required this.isLiked,
+    required this.canEdit,
     required this.hashtags,
     this.recommendationReason,
     this.recommendationScore,
@@ -21,11 +24,12 @@ class VideoDetail {
 
   final String id;
   final String caption;
-  final String videoUrl;
+  final String? videoUrl;
   final String thumbnailUrl;
   final String creatorId;
   final String creatorName;
   final String? creatorAvatarUrl;
+  final String categoryId;
   final String categoryName;
   final bool isPublished;
   final String visibility;
@@ -33,24 +37,26 @@ class VideoDetail {
   final int commentCount;
   final int viewCount;
   final bool isLocked;
+  final bool isLiked;
+  final bool canEdit;
   final List<String> hashtags;
   final String? recommendationReason;
   final double? recommendationScore;
 
   factory VideoDetail.fromJson(Map<String, dynamic> json) {
     final id = json['id']?.toString() ?? '';
-    final videoUrl = json['videoUrl']?.toString();
 
     return VideoDetail(
       id: id,
       caption: json['caption']?.toString() ?? '',
-      videoUrl: _playbackUrlFor(id, videoUrl),
+      videoUrl: json['videoUrl']?.toString(),
       thumbnailUrl: json['thumbnailUrl']?.toString() ?? '',
       creatorId: json['creatorId']?.toString() ?? '',
       creatorName: json['creatorName']?.toString() ??
           json['creatorDisplayName']?.toString() ??
           '',
       creatorAvatarUrl: json['creatorAvatarUrl']?.toString(),
+      categoryId: json['categoryId']?.toString() ?? '',
       categoryName: json['categoryName']?.toString() ?? '',
       isPublished: json['isPublished'] == true,
       visibility: json['visibility']?.toString() ?? '',
@@ -58,24 +64,41 @@ class VideoDetail {
       commentCount: _readInt(json['commentCount']),
       viewCount: _readInt(json['viewCount']),
       isLocked: json['isLocked'] == true,
+      isLiked: json['isLiked'] == true,
+      canEdit: json['canEdit'] == true,
       hashtags: _readStringList(json['hashtags']),
       recommendationReason: json['recommendationReason']?.toString(),
       recommendationScore: _readDouble(json['recommendationScore']),
     );
   }
 
-  static String _streamUrlFor(String id) {
-    return id.isEmpty ? '' : '/api/Video/$id/stream';
-  }
-
-  static String _playbackUrlFor(String id, String? value) {
-    final url = value?.trim() ?? '';
-
-    if (url.contains('/stream')) {
-      return url;
-    }
-
-    return _streamUrlFor(id);
+  VideoDetail copyWith({
+    bool? isLiked,
+    int? likeCount,
+    int? commentCount,
+  }) {
+    return VideoDetail(
+      id: id,
+      caption: caption,
+      videoUrl: videoUrl,
+      thumbnailUrl: thumbnailUrl,
+      creatorId: creatorId,
+      creatorName: creatorName,
+      creatorAvatarUrl: creatorAvatarUrl,
+      categoryId: categoryId,
+      categoryName: categoryName,
+      isPublished: isPublished,
+      visibility: visibility,
+      likeCount: likeCount ?? this.likeCount,
+      commentCount: commentCount ?? this.commentCount,
+      viewCount: viewCount,
+      isLocked: isLocked,
+      isLiked: isLiked ?? this.isLiked,
+      canEdit: canEdit,
+      hashtags: hashtags,
+      recommendationReason: recommendationReason,
+      recommendationScore: recommendationScore,
+    );
   }
 
   static int _readInt(dynamic value) {

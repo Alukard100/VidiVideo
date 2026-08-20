@@ -24,7 +24,7 @@ namespace VidiVideo.Application.Followers
         {
             var follower = _currentUser.UserId ?? throw new UnauthorizedException("Not logged in");
 
-            if (await _userRepository.BothUsersExistsById(follower, command.Creator))
+            if (!await _userRepository.BothUsersExistsById(follower, command.Creator))
                 throw new NotFoundException("Users don't exist");
 
             var follow = await _repo.CheckExistingAsync(follower, command.Creator);

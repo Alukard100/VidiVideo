@@ -54,6 +54,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task<List<Comment>> GetVideoCommentsAsync(Guid videoId, int _page = 1, int _pageSize = 20)
         {
             var comments = await _db.Comments
+                .Include(c => c.Author)
                 .Where(c => c.VideoId == videoId)
                 .OrderByDescending(c => c.CreatedAtUtc)
                 .Skip((_page - 1) * _pageSize)

@@ -2,4 +2,4 @@
 
 namespace VidiVideo.Application.SearchHistories;
 
-public sealed record ClearSearchHistoryCommand(Guid Id) : ICommand<bool>;
+public sealed record ClearSearchHistoryCommand : ICommand<bool>;

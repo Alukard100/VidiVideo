@@ -166,6 +166,17 @@ class _LoginPageState extends State<LoginPage> {
                           : const Text('Sign in'),
                     ),
                     const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              Navigator.of(context).pushReplacementNamed(
+                                AppRoutes.register,
+                              );
+                            },
+                      child: const Text('Create account'),
+                    ),
+                    const SizedBox(height: 8),
                     OutlinedButton(
                       onPressed: _isLoading
                           ? null

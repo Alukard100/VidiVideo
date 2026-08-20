@@ -23,7 +23,7 @@ namespace VidiVideo.Application.Payments.PayPal
 
             var subscription = await _paymentRepository.GetSubscriptionByIdAsync(payment.SubscriptionId);
 
-            await _unitOfWork.BeginAsync();
+            await _unitOfWork.BeginAsync(cancellationToken);
 
             try
             {

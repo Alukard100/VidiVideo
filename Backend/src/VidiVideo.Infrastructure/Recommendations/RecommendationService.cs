@@ -45,7 +45,9 @@ public sealed class RecommendationService : IRecommendationService
             ?? throw new NotFoundException("User doesn't exist.");
 
         var likedVideos =
-            await _likeRepository.GetLikedVideosByUserAsync(resolvedUserId);
+            await _likeRepository.GetLikedVideosByUserAsync(resolvedUserId, cancellationToken);
+        var likedVideoIds =
+            likedVideos.Select(video => video.Id).ToHashSet();
 
         var followedCreatorsIds =
             await _followRepository.GetFollowingCreatorIdsAsync(resolvedUserId);
@@ -205,11 +207,14 @@ public sealed class RecommendationService : IRecommendationService
                 video.CreatorId,
                 video.Creator.DisplayName,
                 video.Creator.AvatarUrl,
+                video.CategoryId,
                 video.Visibility,
                 video.Likes.Count,
                 video.Comments.Count,
                 video.VideoViews.Count,
                 candidate.IsLocked,
+                likedVideoIds.Contains(video.Id),
+                video.CreatorId == resolvedUserId,
                 candidate.RecommendationReason,
                 candidate.Score.Total);
         })
@@ -403,10 +408,13 @@ public sealed class RecommendationService : IRecommendationService
                     video.CreatorId,
                     video.Creator.DisplayName,
                     video.Creator.AvatarUrl,
+                    video.CategoryId,
                     video.Visibility,
                     video.Likes.Count,
                     video.Comments.Count,
                     video.VideoViews.Count,
+                    false,
+                    false,
                     false,
                     candidate.RecommendationReason,
                     candidate.Score.Popularity);

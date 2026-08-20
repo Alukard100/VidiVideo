@@ -6,59 +6,57 @@ using VidiVideo.Domain.Entities;
 
 namespace VidiVideo.Application.Payments.PayPal
 {
-    public sealed class CreatePayPalOrderCommandHandler : ICommandHandler<CreatePayPalOrderCommand, string>
+    public sealed class CreatePayPalOrderCommandHandler : ICommandHandler<CreatePayPalOrderCommand, PayPalOrderDto>
     {
         private readonly IPayPalService _payPal;
         private readonly IPaymentRepository _paymentRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUser _currentUser;
-        public CreatePayPalOrderCommandHandler(IPayPalService paypal, IPaymentRepository paymentRepository, IUnitOfWork unitOfWork, ICurrentUser currentUser)
+        private readonly IPaymentSettings _paymentSettings;
+        public CreatePayPalOrderCommandHandler(IPayPalService paypal, IPaymentRepository paymentRepository, IUnitOfWork unitOfWork, ICurrentUser currentUser, IPaymentSettings paymentSettings)
         {
             _payPal = paypal;
             _paymentRepository = paymentRepository;
             _unitOfWork = unitOfWork;
             _currentUser = currentUser;
+            _paymentSettings = paymentSettings;
         }
 
-        public async Task<string> HandleAsync(CreatePayPalOrderCommand command, CancellationToken cancellationToken)
+        public async Task<PayPalOrderDto> HandleAsync(CreatePayPalOrderCommand command, CancellationToken cancellationToken)
         {
             var subscriberId = _currentUser.UserId ?? throw new UnauthorizedException("User must be logged in");
-            var subscription = new CreatorSubscription(subscriberId, command.CreatorId);
 
-            await _unitOfWork.BeginAsync();
+            if (subscriberId == command.CreatorId) throw new ValidationException("You cannot subscribe to yourself.");
+
+            if (await _paymentRepository.HasActiveSubscriptionAsync(subscriberId, command.CreatorId)) throw new ConflictException("Already subscribed.");
+
+            var amount = _paymentSettings.SubscriptionPrice;
+
+            if (amount <= 0) throw new InvalidOperationException("Subscription price is not configured.");
+
+            var payPalOrder = await _payPal.CreateOrderAsync(amount);
+
+            await _unitOfWork.BeginAsync(cancellationToken);
 
             try
             {
-                if (await _paymentRepository.HasActiveSubscriptionAsync(subscriberId, command.CreatorId))
-                    throw new ConflictException("Already subscribed.");
+                var subscription = new CreatorSubscription(subscriberId, command.CreatorId);
+
+                var payment = new Payment(subscription.Id, amount, payPalOrder.OrderId);
 
                 await _paymentRepository.CreateSubscriptionAsync(subscription);
-
-                string paymentId = await _payPal.CreateOrderAsync(command.Amount);
-
-                var payment = new Payment(subscription.Id, command.Amount, paymentId);
 
                 await _paymentRepository.CreatePaymentAsync(payment);
 
                 await _unitOfWork.CommitAsync(cancellationToken);
 
-                return paymentId;
+                return payPalOrder;
             }
-            catch (ConflictException ex)
+            catch
             {
-                await _unitOfWork.RollbackAsync();
-                Console.WriteLine(ex.Message);
-                return "Failed";
+                await _unitOfWork.RollbackAsync(cancellationToken);
+                throw;
             }
-            catch (Exception ex)
-            {
-                await _unitOfWork.RollbackAsync();
-                Console.WriteLine(ex.ToString());
-                return "Failed";
-            }
-
-
-
         }
     }
 }

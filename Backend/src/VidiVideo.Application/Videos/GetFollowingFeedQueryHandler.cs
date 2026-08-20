@@ -9,15 +9,18 @@ public sealed class GetFollowingFeedQueryHandler : IQueryHandler<GetFollowingFee
 {
     private readonly IVideoRepository _videoRepository;
     private readonly IPaymentRepository _paymentRepository;
+    private readonly ILikeRepository _likeRepository;
     private readonly ICurrentUser _currentUser;
 
     public GetFollowingFeedQueryHandler(
         IVideoRepository videoRepository,
         IPaymentRepository paymentRepository,
+        ILikeRepository likeRepository,
         ICurrentUser currentUser)
     {
         _videoRepository = videoRepository;
         _paymentRepository = paymentRepository;
+        _likeRepository = likeRepository;
         _currentUser = currentUser;
     }
 
@@ -26,12 +29,14 @@ public sealed class GetFollowingFeedQueryHandler : IQueryHandler<GetFollowingFee
         var userId = _currentUser.UserId
             ?? throw new UnauthorizedException("Must be logged in");
 
-        var videos = await _videoRepository.GetFollowedFeedAsync(userId, query.Page, query.PageSize);
+        var videos = await _videoRepository.GetFollowedFeedAsync(userId, query.Page, query.PageSize, cancellationToken);
 
-        var totalCount = await _videoRepository.CountFollowedFeedAsync(userId);
+        var totalCount = await _videoRepository.CountFollowedFeedAsync(userId, cancellationToken);
 
         var subscribedCreatorIds =
             await _paymentRepository.GetActiveSubscribedCreatorIdsAsync(userId);
+        var likedVideos = await _likeRepository.GetLikedVideosByUserAsync(userId);
+        var likedVideoIds = likedVideos.Select(video => video.Id).ToHashSet();
 
         var items = videos.Select(video =>
         {
@@ -47,11 +52,14 @@ public sealed class GetFollowingFeedQueryHandler : IQueryHandler<GetFollowingFee
                 video.CreatorId,
                 video.Creator.DisplayName,
                 video.Creator.AvatarUrl,
+                video.CategoryId,
                 video.Visibility,
                 video.Likes.Count,
                 video.Comments.Count,
                 video.VideoViews.Count,
-                isLocked);
+                isLocked,
+                likedVideoIds.Contains(video.Id),
+                video.CreatorId == userId);
         }).ToList();
 
         return new PagedResult<VideoFeedDto>(

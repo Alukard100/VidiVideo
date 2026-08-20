@@ -44,7 +44,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         {
             return await _db.Users
                 .Include(x => x.Country)
-                .Include(x => x.Videos.Where(v => !v.IsDeleted && v.IsPublished))
+                .Include(x => x.Videos.Where(v => !v.IsDeleted))
                 .FirstOrDefaultAsync(x =>
                     x.Id == userId &&
                     !x.IsDeleted);

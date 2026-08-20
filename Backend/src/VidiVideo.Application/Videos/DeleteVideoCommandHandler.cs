@@ -21,16 +21,16 @@ namespace VidiVideo.Application.Videos
 
         public async Task<bool> HandleAsync(DeleteVideoCommand command, CancellationToken cancellationToken)
         {
-            if (!await _repo.ExistsByIdAsync(command.Id))
+            if (!await _repo.ExistsByIdAsync(command.Id, cancellationToken))
                 throw new NotFoundException("Video doesn't exist");
 
             var creatorId = _currentUser.UserId ?? throw new UnauthorizedException("Must be logged in");
 
             if (!_currentUser.IsInRole(AppRoles.Admin))
-                if (!await _repo.CheckOwnershipAsync(creatorId, command.Id))
+                if (!await _repo.CheckOwnershipAsync(creatorId, command.Id, cancellationToken))
                     throw new UnauthorizedException("You are not the owner of this video");
 
-            await _repo.DeleteVideoAsync(command.Id);
+            await _repo.DeleteVideoAsync(command.Id, cancellationToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

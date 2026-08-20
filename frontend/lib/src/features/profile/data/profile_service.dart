@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import '../../../core/network/api_client.dart';
+import '../models/follow_user.dart';
 import '../models/user_profile.dart';
 
 class ProfileService {
@@ -73,5 +74,101 @@ class ProfileService {
     }
 
     return avatarUrl;
+  }
+
+  Future<void> follow(String userId) async {
+    await _apiClient.postJson(
+      '/api/Follow/follow',
+      {
+        'targetUserId': userId,
+      },
+    );
+  }
+
+  Future<void> unfollow(String userId) async {
+    await _apiClient.deleteJson(
+      '/api/Follow/unfollow',
+      {
+        'targetUserId': userId,
+      },
+    );
+  }
+
+  Future<List<FollowUser>> getFollowers({
+    required String currentUserId,
+    required String targetUserId,
+    int page = 1,
+    int pageSize = 50,
+  }) {
+    return _getFollowList(
+      path: '/api/Follow/followers',
+      currentUserId: currentUserId,
+      targetUserId: targetUserId,
+      page: page,
+      pageSize: pageSize,
+    );
+  }
+
+  Future<List<FollowUser>> getFollowing({
+    required String currentUserId,
+    required String targetUserId,
+    int page = 1,
+    int pageSize = 50,
+  }) {
+    return _getFollowList(
+      path: '/api/Follow/following',
+      currentUserId: currentUserId,
+      targetUserId: targetUserId,
+      page: page,
+      pageSize: pageSize,
+    );
+  }
+
+  Future<List<FollowUser>> _getFollowList({
+    required String path,
+    required String currentUserId,
+    required String targetUserId,
+    required int page,
+    required int pageSize,
+  }) async {
+    final response = await _apiClient.getJson(
+      path,
+      queryParameters: {
+        'CurrentUserId': currentUserId,
+        'TargetUserId': targetUserId,
+        'Page': page,
+        'PageSize': pageSize,
+      },
+    );
+
+    if (response is! Map<String, dynamic>) {
+      throw const ApiException(
+        statusCode: 500,
+        message: 'Unexpected follow list response.',
+      );
+    }
+
+    final items = response['items'];
+
+    if (items is! List) {
+      return const [];
+    }
+
+    return items
+        .map((item) => FollowUser.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    await _apiClient.postJson(
+      '/api/auth/change-password',
+      {
+        'oldPassword': oldPassword,
+        'newPassword': newPassword,
+      },
+    );
   }
 }

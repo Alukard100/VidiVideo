@@ -52,6 +52,7 @@ public static class DependencyInjection
         services.AddScoped<IVideoAnalyticsReportGenerator, VideoAnalyticsReportGenerator>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRecommendationService, RecommendationService>();
+        services.AddScoped<IPaymentSettings, PaymentSettings>();
 
         services.AddHttpClient<IPayPalService, PayPalService>();
 

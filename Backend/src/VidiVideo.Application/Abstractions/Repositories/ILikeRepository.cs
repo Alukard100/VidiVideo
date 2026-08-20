@@ -8,7 +8,7 @@ namespace VidiVideo.Application.Abstractions.Repositories
         Task<bool> UnlikeVideoAsync(Guid videId, Guid userId);
         Task<bool> IsLikedByCurrentUser(Guid videoId, Guid userId);
         Task<int> CountTotalLikesAsync(DateTime? f = null);
-        Task<List<Video>> GetLikedVideosByUserAsync(Guid userId);
+        Task<List<Video>> GetLikedVideosByUserAsync(Guid userId, CancellationToken cancellationToken = default);
         Task<Dictionary<Guid, double>> GetCollaborativeVideoScoreAsync(Guid userId);
     }
 }

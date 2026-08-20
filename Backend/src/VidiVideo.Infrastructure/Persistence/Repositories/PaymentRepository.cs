@@ -40,7 +40,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
 
         public async Task<bool> HasActiveSubscriptionAsync(Guid SubscriberId, Guid CreatorId)
         {
-            return await _db.CreatorSubscriptions.AnyAsync(x => x.SubscriberId == SubscriberId && x.CreatorId == CreatorId && x.IsActive);
+            return await _db.CreatorSubscriptions.AnyAsync(x => x.SubscriberId == SubscriberId && x.CreatorId == CreatorId && x.IsActive && x.EndsAtUtc > DateTime.UtcNow);
         }
 
         public async Task<List<CreatorRevenueStats>> TopCreatorsAsync(DateTime? f = null)
