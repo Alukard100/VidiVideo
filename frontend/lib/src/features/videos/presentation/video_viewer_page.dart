@@ -10,7 +10,7 @@ import '../../../core/network/media_url.dart';
 import '../models/video_detail.dart';
 import 'sheets/comments_sheet.dart';
 import 'sheets/edit_video_sheet.dart';
-import 'sheets/report_video_dialog.dart';
+import 'sheets/report_content_dialog.dart';
 import 'widgets/video_page_surface.dart';
 
 
@@ -61,6 +61,19 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
   int _commentCount = 0;
   int _currentIndex = 0;
 
+  VideoDetail? get _activeVideo {
+    final videoId = _activeVideoId;
+
+    if (videoId == null) {
+      return null;
+    }
+
+    return _videoDetails[videoId];
+  }
+
+  bool get _isActiveVideoLocked => _activeVideo?.isLocked == true;
+
+
   @override
   void initState() {
     super.initState();
@@ -68,6 +81,8 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
 
     for (final video in widget.initialVideos) {
       if (video.id.isNotEmpty) {
+        _videoDetails[video.id] = video;
+
         _recommendationReasons[video.id] = video.recommendationReason;
       }
     }
@@ -92,6 +107,10 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
   }
 
   Future<void> _togglePlayback() async {
+    if (_isActiveVideoLocked) {
+      return;
+    }
+
     final controller = _controller;
 
     if (controller == null || !controller.value.isInitialized) {
@@ -144,6 +163,13 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
       _commentCount = video.commentCount;
       _isLiked = video.isLiked;
     });
+
+    if (video.isLocked) {
+      _openedAtUtc = null;
+      _recordedView = true;
+
+      return video;
+    }
 
     if (!video.isLocked &&
         video.videoUrl != null &&
@@ -273,6 +299,9 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
   }
 
   Future<void> _toggleLike() async {
+    if (_isActiveVideoLocked) {
+      return;
+    }
     final videoId = _activeVideoId;
 
     if (videoId == null) {
@@ -319,9 +348,9 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
   }
 
   Future<void> _likeVideo() async {
-    if (_isLiked) {
-      return;
-    }
+    if (_isActiveVideoLocked || _isLiked) {
+    return;
+  }
 
     await _toggleLike();
   }
@@ -401,6 +430,10 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
   }
 
   Future<void> _openComments() async {
+    if (_isActiveVideoLocked) {
+      return;
+    }
+
     final videoId = _activeVideoId;
 
     if (videoId == null) {
@@ -428,6 +461,10 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
   }
 
   Future<void> _reportVideo() async {
+    if (_isActiveVideoLocked) {
+      return;
+    }
+
     final videoId = _activeVideoId;
 
     if (videoId == null) {
@@ -436,7 +473,9 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
 
     final reason = await showDialog<String>(
       context: context,
-      builder: (context) => const ReportVideoDialog(),
+      builder: (context) => const ReportContentDialog(
+        title: 'Report video',
+      ),
     );
 
     if (reason == null || reason.trim().isEmpty) {
@@ -485,6 +524,10 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
   }
 
   Future<void> _toggleMute() async {
+    if (_isActiveVideoLocked) {
+      return;
+    }
+
     final controller = _controller;
 
     if (controller == null) {

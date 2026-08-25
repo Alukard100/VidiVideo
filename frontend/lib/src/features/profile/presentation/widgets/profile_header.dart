@@ -5,7 +5,7 @@ import 'subscribed_button.dart';
 import '../../models/user_profile.dart';
 
 class ProfileHeader extends StatelessWidget {
-  const ProfileHeader({
+  const ProfileHeader({super.key, 
     required this.profile,
     required this.isMyProfile,
     required this.isVisitingProfile,
@@ -16,6 +16,7 @@ class ProfileHeader extends StatelessWidget {
     required this.onFollowingPressed,
     required this.onFollow,
     required this.onSubscribe,
+    required this.onRefund,
   });
 
   final UserProfile profile;
@@ -28,6 +29,7 @@ class ProfileHeader extends StatelessWidget {
   final VoidCallback onFollowingPressed;
   final VoidCallback onFollow;
   final VoidCallback onSubscribe;
+  final VoidCallback onRefund;
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +151,9 @@ class ProfileHeader extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: profile.isSubscribed
-                    ? const SubscribedButton()
+                    ? SubscribedButton(
+                      onPressed: isPreview ? null : onRefund,
+                    )
                     : _ProfileActionButton(
                         label: 'Subscribe',
                         onPressed: isPreview ? null : onSubscribe,

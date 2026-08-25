@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VidiVideo.Application.Abstractions.Repositories;
+using VidiVideo.Domain.Constants;
 using VidiVideo.Domain.Entities;
+using VidiVideo.Domain.Enums;
 
 namespace VidiVideo.Infrastructure.Persistence.Repositories
 {
@@ -70,6 +72,103 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
                 x.IsActive &&
                 x.EndsAtUtc != null &&
                 x.EndsAtUtc > DateTime.UtcNow);
+        }
+
+        public async Task<List<AppUser>> GetFilteredUsersAsync(string? search, UserStatus? status, UserSortBy sortBy, SortDirection sortDirection, int _page = 1, int _pageSize = 20, CancellationToken cancellationToken = default)
+        {
+            var query = _db.Users.AsNoTracking()
+                .Include(u => u.Videos)
+                .Include(u => u.Followers)
+                .Where(u => u.Role == AppRoles.User)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(u => u.UserName.Contains(search) || u.DisplayName.Contains(search) || u.Email.Contains(search));
+            }
+
+            if (status.HasValue)
+            {
+                query = query.Where(u => u.Status == status.Value);
+            }
+
+            query = sortBy switch
+            {
+                UserSortBy.UserName => sortDirection == SortDirection.Ascending
+                    ? query.OrderBy(u => u.UserName)
+                    : query.OrderByDescending(u => u.UserName),
+
+                UserSortBy.RegistrationDate => sortDirection == SortDirection.Ascending
+                    ? query.OrderBy(u => u.CreatedAtUtc)
+                    : query.OrderByDescending(u => u.CreatedAtUtc),
+
+                UserSortBy.VideoCount => sortDirection == SortDirection.Ascending
+                    ? query.OrderBy(u => u.Videos.Count)
+                    : query.OrderByDescending(u => u.Videos.Count),
+
+                UserSortBy.FollowersCount => sortDirection == SortDirection.Ascending
+                    ? query.OrderBy(u => u.Followers.Count)
+                    : query.OrderByDescending(u => u.Followers.Count),
+
+                UserSortBy.Status => sortDirection == SortDirection.Ascending
+                    ? query.OrderBy(u => u.Status)
+                    : query.OrderByDescending(u => u.Status),
+
+                _ => query.OrderByDescending(u => u.CreatedAtUtc)
+            };
+
+            query = query
+                .Skip((_page - 1) * _pageSize)
+                .Take(_pageSize);
+
+            return await query.AsSplitQuery().ToListAsync(cancellationToken);
+
+        }
+
+        public async Task<int> CountFilteredUsersAsync(string? search, UserStatus? status, CancellationToken cancellationToken = default)
+        {
+            var query = _db.Users
+                .AsNoTracking()
+                .AsQueryable()
+                .Where(u => u.Role == AppRoles.User);
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(u =>
+                    u.UserName.Contains(search) ||
+                    u.DisplayName.Contains(search) ||
+                    u.Email.Contains(search));
+            }
+
+            if (status.HasValue)
+                query = query.Where(u => u.Status == status.Value);
+
+            return await query.CountAsync(cancellationToken);
+        }
+
+        public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+
+            if (user != null)
+            {
+                _db.Users.Remove(user);
+            }
+        }
+
+        public async Task<List<AppUser>> GetStaffAsync(CancellationToken cancellationToken = default)
+        {
+            var staff = await _db.Users
+                .Where(u => u.Role != AppRoles.User)
+                .OrderBy(u =>
+                    u.Role == AppRoles.SuperAdmin ? 0 :
+                    u.Role == AppRoles.Admin ? 1 :
+                    u.Role == AppRoles.Moderator ? 2 :
+                    3)
+                .ThenBy(u => u.CreatedAtUtc)
+                .ToListAsync(cancellationToken);
+
+            return staff;
         }
     }
 }

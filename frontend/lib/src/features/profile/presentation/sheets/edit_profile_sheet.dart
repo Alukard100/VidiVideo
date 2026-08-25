@@ -6,7 +6,7 @@ import '../../../countries/models/country.dart';
 import '../../models/user_profile.dart';
 
 class EditProfileSheet extends StatefulWidget {
-  const EditProfileSheet({required this.profile});
+  const EditProfileSheet({super.key, required this.profile});
 
   final UserProfile profile;
 

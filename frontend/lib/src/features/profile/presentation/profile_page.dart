@@ -7,14 +7,14 @@ import '../../../app/app_routes.dart';
 import '../../../core/dependency/app_services.dart';
 import '../../../core/network/api_client.dart';
 import '../../payments/presentation/paypal_checkout_page.dart';
-import 'sheets/change_password_sheet.dart';
-import 'sheets/edit_profile_sheet.dart';
-import 'sheets/follow_list_sheet.dart';
-import 'widgets/profile_error.dart';
-import 'widgets/profile_header.dart';
-import 'widgets/profile_tabs.dart';
-import '../models/follow_user.dart';
-import '../models/user_profile.dart';
+import '../../profile/models/follow_user.dart';
+import '../../profile/models/user_profile.dart';
+import '../../profile/presentation/sheets/change_password_sheet.dart';
+import '../../profile/presentation/sheets/edit_profile_sheet.dart';
+import '../../profile/presentation/sheets/follow_list_sheet.dart';
+import '../../profile/presentation/widgets/profile_error.dart';
+import '../../profile/presentation/widgets/profile_header.dart';
+import '../../profile/presentation/widgets/profile_tabs.dart';
 import '../../notifications/presentation/notifications_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -187,6 +187,8 @@ class _ProfilePageState extends State<ProfilePage> {
         await _profileService.follow(profile.id);
       }
 
+      AppServices.feedRefreshNotifier.refreshFollowing();
+
       if (!mounted) {
         return;
       }
@@ -212,6 +214,8 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _followFromList(FollowUser user) async {
     try {
       await _profileService.follow(user.id);
+
+      AppServices.feedRefreshNotifier.refreshFollowing();
 
       if (!mounted) {
         return;
@@ -350,6 +354,79 @@ class _ProfilePageState extends State<ProfilePage> {
         );
       },
     );
+  }
+
+  Future<void> _requestRefund(
+    UserProfile profile,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            'Request refund?',
+          ),
+          content: Text(
+            'Do you want to request a refund '
+            'for your subscription to '
+            '${profile.displayName}?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: const Text('No'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: const Text(
+                'Request refund',
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted || confirmed != true) {
+      return;
+    }
+
+    try {
+      await AppServices.refundService
+          .requestRefund(
+        creatorId: profile.id,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      _showMessage(
+        'Refund request submitted.',
+      );
+    } on ApiException catch (exception) {
+      if (!mounted) {
+        return;
+      }
+
+      _showMessage(
+        'Refund request failed '
+        '(${exception.statusCode}): '
+        '${exception.message}',
+      );
+    } catch (exception) {
+      if (!mounted) {
+        return;
+      }
+
+      _showMessage(
+        'Refund request failed.',
+      );
+    }
   }
 
   bool _hasSession() {
@@ -545,6 +622,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     onFollowingPressed: () => _openFollowList(profile, _FollowListType.following),
                     onFollow: () => _toggleFollow(profile),
                     onSubscribe: () => _subscribe(profile),
+                    onRefund: () => _requestRefund(profile),
                   ),
                   const SizedBox(height: 16),
                   ProfileTabs(

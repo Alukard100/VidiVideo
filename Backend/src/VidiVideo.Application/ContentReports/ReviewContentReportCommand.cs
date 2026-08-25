@@ -4,7 +4,8 @@ using VidiVideo.Domain.Enums;
 namespace VidiVideo.Application.ContentReports;
 
 public sealed record ReviewContentReportCommand(
-    Guid ReportId,
+    Guid ContentId,
+    string ContentType,
     string ResolutionNote,
     ReportStatus Status)
-    : ICommand<Guid>;
+    : ICommand<bool>;

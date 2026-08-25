@@ -17,18 +17,13 @@ namespace VidiVideo.Application.Reports.RevenueReport
         public async Task<byte[]> HandleAsync(GenerateRevenueReportQuery query, CancellationToken cancellationToken)
         {
 
-            var totalRevenue = _paymentRepository.TotalRevenueAsync(query.From);
-            var totalPayments = _paymentRepository.TotalPaymentsAsync(query.From);
-            var totalActiveSubs = _paymentRepository.TotalActiveSubsAsync();
-            var topCreators = _paymentRepository.TopCreatorsAsync(query.From);
+            var totalRevenue = await _paymentRepository.TotalRevenueAsync(query.From, cancellationToken);
+            var totalPayments = await _paymentRepository.TotalPaymentsAsync(query.From, cancellationToken);
+            var totalActiveSubs = await _paymentRepository.TotalActiveSubsAsync(cancellationToken);
+            var topCreators = await _paymentRepository.TopCreatorsAsync(query.From);
 
-            await Task.WhenAll(
-                totalRevenue,
-                totalPayments,
-                totalActiveSubs,
-                topCreators);
 
-            var rows = topCreators.Result.Select(c => new RevenueAnalyticsRow(
+            var rows = topCreators.Select(c => new RevenueAnalyticsRow(
                     c.Creator,
                     c.ActiveSubscribers,
                     c.Revenue,
@@ -36,9 +31,9 @@ namespace VidiVideo.Application.Reports.RevenueReport
                 )).ToList();
 
             var dto = new RevenueAnalyticsDto(query.From,
-                totalRevenue.Result,
-                totalPayments.Result,
-                totalActiveSubs.Result,
+                totalRevenue,
+                totalPayments,
+                totalActiveSubs,
                 rows);
 
             return _revenueReportGenerator.Generate(dto);

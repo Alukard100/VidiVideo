@@ -7,6 +7,7 @@ import '../../../../core/dependency/app_services.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/media_url.dart';
 import '../../models/video_comment.dart';
+import 'report_content_dialog.dart';
 
 class CommentsSheet extends StatefulWidget {
   const CommentsSheet({
@@ -191,6 +192,16 @@ class _CommentsSheetState extends State<CommentsSheet> {
                             Text(_relativeTime(comment.createdAtUtc)),
                           ],
                         ),
+                        trailing: IconButton(
+                          tooltip: 'Report comment',
+                          icon: const Icon(
+                            Icons.flag_outlined,
+                            size: 18,
+                          ),
+                          color: Colors.grey,
+                          onPressed: () =>
+                            _reportComment(comment),
+                        ),
                       );
                     },
                   );
@@ -261,4 +272,57 @@ class _CommentsSheetState extends State<CommentsSheet> {
 
     return 'Just now';
   }
+
+  Future<void> _reportComment(
+    VideoComment comment,
+  ) async {
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (_) => const ReportContentDialog(
+        title: 'Report comment',
+      ),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (reason == null || reason.trim().isEmpty) {
+      return;
+    }
+
+    try {
+      await AppServices.videoService.reportComment(
+        commentId: comment.id,
+        reason: reason.trim(),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      _showMessage(
+        'Comment reported successfully.',
+      );
+    } on ApiException catch (exception) {
+      if (exception.statusCode == 401 ||
+          exception.statusCode == 403) {
+        Navigator.of(context).pushNamed(
+          AppRoutes.register,
+        );
+        return;
+      }
+
+      _showMessage(
+        'Report failed '
+        '(${exception.statusCode}): '
+        '${exception.message}',
+      );
+    } catch (exception) {
+      _showMessage(
+        'Report failed: $exception',
+      );
+    }
+  }
+
 }

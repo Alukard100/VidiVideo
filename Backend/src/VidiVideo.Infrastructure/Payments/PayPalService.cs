@@ -18,7 +18,7 @@ namespace VidiVideo.Infrastructure.Payments
             _config = config;
             _http = httpClient;
         }
-        public async Task<bool> CaptureOrderAsync(string orderId)
+        public async Task<PayPalCaptureResult> CaptureOrderAsync(string orderId)
         {
             var token = await GetAccessTokenAsync();
 
@@ -29,12 +29,36 @@ namespace VidiVideo.Infrastructure.Payments
                 $"{_config["PayPal:BaseUrl"]}/v2/checkout/orders/{orderId}/capture",
                 new { });
 
-            var content = await response.Content.ReadAsStringAsync();
-            Console.WriteLine(content);
+            var json = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(json);
 
             response.EnsureSuccessStatusCode();
 
-            return response.IsSuccessStatusCode;
+            using var document = JsonDocument.Parse(json);
+
+            var root = document.RootElement;
+
+            var status = root.GetProperty("status").GetString();
+
+            if (!string.Equals(status, "COMPLETED", StringComparison.OrdinalIgnoreCase))
+            {
+                return new PayPalCaptureResult(false, null);
+            }
+
+            var captureId = root
+                .GetProperty("purchase_units")[0]
+                .GetProperty("payments")
+                .GetProperty("captures")[0]
+                .GetProperty("id")
+                .GetString();
+
+            if (string.IsNullOrWhiteSpace(captureId))
+            {
+                throw new InvalidOperationException("PayPal did not return a capture ID");
+            }
+
+            return new PayPalCaptureResult(true, captureId);
+
         }
 
         public async Task<PayPalOrderDto> CreateOrderAsync(decimal amount)
@@ -90,6 +114,57 @@ namespace VidiVideo.Infrastructure.Payments
 
             return new PayPalOrderDto(orderId, approvalUrl);
 
+        }
+
+        public async Task<PayPalRefundResult> RefundAsync(string captureId, decimal amount, string currency)
+        {
+            var token = await GetAccessTokenAsync();
+
+            _http.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue(
+                    "Bearer",
+                    token);
+
+            var request = new
+            {
+                amount = new
+                {
+                    value = amount.ToString(
+                        "F2",
+                        CultureInfo.InvariantCulture),
+                    currency_code = currency
+                }
+            };
+
+            var response =
+                await _http.PostAsJsonAsync($"{_config["PayPal:BaseUrl"]}/v2/payments/captures/{captureId}/refund", request);
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            Console.WriteLine(json);
+
+            response.EnsureSuccessStatusCode();
+
+            using var document =
+                JsonDocument.Parse(json);
+
+            var root =
+                document.RootElement;
+
+            var refundId =
+                root.GetProperty("id")
+                    .GetString()
+                ?? throw new InvalidOperationException(
+                    "PayPal did not return a refund ID.");
+
+            var status =
+                root.GetProperty("status")
+                    .GetString()
+                ?? "UNKNOWN";
+
+            return new PayPalRefundResult(
+                refundId,
+                status);
         }
 
         private async Task<string> GetAccessTokenAsync()

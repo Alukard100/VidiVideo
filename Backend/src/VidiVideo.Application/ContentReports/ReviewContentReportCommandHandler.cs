@@ -2,11 +2,11 @@
 using VidiVideo.Application.Abstractions.Repositories;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Exceptions;
-using VidiVideo.Domain.Constants;
+using VidiVideo.Domain.Enums;
 
 namespace VidiVideo.Application.ContentReports
 {
-    public sealed class ReviewContentReportCommandHandler : ICommandHandler<ReviewContentReportCommand, Guid>
+    public sealed class ReviewContentReportCommandHandler : ICommandHandler<ReviewContentReportCommand, bool>
     {
         private readonly IContentReportRepository _repo;
         private readonly IUnitOfWork _unitOfWork;
@@ -18,21 +18,61 @@ namespace VidiVideo.Application.ContentReports
             _currentUser = currentUser;
         }
 
-        public async Task<Guid> HandleAsync(ReviewContentReportCommand command, CancellationToken cancellationToken)
+        public async Task<bool> HandleAsync(ReviewContentReportCommand command, CancellationToken cancellationToken)
         {
-            if (!_currentUser.IsInRole(AppRoles.Admin) || !_currentUser.IsInRole(AppRoles.Moderator))
-                throw new UnauthorizedException("Unauthorized for this action");
+            var reviewerId = _currentUser.UserId
+                ?? throw new UnauthorizedException(
+                    "Not logged in.");
 
-            var adminId = _currentUser.UserId ?? throw new UnauthorizedException("Not logged in");
+            var isVideo = command.ContentType.Equals(
+                "video",
+                StringComparison.OrdinalIgnoreCase);
 
-            var report = await _repo.GetByIdAsync(command.ReportId) ?? throw new NotFoundException("Doesn't exist");
+            var isComment = command.ContentType.Equals(
+                "comment",
+                StringComparison.OrdinalIgnoreCase);
 
-            report.Review(adminId, command.ResolutionNote, command.Status);
+            if (!isVideo && !isComment)
+            {
+                throw new ValidationException(
+                    "Invalid content type.");
+            }
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            if (command.Status == ReportStatus.Pending)
+            {
+                throw new ValidationException(
+                    "Reviewed report cannot remain pending.");
+            }
 
-            return command.ReportId;
+            var reports = await _repo.GetByContentAsync(
+                command.ContentId,
+                isVideo,
+                cancellationToken);
 
+            var pendingReports = reports
+                .Where(r => r.Status == ReportStatus.Pending)
+                .ToList();
+
+            if (pendingReports.Count == 0)
+            {
+                throw new NotFoundException(
+                    "No pending reports found for this content.");
+            }
+
+            foreach (var report in pendingReports)
+            {
+                report.Review(
+                    reviewerId,
+                    command.ResolutionNote,
+                    command.Status);
+            }
+
+            await _unitOfWork.SaveChangesAsync(
+                cancellationToken);
+
+            return true;
         }
+
     }
 }
+

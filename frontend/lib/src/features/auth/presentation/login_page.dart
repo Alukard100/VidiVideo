@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vidivideo_app/src/core/dependency/app_services.dart';
 import 'package:vidivideo_app/src/core/network/api_client.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../app/app_routes.dart';
 
@@ -43,6 +44,60 @@ class _LoginPageState extends State<LoginPage> {
         _passwordController.text,
       );
 
+      final role =
+          response.role.trim().toLowerCase();
+
+      final isStaff = role == 'admin' || role == 'moderator' || role == 'super admin';
+
+      final isWindows =
+          !kIsWeb &&
+          defaultTargetPlatform ==
+              TargetPlatform.windows;
+
+      final isAndroid = !kIsWeb && defaultTargetPlatform == TargetPlatform.android; 
+
+      if (isWindows && !isStaff) {
+        _sessionStore.clearSession();
+
+        if (!mounted) {
+          return;
+        }
+
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Administrator account is required '
+                'for the desktop application.',
+              ),
+            ),
+          );
+
+        return;
+      }
+
+      if (isAndroid && isStaff) {
+        _sessionStore.clearSession();
+
+        if (!mounted) {
+          return;
+        }
+          
+          ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(content: Text(
+              'User account is required '
+              'for the mobile application.'
+              ),
+            ),
+          );
+        return;
+      }
+
+
+
       _sessionStore.saveSession(
         accessToken: response.token,
         role: response.role,
@@ -52,39 +107,55 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      if (response.role.toLowerCase() == 'admin') {
-        Navigator.of(context).pushReplacementNamed(
+      if (isWindows && isStaff) {
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil(
           AppRoutes.adminDashboard,
+          (_) => false,
         );
-      } else {
-        Navigator.of(context).pushReplacementNamed(
-          AppRoutes.mobileShell,
-        );
+
+        return;
       }
+
+      Navigator.of(context)
+          .pushNamedAndRemoveUntil(
+        AppRoutes.mobileShell,
+        (_) => false,
+      );
     } on ApiException catch (exception) {
       if (!mounted) {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Login failed (${exception.statusCode}).',
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              'Login failed '
+              '(${exception.statusCode}): '
+              '${exception.message}',
+            ),
           ),
-        ),
-      );
+        );
     } catch (exception) {
+      debugPrint(
+        'LOGIN ERROR: $exception',
+      );
+
       if (!mounted) {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Unable to connect to the server.',
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Unable to connect to the server.',
+            ),
           ),
-        ),
-      );
+        );
     } finally {
       if (mounted) {
         setState(() {
@@ -96,6 +167,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isWindows = !kIsWeb && defaultTargetPlatform == TargetPlatform.windows;
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
@@ -165,28 +237,31 @@ class _LoginPageState extends State<LoginPage> {
                             )
                           : const Text('Sign in'),
                     ),
-                    const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () {
-                              Navigator.of(context).pushReplacementNamed(
-                                AppRoutes.register,
-                              );
-                            },
-                      child: const Text('Create account'),
-                    ),
-                    const SizedBox(height: 8),
-                    OutlinedButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () {
-                              Navigator.of(context).pushReplacementNamed(
-                                AppRoutes.mobileShell,
-                              );
-                            },
-                      child: const Text('Open mobile preview'),
-                    ),
+                    if (!isWindows) ...[
+                      const SizedBox(height: 8),
+                      FilledButton(
+            
+                        onPressed: _isLoading
+                            ? null
+                            : () {
+                                Navigator.of(context).pushReplacementNamed(
+                                  AppRoutes.register,
+                                );
+                              },
+                        child: const Text('Create account'),
+                      ),
+                      const SizedBox(height: 8),
+                      OutlinedButton(
+                        onPressed: _isLoading
+                            ? null
+                            : () {
+                                Navigator.of(context).pushReplacementNamed(
+                                  AppRoutes.mobileShell,
+                                );
+                              },
+                        child: const Text('Open mobile preview'),
+                      ),
+                    ],
                   ],
                 ),
               ),

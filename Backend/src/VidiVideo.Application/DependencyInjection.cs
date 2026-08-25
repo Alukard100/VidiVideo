@@ -3,16 +3,19 @@ using VidiVideo.Application.Categories;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.ContentReports;
 using VidiVideo.Application.Countries;
+using VidiVideo.Application.Dashboard;
 using VidiVideo.Application.Followers;
 using VidiVideo.Application.Hashtags;
 using VidiVideo.Application.Notifications;
 using VidiVideo.Application.Payments.PayPal;
+using VidiVideo.Application.Payments.Refunds;
 using VidiVideo.Application.Recommendations;
 using VidiVideo.Application.Reports.RevenueReport;
 using VidiVideo.Application.Reports.VideosReport;
 using VidiVideo.Application.SearchHistories;
 using VidiVideo.Application.Users;
 using VidiVideo.Application.Users.Activities;
+using VidiVideo.Application.Users.Administrative;
 using VidiVideo.Application.Videos;
 using VidiVideo.Application.Videos.Comments;
 using VidiVideo.Application.Videos.Likes;
@@ -52,9 +55,16 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<CreatePayPalOrderCommand, PayPalOrderDto>, CreatePayPalOrderCommandHandler>();
         services.AddScoped<ICommandHandler<CapturePayPalOrderCommand, bool>, CapturePayPalOrderCommandHandler>();
         services.AddScoped<ICommandHandler<CreateContentReportCommand, Guid>, CreateContentReportCommandHandler>();
-        services.AddScoped<ICommandHandler<ReviewContentReportCommand, Guid>, ReviewContentReportCommandHandler>();
+        services.AddScoped<ICommandHandler<ReviewContentReportCommand, bool>, ReviewContentReportCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateMyProfileCommand, Guid>, UpdateMyProfileCommandHandler>();
         services.AddScoped<ICommandHandler<UploadAvatarCommand, string>, UploadAvatarCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateUserStatusCommand, bool>, UpdateUserStatusCommandHandler>();
+        services.AddScoped<ICommandHandler<CreateStaffCommand, Guid>, CreateStaffCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateStaffRoleCommand, bool>, UpdateStaffRoleCommandHandler>();
+        services.AddScoped<ICommandHandler<RefundPaymentCommand, bool>, RefundPaymentCommandHandler>();
+        services.AddScoped<ICommandHandler<CreateRefundRequestCommand, Guid>, CreateRefundRequestCommandHandler>();
+        services.AddScoped<ICommandHandler<ApproveRefundRequestCommand, bool>, ApproveRefundRequestCommandHandler>();
+        services.AddScoped<ICommandHandler<RejectRefundRequestCommand, bool>, RejectRefundRequestCommandHandler>();
         //Queries
         services.AddScoped<IQueryHandler<GetCountryByIdQuery, CountryDto>, GetCountryByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetCountriesQuery, List<CountryDto>>, GetCountriesQueryHandler>();
@@ -71,7 +81,6 @@ public static class DependencyInjection
         services.AddScoped<IQueryHandler<FollowingQuery, PagedResult<UserFollowDto>>, FollowingQueryHandler>();
         services.AddScoped<IQueryHandler<GetNotificationsQuery, PagedResult<NotificationMessage>>, GetNotificationsQueryHandler>();
         services.AddScoped<IQueryHandler<GetSearchHistoryQuery, PagedResult<SearchHistoryDto>>, GetSearchHistoryQueryHandler>();
-        services.AddScoped<IQueryHandler<GetContentReportsQuery, PagedResult<ContentReportDto>>, GetContentReportsQueryHandler>();
         services.AddScoped<IQueryHandler<GenerateVideosReportQuery, byte[]>, GenerateVideosReportQueryHandler>();
         services.AddScoped<IQueryHandler<GenerateRevenueReportQuery, byte[]>, GenerateRevenueReportQueryHandler>();
         services.AddScoped<IQueryHandler<GetUserProfileQuery, UserProfileDto>, GetUserProfileQueryHandler>();
@@ -79,6 +88,15 @@ public static class DependencyInjection
         services.AddScoped<IQueryHandler<GetRecommendedVideosQuery, PagedResult<VideoFeedDto>>, GetRecommendedVideosQueryHandler>();
         services.AddScoped<IQueryHandler<GetFollowingFeedQuery, PagedResult<VideoFeedDto>>, GetFollowingFeedQueryHandler>();
         services.AddScoped<IQueryHandler<GetVideoStreamQuery, VideoStreamResult>, GetVideoStreamQueryHandler>();
+        services.AddScoped<IQueryHandler<GetUsersQuery, PagedResult<UserSummaryDto>>, GetUsersQueryHandler>();
+        services.AddScoped<IQueryHandler<GetContentReportsQuery, PagedResult<ContentReportSummaryDto>>, GetContentReportsQueryHandler>();
+        services.AddScoped<IQueryHandler<GetContentReportDetailQuery, ContentReportDetailDto>, GetContentReportDetailQueryHandler>();
+        services.AddScoped<IQueryHandler<GetContentReportStatsQuery, ContentReportStatsDto>, GetContentReportStatsQueryHandler>();
+        services.AddScoped<IQueryHandler<GetModerationVideoStreamQuery, VideoStreamResult>, GetModerationVideoStreamQueryHandler>();
+        services.AddScoped<IQueryHandler<GetReportsByStatusQuery, PagedResult<ContentReportDto>>, GetReportsByStatusQueryHandler>();
+        services.AddScoped<IQueryHandler<GetStaffCommand, List<StaffSummaryDto>>, GetStaffCommandHandler>();
+        services.AddScoped<IQueryHandler<GetDashboardOverviewQuery, DashboardOverviewDto>, GetDashboardOverviewQueryHandler>();
+        services.AddScoped<IQueryHandler<GetAllRefundRequestsQuery, PagedResult<RefundRequestDto>>, GetAllRefundRequestsQueryHandler>();
         //Delete Commands
         services.AddScoped<ICommandHandler<DeleteCountryCommand, bool>, DeleteCountryCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteHashtagCommand, bool>, DeleteHashtagCommandHandler>();
@@ -89,6 +107,8 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<DeleteCommentCommand, bool>, DeleteCommentCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteSearchHistoryCommand, bool>, DeleteSearchHistoryCommandHandler>();
         services.AddScoped<ICommandHandler<ClearSearchHistoryCommand, bool>, ClearSearchHistoryCommandHandler>();
+        services.AddScoped<ICommandHandler<RemoveReportedContentCommand, bool>, RemoveReportedContentCommandHandler>();
+        services.AddScoped<ICommandHandler<DeleteStaffCommand, bool>, DeleteStaffCommandHandler>();
 
         return services;
     }

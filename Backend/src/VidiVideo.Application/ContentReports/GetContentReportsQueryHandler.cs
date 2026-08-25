@@ -3,7 +3,7 @@ using VidiVideo.Application.Common;
 
 namespace VidiVideo.Application.ContentReports
 {
-    public sealed class GetContentReportsQueryHandler : IQueryHandler<GetContentReportsQuery, PagedResult<ContentReportDto>>
+    public sealed class GetContentReportsQueryHandler : IQueryHandler<GetContentReportsQuery, PagedResult<ContentReportSummaryDto>>
     {
         private readonly IContentReportRepository _repo;
         public GetContentReportsQueryHandler(IContentReportRepository repo)
@@ -11,19 +11,26 @@ namespace VidiVideo.Application.ContentReports
             _repo = repo;
         }
 
-        public async Task<PagedResult<ContentReportDto>> HandleAsync(GetContentReportsQuery query, CancellationToken cancellationToken)
+        public async Task<PagedResult<ContentReportSummaryDto>> HandleAsync(GetContentReportsQuery query, CancellationToken cancellationToken)
         {
-            var reports = await _repo.GetPagedAsync(query.Page, query.PageSize);
-
-            var items = reports.Select(c => new ContentReportDto(c.Id, c.ReporterId, c.VideoId, c.CommentId, c.Reason, c.Status, c.ReviewedById, c.ReviewedAtUtc, c.ResolutionNote)).ToList();
-
-            var total = await _repo.CountAsync();
-
-            return new PagedResult<ContentReportDto>(
-                items,
-                total,
+            var reports =
+            await _repo.GetGroupedAsync(
+                query.Status,
                 query.Page,
-                query.PageSize);
+                query.PageSize,
+                cancellationToken);
+
+            var total =
+                await _repo.CountGroupedAsync(
+                    query.Status,
+                    cancellationToken);
+
+            return new PagedResult<
+                ContentReportSummaryDto>(
+                    reports,
+                    query.Page,
+                    query.PageSize,
+                    total);
 
         }
     }

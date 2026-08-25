@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ProfileError extends StatelessWidget {
-  const ProfileError({
+  const ProfileError({super.key, 
     required this.message,
     required this.onRetry,
   });

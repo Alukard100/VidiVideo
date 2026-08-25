@@ -4,7 +4,7 @@ import '../../../../core/network/media_url.dart';
 import '../../models/follow_user.dart';
 
 class FollowListSheet extends StatelessWidget {
-  const FollowListSheet({
+  const FollowListSheet({super.key, 
     required this.title,
     required this.usersFuture,
     required this.onUserPressed,

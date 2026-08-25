@@ -50,4 +50,14 @@ public sealed class AppUser : AuditableEntity
         PasswordHash = passwordHash;
     }
 
+    public void ChangeStatus(UserStatus status)
+    {
+        Status = status;
+    }
+
+    public void UpdateRole(string role)
+    {
+        Role = role;
+    }
+
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app/app_routes.dart';
 import '../../../core/dependency/app_services.dart';
 import '../navigation/mobile_navigation_controller.dart';
 import '../widgets/vidivideo_bottom_navigation.dart';
@@ -37,6 +38,18 @@ class _MobileShellPageState extends State<MobileShellPage> {
   }
 
   void _selectPage(int index) {
+    final isGuest = !AppServices.sessionStore.isAuthenticated;
+
+    final requiresAuth =
+      index == 2 ||
+      index == 3 ||
+      index == 4;
+
+    if (isGuest && requiresAuth) {
+      Navigator.of(context).pushNamed(AppRoutes.register,);
+      return;
+    }
+
     AppServices.mobileNavigation.clearOverlays();
     setState(() {
       _selectedIndex = index;

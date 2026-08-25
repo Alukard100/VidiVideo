@@ -6,6 +6,7 @@ using QuestPDF.Infrastructure;
 using System.Text;
 using VidiVideo.Api.Configuration;
 using VidiVideo.Api.Exceptions;
+using VidiVideo.Api.Middleware;
 using VidiVideo.Api.Services;
 using VidiVideo.Application;
 using VidiVideo.Application.Abstractions;
@@ -107,6 +108,7 @@ app.UseStaticFiles();
 app.UseCors("Frontend");
 
 app.UseAuthentication();
+app.UseMiddleware<ActiveUserMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -42,38 +42,41 @@ class VideoSideActions extends StatelessWidget {
           avatarUrl: video.creatorAvatarUrl,
           onPressed: onCreatorPressed,
         ),
-        const SizedBox(height: 18),
-        _ActionButton(
-          icon: isLiked ? Icons.favorite : Icons.favorite_border,
-          label: _compactNumber(likeCount),
-          onPressed: onLikePressed,
-        ),
-        const SizedBox(height: 18),
-        _ActionButton(
-          icon: Icons.mode_comment_outlined,
-          label: _compactNumber(commentCount),
-          onPressed: onCommentsPressed,
-        ),
-        const SizedBox(height: 18),
-        _ActionButton(
-          icon: Icons.flag_outlined,
-          label: 'Report',
-          onPressed: onReportPressed,
-        ),
-        const SizedBox(height: 18),
-        if (onEditPressed != null) ...[
+
+        if (!video.isLocked) ...[
+          const SizedBox(height: 18),
           _ActionButton(
-            icon: Icons.edit_outlined,
-            label: 'Edit',
-            onPressed: onEditPressed!,
+            icon: isLiked ? Icons.favorite : Icons.favorite_border,
+            label: _compactNumber(likeCount),
+            onPressed: onLikePressed,
           ),
           const SizedBox(height: 18),
+          _ActionButton(
+            icon: Icons.mode_comment_outlined,
+            label: _compactNumber(commentCount),
+            onPressed: onCommentsPressed,
+          ),
+          const SizedBox(height: 18),
+          _ActionButton(
+            icon: Icons.flag_outlined,
+            label: 'Report',
+            onPressed: onReportPressed,
+          ),
+          const SizedBox(height: 18),
+          if (onEditPressed != null) ...[
+            _ActionButton(
+              icon: Icons.edit_outlined,
+              label: 'Edit',
+              onPressed: onEditPressed!,
+            ),
+            const SizedBox(height: 18),
+          ],
+          _ActionButton(
+            icon: isMuted ? Icons.volume_off_outlined : Icons.volume_up_outlined,
+            label: '',
+            onPressed: onSoundPressed,
+          ),
         ],
-        _ActionButton(
-          icon: isMuted ? Icons.volume_off_outlined : Icons.volume_up_outlined,
-          label: '',
-          onPressed: onSoundPressed,
-        ),
       ],
     );
   }

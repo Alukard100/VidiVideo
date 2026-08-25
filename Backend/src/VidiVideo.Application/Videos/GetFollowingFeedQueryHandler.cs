@@ -35,7 +35,7 @@ public sealed class GetFollowingFeedQueryHandler : IQueryHandler<GetFollowingFee
 
         var subscribedCreatorIds =
             await _paymentRepository.GetActiveSubscribedCreatorIdsAsync(userId);
-        var likedVideos = await _likeRepository.GetLikedVideosByUserAsync(userId);
+        var likedVideos = await _likeRepository.GetLikedVideosByUserAsync(userId, cancellationToken);
         var likedVideoIds = likedVideos.Select(video => video.Id).ToHashSet();
 
         var items = videos.Select(video =>

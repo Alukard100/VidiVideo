@@ -21,24 +21,24 @@ public sealed class DatabaseSeeder
         {
             new AppUser(
                 "desktop",
-                "desktop",
+                "fakemailDesktop@mail.com",
                 _passwordHasher.Hash("test"),
-                AppRoles.User,
-                "fakemailDesktop@mail.com"),
+                "desktop",
+                AppRoles.Admin),
 
             new AppUser(
                 "mobile",
-                "mobile",
+                "fakemailMobile@mail.com",
                 _passwordHasher.Hash("test"),
-                AppRoles.User,
-                "fakemailMobile@mail.com"),
+                "mobile",
+                AppRoles.User),
 
             new AppUser(
                 "admin",
-                "Administrator",
+                "fakemailAdmin@mail.com",
                 _passwordHasher.Hash("test"),
-                AppRoles.Admin,
-                "fakemailAdmin@mail.com")
+                "Administrator",
+                AppRoles.SuperAdmin)
         };
 
         var categories = new[]

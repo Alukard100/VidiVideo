@@ -12,6 +12,15 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             _db = db;
         }
 
+        public async Task<decimal> AverageVideoCompletionAsync(CancellationToken cancellationToken = default)
+        {
+            if (!await _db.VideoViews.AnyAsync(cancellationToken))
+            {
+                return 0m;
+            }
+            return await _db.VideoViews.AverageAsync(v => v.CompletionRate, cancellationToken);
+        }
+
         public async Task<int> CountTotalViewsAsync(DateTime? f)
         {
             var query = _db.VideoViews.AsQueryable();

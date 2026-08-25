@@ -50,4 +50,19 @@ public sealed class BusinessConfiguration :
         builder.Property(x => x.CompletionRate).HasPrecision(5, 2);
         builder.HasIndex(x => new { x.UserId, x.VideoId, x.CreatedAtUtc });
     }
+
+    public void Configure(EntityTypeBuilder<RefundRequest> builder)
+    {
+        builder.HasKey(x => x.Id);
+
+        builder.HasOne(x => x.Payment)
+            .WithMany()
+            .HasForeignKey(x => x.PaymentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.ReviewedBy)
+            .WithMany()
+            .HasForeignKey(x => x.ReviewedById)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
 }

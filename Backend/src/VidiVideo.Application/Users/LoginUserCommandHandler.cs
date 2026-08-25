@@ -21,13 +21,16 @@ namespace VidiVideo.Application.Users
         public async Task<LoginUserResponse> HandleAsync(LoginUserCommand command, CancellationToken cancellationToken)
         {
             var user = await _userRepository.GetByUserNameAsync(command.UserName)
-                        ?? throw new NotFoundException("Invalid username or password");
+                        ?? throw new ValidationException("Invalid username or password");
 
             if (!_passwordHasher.Verify(command.Password, user.PasswordHash))
             {
-                throw new UnauthorizedException(
+                throw new ValidationException(
                     "Invalid username or password");
             }
+
+            if (user.Status != Domain.Enums.UserStatus.Active)
+                throw new UnauthorizedException("Your account is not active.");
 
             var token = _tokenGenerator.GenerateToken(user);
 

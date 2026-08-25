@@ -53,6 +53,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRecommendationService, RecommendationService>();
         services.AddScoped<IPaymentSettings, PaymentSettings>();
+        services.AddScoped<IRefundRequestRepository, RefundRequestRepository>();
 
         services.AddHttpClient<IPayPalService, PayPalService>();
 

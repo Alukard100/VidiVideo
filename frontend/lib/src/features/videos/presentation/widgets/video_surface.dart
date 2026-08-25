@@ -53,7 +53,7 @@ class VideoSurface extends StatelessWidget {
       child: Image.network(
         resolvedThumbnail,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) {
+        errorBuilder: (_, _, _) {
           return const ColoredBox(
             color: Colors.black,
           );

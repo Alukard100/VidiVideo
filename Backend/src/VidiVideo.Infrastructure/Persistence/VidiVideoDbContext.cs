@@ -21,6 +21,8 @@ public sealed class VidiVideoDbContext(DbContextOptions<VidiVideoDbContext> opti
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<Country> Countrys => Set<Country>();
 
+    public DbSet<RefundRequest> RefundRequests => Set<RefundRequest>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(VidiVideoDbContext).Assembly);

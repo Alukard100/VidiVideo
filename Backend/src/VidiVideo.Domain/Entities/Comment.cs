@@ -24,5 +24,11 @@ public sealed class Comment : AuditableEntity
         UpdatedAtUtc = DateTime.UtcNow;
     }
 
+    public void Remove()
+    {
+        IsDeleted = true;
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
+
 
 }

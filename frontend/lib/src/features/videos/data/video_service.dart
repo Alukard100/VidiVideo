@@ -244,6 +244,20 @@ class VideoService {
     );
   }
 
+  Future<void> reportComment({
+    required String commentId,
+    required String reason,
+  }) async {
+    await _apiClient.postJson(
+      '/api/ContentReport/report',
+      {
+        'videoId': null,
+        'commentId': commentId,
+        'reason': reason,
+      },
+    );
+  }
+
   Future<void> likeVideo(String videoId) async {
     await _apiClient.postJson(
       '/api/Like/like',

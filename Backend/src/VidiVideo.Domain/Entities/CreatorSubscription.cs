@@ -31,5 +31,7 @@ public sealed class CreatorSubscription : AuditableEntity
     public void Deactivate()
     {
         IsActive = false;
+        EndsAtUtc = DateTime.UtcNow;
+        UpdatedAtUtc = DateTime.UtcNow;
     }
 }

@@ -14,7 +14,6 @@ public sealed class Video : AuditableEntity
     public string ThumbnailUrl { get; private set; } = string.Empty;
     public VideoVisibility Visibility { get; private set; } = VideoVisibility.Public;
     public bool IsPublished { get; private set; } = true;
-
     public ICollection<Comment> Comments { get; private set; } = [];
     public ICollection<Like> Likes { get; private set; } = [];
     public ICollection<VideoHashtag> VideoHashtags { get; private set; } = [];
@@ -65,5 +64,11 @@ public sealed class Video : AuditableEntity
         ThumbnailUrl = thumbnailUrl;
         Visibility = visibility;
         IsPublished = isPublished;
+    }
+
+    public void Remove()
+    {
+        IsDeleted = true;
+        UpdatedAtUtc = DateTime.UtcNow;
     }
 }

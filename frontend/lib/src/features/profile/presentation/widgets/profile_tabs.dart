@@ -5,7 +5,7 @@ import '../../../videos/widgets/video_thumbnail_tile.dart';
 import '../../models/profile_video.dart';
 
 class ProfileTabs extends StatelessWidget {
-  const ProfileTabs({
+  const ProfileTabs({super.key, 
     required this.profileId,
     required this.publicVideos,
     required this.subscriberOnlyVideos,

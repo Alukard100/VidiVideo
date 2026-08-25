@@ -13,6 +13,9 @@ public sealed class Payment : AuditableEntity
     public string ProviderPaymentId { get; private set; } = string.Empty;
     public PaymentStatus Status { get; private set; } = PaymentStatus.Pending;
     public DateTime? CompletedAtUtc { get; private set; }
+    public DateTime? RefundedAtUtc { get; private set; }
+    public string? ProviderRefundId { get; private set; }
+    public string? ProviderCaptureId { get; private set; }
 
     protected Payment() { }
 
@@ -24,12 +27,35 @@ public sealed class Payment : AuditableEntity
         Status = PaymentStatus.Pending;
     }
 
-    public void MarkCompleted()
+    public void MarkCompleted(
+        string providerCaptureId)
     {
+        if (string.IsNullOrWhiteSpace(
+            providerCaptureId))
+        {
+            throw new ArgumentException(
+                "Capture ID is required.",
+                nameof(providerCaptureId));
+        }
+
         Status = PaymentStatus.Completed;
         CompletedAtUtc = DateTime.UtcNow;
+        ProviderCaptureId = providerCaptureId;
+        UpdatedAtUtc = DateTime.UtcNow;
     }
 
     public void MarkFailed()
         => Status = PaymentStatus.Failed;
+
+    public void MarkRefunded(string providerRefundId)
+    {
+        if (Status != PaymentStatus.Completed)
+            throw new InvalidOperationException(
+                "Only completed payments can be refunded.");
+
+        Status = PaymentStatus.Refunded;
+        ProviderRefundId = providerRefundId;
+        RefundedAtUtc = DateTime.UtcNow;
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
 }

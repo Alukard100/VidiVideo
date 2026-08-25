@@ -4,6 +4,7 @@ class AppRoutes {
   static const login = '/login';
   static const register = '/register';
   static const adminDashboard = '/admin';
+  static const adminRefunds = '/admin/refunds';
   static const adminUsers = '/admin/users';
   static const adminReports = '/admin/reports';
   static const adminStaff = '/admin/staff';

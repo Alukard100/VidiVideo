@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 
-class ReportVideoDialog extends StatefulWidget {
-  const ReportVideoDialog({
+class ReportContentDialog extends StatefulWidget {
+  const ReportContentDialog({
+    required this.title,
     super.key,
   });
 
+  final String title;
+
   @override
-  State<ReportVideoDialog> createState() =>
-      _ReportVideoDialogState();
+  State<ReportContentDialog> createState() =>
+      _ReportContentDialogState();
 }
 
-class _ReportVideoDialogState
-    extends State<ReportVideoDialog> {
+class _ReportContentDialogState
+    extends State<ReportContentDialog> {
   final _controller = TextEditingController();
 
   @override
@@ -23,7 +26,7 @@ class _ReportVideoDialogState
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Report video'),
+      title: Text(widget.title),
       content: TextField(
         controller: _controller,
         maxLines: 3,
@@ -38,9 +41,16 @@ class _ReportVideoDialogState
           child: const Text('Cancel'),
         ),
         FilledButton(
-          onPressed: () =>
-              Navigator.of(context)
-                  .pop(_controller.text),
+          onPressed: () {
+            final reason =
+                _controller.text.trim();
+
+            if (reason.isEmpty) {
+              return;
+            }
+
+            Navigator.of(context).pop(reason);
+          },
           child: const Text('Submit'),
         ),
       ],

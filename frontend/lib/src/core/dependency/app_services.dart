@@ -1,14 +1,20 @@
+import '../../features/admin/data/admin_dashboard_service.dart';
+import '../../features/admin/data/admin_staff_service.dart';
+import '../../features/admin/data/admin_user_service.dart';
+import '../../features/admin/data/content_report_service.dart';
 import '../../features/categories/data/category_service.dart';
 import '../../features/countries/data/country_service.dart';
 import '../../features/mobile/navigation/mobile_navigation_controller.dart';
 import '../../features/notifications/data/notification_service.dart';
 import '../../features/payments/data/paypal_service.dart';
 import '../../features/profile/data/profile_service.dart';
+import '../../features/refunds/data/refund_service.dart';
 import '../../features/search_history/data/search_history.service.dart';
 import '../../features/videos/data/video_service.dart';
 import '../../features/auth/data/auth_service.dart';
 import '../network/api_client.dart';
 import '../storage/session_store.dart';
+import '../utils/feed_refresh_notifier.dart';
 import '../utils/profile_refresh_notifier.dart';
 
 class AppServices {
@@ -20,6 +26,8 @@ class AppServices {
   static final SessionStore sessionStore = SessionStore();
 
   static final profileRefreshNotifier = ProfileRefreshNotifier();
+
+  static final feedRefreshNotifier = FeedRefreshNotifier();
 
   static final ApiClient apiClient = ApiClient(
     sessionStore: sessionStore,
@@ -57,4 +65,33 @@ class AppServices {
       SearchHistoryService(
     apiClient: apiClient,
   );
+
+  static final AdminUserService adminUserService =
+      AdminUserService(
+    apiClient: apiClient,
+  );
+
+  static final ContentReportService
+      contentReportService =
+      ContentReportService(
+    apiClient: apiClient,
+  );
+
+  static final AdminStaffService adminStaffService =
+      AdminStaffService(
+    apiClient: apiClient,
+  );
+
+  static final AdminDashboardService
+      adminDashboardService =
+      AdminDashboardService(
+    apiClient: apiClient,
+  );
+
+  static final RefundService refundService =
+      RefundService(
+    apiClient: apiClient,
+  );
+
+
 }

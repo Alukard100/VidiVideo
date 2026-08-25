@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 import '../features/admin/presentation/admin_dashboard_page.dart';
 import '../features/admin/presentation/content_reports_page.dart';
+import '../features/admin/presentation/refund_requests_page.dart';
 import '../features/admin/presentation/staff_management_page.dart';
 import '../features/admin/presentation/users_management_page.dart';
 import '../features/auth/presentation/login_page.dart';
@@ -40,6 +41,7 @@ class VidiVideoApp extends StatelessWidget {
         AppRoutes.profile: (_) => const ProfilePage(),
         AppRoutes.subscriptions: (_) => const SubscriptionsPage(),
         AppRoutes.mobileShell: (_) => const MobileShellPage(),
+        AppRoutes.adminRefunds: (_) => const RefundRequestsPage(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == AppRoutes.userProfile) {

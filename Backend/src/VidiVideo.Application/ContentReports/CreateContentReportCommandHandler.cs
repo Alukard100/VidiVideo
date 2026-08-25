@@ -5,7 +5,7 @@ using VidiVideo.Application.Exceptions;
 
 namespace VidiVideo.Application.ContentReports
 {
-    public sealed class CreateContentReportCommandHandler : ICommandHandler<CreateContentReportCommand, System.Guid>
+    public sealed class CreateContentReportCommandHandler : ICommandHandler<CreateContentReportCommand, Guid>
     {
         private readonly IContentReportRepository _repo;
         private readonly ICommentRepository _commentRepository;

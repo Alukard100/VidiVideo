@@ -32,19 +32,27 @@ namespace VidiVideo.Application.Payments.PayPal
 
                 var capturedOrder = await _payPalService.CaptureOrderAsync(command.OrderId);
 
-                if (!capturedOrder)
+                if (!capturedOrder.Success ||
+                    string.IsNullOrWhiteSpace(
+                        capturedOrder.CaptureId))
                 {
                     payment.MarkFailed();
-                    await _unitOfWork.CommitAsync(cancellationToken);
-                    return capturedOrder;
+
+                    await _unitOfWork
+                        .CommitAsync(cancellationToken);
+
+                    return false;
                 }
 
-                payment.MarkCompleted();
+                payment.MarkCompleted(
+                    capturedOrder.CaptureId);
+
                 subscription.Activate();
 
-                await _unitOfWork.CommitAsync(cancellationToken);
+                await _unitOfWork
+                    .CommitAsync(cancellationToken);
 
-                return capturedOrder;
+                return true;
             }
             catch (Exception ex)
             {

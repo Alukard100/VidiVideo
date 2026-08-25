@@ -434,10 +434,19 @@ namespace VidiVideo.Infrastructure.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)");
 
+                    b.Property<string>("ProviderCaptureId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ProviderPaymentId")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ProviderRefundId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RefundedAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -456,6 +465,39 @@ namespace VidiVideo.Infrastructure.Migrations
                     b.HasIndex("SubscriptionId");
 
                     b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("VidiVideo.Domain.Entities.RefundRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("PaymentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ReviewedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PaymentId");
+
+                    b.HasIndex("ReviewedById");
+
+                    b.ToTable("RefundRequests");
                 });
 
             modelBuilder.Entity("VidiVideo.Domain.Entities.SearchHistory", b =>
@@ -727,6 +769,23 @@ namespace VidiVideo.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Subscription");
+                });
+
+            modelBuilder.Entity("VidiVideo.Domain.Entities.RefundRequest", b =>
+                {
+                    b.HasOne("VidiVideo.Domain.Entities.Payment", "Payment")
+                        .WithMany()
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VidiVideo.Domain.Entities.AppUser", "ReviewedBy")
+                        .WithMany()
+                        .HasForeignKey("ReviewedById");
+
+                    b.Navigation("Payment");
+
+                    b.Navigation("ReviewedBy");
                 });
 
             modelBuilder.Entity("VidiVideo.Domain.Entities.SearchHistory", b =>

@@ -28,7 +28,7 @@ public sealed class GetVideoStreamQueryHandler : IQueryHandler<GetVideoStreamQue
     public async Task<VideoStreamResult> HandleAsync(GetVideoStreamQuery query, CancellationToken cancellationToken)
     {
         var video =
-            await _videoRepository.GetVideoForStreamingAsync(query.VideoId)
+            await _videoRepository.GetVideoForStreamingAsync(query.VideoId, cancellationToken)
             ?? throw new NotFoundException("Video doesn't exist.");
 
         if (video.IsDeleted)

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../app/app_routes.dart';
 import '../../../core/dependency/app_services.dart';
 import '../../../core/network/api_client.dart';
 import '../../videos/models/video_detail.dart';
@@ -30,6 +29,20 @@ class _FeedPageState extends State<FeedPage> {
   void initState() {
     super.initState();
     _videosFuture = _loadVideos();
+
+    if (widget.feedMode == FeedMode.following) {
+      AppServices.feedRefreshNotifier.addListener(_onFeedRefresh);
+    }
+  }
+
+  void _onFeedRefresh() {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _videosFuture = _loadVideos();
+    });
   }
 
   @override
@@ -47,6 +60,15 @@ class _FeedPageState extends State<FeedPage> {
     }
 
     return AppServices.videoService.getFollowingVideos();
+  }
+
+  @override
+  void dispose() {
+    if (widget.feedMode == FeedMode.following) {
+      AppServices.feedRefreshNotifier.removeListener(_onFeedRefresh);
+    }
+
+    super.dispose();
   }
 
   void _retry() {
@@ -68,10 +90,6 @@ class _FeedPageState extends State<FeedPage> {
         }
 
         if (snapshot.hasError) {
-          if (widget.feedMode == FeedMode.following) {
-            _redirectToRegisterIfAuthRequired(snapshot.error);
-          }
-
           return _FeedMessage(
             message: _errorMessage(snapshot.error),
             onRetry: _retry,
@@ -110,23 +128,6 @@ class _FeedPageState extends State<FeedPage> {
     return 'Feed failed: $error';
   }
 
-  void _redirectToRegisterIfAuthRequired(Object? error) {
-    if (error is! ApiException) {
-      return;
-    }
-
-    if (error.statusCode != 401 && error.statusCode != 403) {
-      return;
-    }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
-
-      Navigator.of(context).pushNamed(AppRoutes.register);
-    });
-  }
 }
 
 class _FeedMessage extends StatelessWidget {

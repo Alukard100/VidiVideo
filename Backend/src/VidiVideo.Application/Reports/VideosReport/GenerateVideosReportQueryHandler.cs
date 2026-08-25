@@ -22,29 +22,20 @@ namespace VidiVideo.Application.Reports.VideosReport
 
         public async Task<byte[]> HandleAsync(GenerateVideosReportQuery query, CancellationToken cancellationToken)
         {
-            var totalVideos = _videoRepository.CountVideosFromAsync(query.From);
-            var publishedVideos = _videoRepository.CountPublishedAsync(query.From);
-            var publicVideos = _videoRepository.CountPublicAsync(query.From);
-            var subscriberVideos = _videoRepository.CountSubscriberAsync(query.From);
-            var totalViews = _videoViewRepository.CountTotalViewsAsync(query.From);
-            var totalLikes = _likeRepository.CountTotalLikesAsync(query.From);
-            var totalComments = _commentRepository.CountTotalCommentsAsync(query.From);
-            var topVideos = _videoRepository.TopVideosAsync(query.From);
+            var totalVideos = await _videoRepository.CountVideosFromAsync(query.From, cancellationToken);
+            var publishedVideos = await _videoRepository.CountPublishedAsync(query.From, cancellationToken);
+            var publicVideos = await _videoRepository.CountPublicAsync(query.From, cancellationToken);
+            var subscriberVideos = await _videoRepository.CountSubscriberAsync(query.From, cancellationToken);
+            var totalViews = await _videoViewRepository.CountTotalViewsAsync(query.From);
+            var totalLikes = await _likeRepository.CountTotalLikesAsync(query.From);
+            var totalComments = await _commentRepository.CountTotalCommentsAsync(query.From);
+            var topVideos = await _videoRepository.TopVideosAsync(query.From, cancellationToken);
 
 
-            await Task.WhenAll(
-                totalVideos,
-                publishedVideos,
-                publicVideos,
-                subscriberVideos,
-                totalViews,
-                totalLikes,
-                totalComments);
 
+            var rows = topVideos.Select(v => new VideoAnalyticsRow(v.Caption, v.Creator.DisplayName, v.VideoViews.Count, v.Likes.Count, v.Comments.Count)).ToList();
 
-            var rows = topVideos.Result.Select(v => new VideoAnalyticsRow(v.Caption, v.Creator.DisplayName, v.VideoViews.Count, v.Likes.Count, v.Comments.Count)).ToList();
-
-            var dto = new VideoAnalyticsReportDto(query.From, totalVideos.Result, publishedVideos.Result, publicVideos.Result, subscriberVideos.Result, totalViews.Result, totalLikes.Result, totalComments.Result, rows);
+            var dto = new VideoAnalyticsReportDto(query.From, totalVideos, publishedVideos, publicVideos, subscriberVideos, totalViews, totalLikes, totalComments, rows);
 
             return _videoAnalyticsReportGenerator.Generate(dto);
         }

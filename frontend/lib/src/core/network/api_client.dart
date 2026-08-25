@@ -218,6 +218,52 @@ class ApiClient {
     }
   }
 
+  Future<Uint8List> getBytes(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    final client = HttpClient();
+
+    try {
+      final request = await client.getUrl(
+        _buildUri(path, queryParameters),
+      );
+
+      final token = _sessionStore.accessToken;
+
+      if (token != null && token.isNotEmpty) {
+        request.headers.set(
+          HttpHeaders.authorizationHeader,
+          'Bearer $token',
+        );
+      }
+
+      final response = await request.close();
+
+      final bytes = await response.fold<List<int>>(
+        <int>[],
+        (previous, element) =>
+            previous..addAll(element),
+      );
+
+      if (response.statusCode < 200 ||
+          response.statusCode >= 300) {
+        final responseBody =
+            utf8.decode(bytes);
+
+        throw ApiException(
+          statusCode: response.statusCode,
+          message:
+              _extractErrorMessage(responseBody),
+        );
+      }
+
+      return Uint8List.fromList(bytes);
+    } finally {
+      client.close(force: true);
+    }
+  }
+
   Future<Map<String, dynamic>> uploadMultipartFile({
     required String path,
     required String fieldName,
