@@ -7,6 +7,7 @@ import '../../../app/app_routes.dart';
 import '../../../core/dependency/app_services.dart';
 import '../../../core/network/api_client.dart';
 import '../../payments/presentation/paypal_checkout_page.dart';
+import '../../payments/presentation/paypal_onboarding_page.dart';
 import '../../profile/models/follow_user.dart';
 import '../../profile/models/user_profile.dart';
 import '../../profile/presentation/sheets/change_password_sheet.dart';
@@ -618,6 +619,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     isPreview: _showPublicPreview,
                     onEditProfile: () => _openEditProfile(profile),
                     onChangeAvatar: _pickAvatar,
+                    onConnectPayPal: _connectPayPal,
                     onFollowersPressed: () => _openFollowList(profile, _FollowListType.followers),
                     onFollowingPressed: () => _openFollowList(profile, _FollowListType.following),
                     onFollow: () => _toggleFollow(profile),
@@ -678,6 +680,82 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     await _refreshNotificationBadge();
+  }
+
+  Future<void> _connectPayPal() async {
+    try {
+      final onboardingUrl =
+          await AppServices
+              .payPalPaymentService
+              .createOnboarding();
+
+      if (!mounted) {
+        return;
+      }
+
+      final completed =
+          await Navigator.of(context)
+              .push<bool>(
+        MaterialPageRoute(
+          builder: (_) =>
+              PayPalOnboardingPage(
+            onboardingUrl:
+                onboardingUrl,
+          ),
+        ),
+      );
+
+      if (completed != true ||
+          !mounted) {
+        return;
+      }
+
+      final connected =
+          await AppServices
+              .payPalPaymentService
+              .completeOnboarding();
+
+      if (!mounted) {
+        return;
+      }
+
+      if (!connected) {
+        _showMessage(
+          'PayPal connection could not be verified.',
+        );
+        return;
+      }
+
+      _showMessage(
+        'PayPal connected successfully.',
+      );
+
+      AppServices.profileRefreshNotifier.refresh();
+
+      _refreshProfile();
+    } on ApiException catch (exception) {
+      if (!mounted) {
+        return;
+      }
+
+      _showMessage(
+        'PayPal connection failed '
+        '(${exception.statusCode}): '
+        '${exception.message}',
+      );
+    } catch (exception) {
+      if (!mounted) {
+        return;
+      }
+
+      debugPrint(
+        'PAYPAL CONNECT ERROR: $exception',
+      );
+
+      _showMessage(
+        'Unable to connect PayPal.',
+      );
+    }
   }
 }
 

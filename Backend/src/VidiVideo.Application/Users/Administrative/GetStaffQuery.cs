@@ -2,4 +2,4 @@
 
 namespace VidiVideo.Application.Users.Administrative;
 
-public sealed record GetStaffCommand : IQuery<List<StaffSummaryDto>>;
+public sealed record GetStaffQuery : PagedRequest, IQuery<PagedResult<StaffSummaryDto>>;

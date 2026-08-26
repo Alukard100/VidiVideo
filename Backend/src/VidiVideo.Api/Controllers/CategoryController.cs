@@ -14,9 +14,9 @@ namespace VidiVideo.Api.Controllers
         private readonly ICommandHandler<DeleteCategoryCommand, bool> _deleteHandler;
         private readonly ICommandHandler<UpdateCategoryCommand, CategoryDTO> _updateHandler;
         private readonly IQueryHandler<GetCategoryByIdQuery, CategoryDTO> _getByIdHandler;
-        private readonly IQueryHandler<GetCategoriesQuery, List<CategoryDTO>> _getCategoriesHandler;
+        private readonly IQueryHandler<GetCategoriesQuery, PagedResult<CategoryDTO>> _getCategoriesHandler;
 
-        public CategoryController(ICommandHandler<CreateCategoryCommand, Guid> createHandler, ICommandHandler<DeleteCategoryCommand, bool> deleteHandler, ICommandHandler<UpdateCategoryCommand, CategoryDTO> updateHandler, IQueryHandler<GetCategoryByIdQuery, CategoryDTO> getByIdHandler, IQueryHandler<GetCategoriesQuery, List<CategoryDTO>> getCategoriesHandler)
+        public CategoryController(ICommandHandler<CreateCategoryCommand, Guid> createHandler, ICommandHandler<DeleteCategoryCommand, bool> deleteHandler, ICommandHandler<UpdateCategoryCommand, CategoryDTO> updateHandler, IQueryHandler<GetCategoryByIdQuery, CategoryDTO> getByIdHandler, IQueryHandler<GetCategoriesQuery, PagedResult<CategoryDTO>> getCategoriesHandler)
         {
             _createHandler = createHandler;
             _deleteHandler = deleteHandler;

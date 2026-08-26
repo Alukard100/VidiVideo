@@ -3,4 +3,5 @@
 public interface IPaymentSettings
 {
     decimal SubscriptionPrice { get; }
+    decimal PlatformFee { get; }
 }

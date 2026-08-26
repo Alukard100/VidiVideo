@@ -11,4 +11,6 @@ public sealed class PaymentSettings : IPaymentSettings
         _config = config;
     }
     public decimal SubscriptionPrice => _config.GetValue<decimal>("PayPal:SubscriptionPrice");
+
+    public decimal PlatformFee => _config.GetValue<decimal>("PayPal:PlatformFee");
 }

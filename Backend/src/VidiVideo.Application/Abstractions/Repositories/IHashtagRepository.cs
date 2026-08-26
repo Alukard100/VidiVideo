@@ -6,7 +6,8 @@ public interface IHashtagRepository
 {
     Task CreateHashtagAsync(Hashtag hashtag);
     Task DeleteHashtagAsync(Guid id);
-    Task<List<Hashtag>> GetAllHashtagsAsync();
+    Task<List<Hashtag>> GetAllHashtagsAsync(int page = 1, int pageSize = 30, CancellationToken cancellationToken = default);
+    Task<int> CountAsync(CancellationToken cancellationToken = default);
     Task<Hashtag?> GetHashtagAsync(Guid id);
     Task<Hashtag?> GetByNameAsync(string name);
     Task<bool> ExistByNameAsync(string name);

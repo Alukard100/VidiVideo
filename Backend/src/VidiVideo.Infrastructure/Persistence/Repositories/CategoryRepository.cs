@@ -13,6 +13,11 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             _db = db;
         }
 
+        public async Task<int> CountAsync(CancellationToken cancellationToken = default)
+        {
+            return await _db.Categories.CountAsync(cancellationToken);
+        }
+
         public async Task CreateCategoryAsync(Category category)
             => await _db.Categories.AddAsync(category);
 
@@ -32,8 +37,12 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task<bool> ExistsByNameUpdateAsync(Guid id, string name)
             => await _db.Categories.AnyAsync(c => c.Id != id && c.Name == name);
 
-        public async Task<List<Category>> GetAllCategoriesAsync()
-            => await _db.Categories.OrderBy(c => c.Name).ToListAsync();
+        public async Task<List<Category>> GetAllCategoriesAsync(int page = 1, int pageSize = 30, CancellationToken cancellationToken = default)
+            => await _db.Categories
+            .OrderBy(c => c.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
 
         public async Task<Category?> GetByIdAsync(Guid id)
             => await _db.Categories.FirstOrDefaultAsync(c => c.Id == id);

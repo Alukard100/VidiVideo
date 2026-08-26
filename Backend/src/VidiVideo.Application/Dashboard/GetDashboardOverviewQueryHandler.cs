@@ -1,4 +1,5 @@
-﻿using VidiVideo.Application.Abstractions.Repositories;
+﻿using VidiVideo.Application.Abstractions;
+using VidiVideo.Application.Abstractions.Repositories;
 using VidiVideo.Application.Common;
 
 namespace VidiVideo.Application.Dashboard;
@@ -10,13 +11,15 @@ public sealed class GetDashboardOverviewQueryHandler : IQueryHandler<GetDashboar
     private readonly IPaymentRepository _paymentRepo;
     private readonly IContentReportRepository _contentReportRepo;
     private readonly IVideoViewRepository _viewRepo;
-    public GetDashboardOverviewQueryHandler(IUserRepository userRepo, IVideoRepository videoRepo, IPaymentRepository paymentRepo, IContentReportRepository contentReportRepo, IVideoViewRepository viewRepo)
+    private readonly IPaymentSettings _paymentSettings;
+    public GetDashboardOverviewQueryHandler(IUserRepository userRepo, IVideoRepository videoRepo, IPaymentRepository paymentRepo, IContentReportRepository contentReportRepo, IVideoViewRepository viewRepo, IPaymentSettings paymentSettings)
     {
         _userRepo = userRepo;
         _videoRepo = videoRepo;
         _paymentRepo = paymentRepo;
         _contentReportRepo = contentReportRepo;
         _viewRepo = viewRepo;
+        _paymentSettings = paymentSettings;
     }
 
     public async Task<DashboardOverviewDto> HandleAsync(GetDashboardOverviewQuery query, CancellationToken cancellationToken)
@@ -29,9 +32,11 @@ public sealed class GetDashboardOverviewQueryHandler : IQueryHandler<GetDashboar
 
         var subscriberCount = await _paymentRepo.TotalActiveSubsAsync(cancellationToken);
 
-        var totalRevenue = await _paymentRepo.TotalRevenueAsync(null, cancellationToken);
-
         var paymentsCount = await _paymentRepo.TotalPaymentsAsync(null, cancellationToken);
+
+        var totalTransactionValue = await _paymentRepo.TotalRevenueAsync(null, cancellationToken);
+
+        var totalRevenue = paymentsCount * _paymentSettings.PlatformFee;
 
         var totalReports = await _contentReportRepo.CountAsync(cancellationToken);
 
@@ -39,7 +44,7 @@ public sealed class GetDashboardOverviewQueryHandler : IQueryHandler<GetDashboar
 
         var averageCompletionRate = await _viewRepo.AverageVideoCompletionAsync(cancellationToken);
 
-        var revenueTrendChart = await _paymentRepo.GetMonthlyRevenueStats(DateTime.UtcNow.AddMonths(-5), cancellationToken);
+        var revenueTrendChart = await _paymentRepo.GetMonthlyRevenueStats(DateTime.UtcNow.AddMonths(-5), _paymentSettings.PlatformFee, cancellationToken);
 
 
         return new DashboardOverviewDto(
@@ -47,6 +52,7 @@ public sealed class GetDashboardOverviewQueryHandler : IQueryHandler<GetDashboar
             videosCount,
             subVideosCount,
             subscriberCount,
+            totalTransactionValue,
             totalRevenue,
             paymentsCount,
             totalReports,

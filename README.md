@@ -1,113 +1,167 @@
 # VidiVideo
 
-VidiVideo is a short-form video platform for creators, followers, premium subscriptions, content moderation, and explainable recommendations.
+VidiVideo is a short-form video platform built for the **Razvoj Softvera II (RSII)** course project.
 
-## Important Course Notes
+The system consists of a Flutter mobile client, a Flutter Windows administration client, a .NET 9 REST API, SQL Server, RabbitMQ, a background Worker service, PayPal Sandbox payments, PDF reporting, and an explainable recommendation system.
 
-The submitted topic mentions desktop and mobile applications. The 2025/26 RS2 instructions explicitly require Flutter for desktop and mobile builds, so the client starter is Flutter-based.
+## Features
 
-Required items already reflected in the architecture:
+### Mobile application
+- Registration and login with JWT authentication
+- Recommended and following video feeds
+- Video playback, likes and comments
+- Search by text, category and hashtags
+- Search history
+- User profiles and profile editing
+- Follow / unfollow creators
+- Video creation and thumbnail selection
+- Public and subscriber-only videos
+- PayPal creator onboarding
+- Creator subscriptions
+- Subscriber-only content access
+- Refund requests
+- Notifications
+- Explainable recommendations
 
-- .NET 9 REST API.
-- CQRS-friendly Application layer.
-- Entity Framework Core with SQL Server.
-- JWT-ready authentication setup.
-- Separate Worker project for asynchronous processing.
-- RabbitMQ and SQL Server in `docker-compose.yml`.
-- `.env` based configuration.
-- Recommender documentation file.
+### Desktop administration application
+- Dashboard and system statistics
+- Platform revenue and transaction statistics
+- User management
+- Staff management
+- Content moderation
+- Refund request approval / rejection
+- Revenue analytics PDF report
+- Video analytics PDF report
 
-## Structure
+### Backend and infrastructure
+- .NET 9 / ASP.NET Core REST API
+- Entity Framework Core with SQL Server
+- JWT authentication and role-based authorization
+- CQRS-style Commands and Queries
+- Repository and Unit of Work patterns
+- RabbitMQ messaging
+- Separate Worker service
+- Docker Compose
+- PayPal Sandbox multiparty payments
+- QuestPDF report generation
+- Paginated list endpoints
+
+## Project Structure
 
 ```text
 Backend/
   src/
-    VidiVideo.Api/             REST API and HTTP concerns
-    VidiVideo.Application/     CQRS contracts, DTOs, application services
-    VidiVideo.Domain/          Entities, enums, constants
-    VidiVideo.Infrastructure/  EF Core, persistence, messaging
-    VidiVideo.Worker/          Separate worker service
+    VidiVideo.Api/
+    VidiVideo.Application/
+    VidiVideo.Domain/
+    VidiVideo.Infrastructure/
+    VidiVideo.Worker/
+
 Frontend/
-  lib/                         Flutter desktop/mobile starter
+  lib/
+
+recommender-dokumentacija.md
+docker-compose.yml
+.env.example
 ```
 
-## Features
+## Configuration
 
-### Authentication
-- JWT authentication
-- Role-based authorization
-- BCrypt password hashing
-- Current user abstraction
+Copy:
 
-### Video Management
-- Upload video metadata
-- Update video
-- Delete video
-- Pagination
-- Search
-- Category filtering
-- Hashtag filtering
-- Video visibility
-- Publish / unpublish
+```text
+.env.example
+```
 
-### Social Features
-- Like / Unlike videos
-- Follow / Unfollow creators
-- Comments
-- Search history
-- Video watch history
-- Notifications
+to:
 
-### Creator Features
-- Creator subscriptions
-- Premium subscriptions
-- PayPal Sandbox integration
-- Payment verification
+```text
+.env
+```
 
-### Moderation
-- Content reports
-- Review reports
-- Admin moderation endpoints
+and replace all placeholder values.
 
-### Reports
-- Revenue Analytics PDF
-- Video Analytics PDF
+Important configuration includes:
 
-### Infrastructure
-- RabbitMQ
+- SQL Server SA password
+- database connection string password
+- JWT signing key
+- RabbitMQ credentials
+- PayPal Sandbox Client ID and Secret
+- PayPal partner configuration
+
+The SQL Server password in the connection string must match the configured SQL Server SA password.
+
+The RabbitMQ credentials used by the API and Worker must match the credentials used by the RabbitMQ container.
+
+## Starting the Backend
+
+From the repository root:
+
+```powershell
+docker compose up -d --build
+```
+
+Check container status:
+
+```powershell
+docker compose ps
+```
+
+Docker starts:
+
 - SQL Server
-- CQRS architecture
-- Docker Compose
+- RabbitMQ
+- VidiVideo API
+- VidiVideo Worker
 
-## Getting Started
+The API is exposed on:
 
-1. Copy `.env.example` to `.env`.
-2. Replace the JWT key and database password values.
-3. Start infrastructure and services:
-
-```powershell
-docker compose up --build
+```text
+http://localhost:5000
 ```
 
-4. Run the Flutter starter:
+## Running the Flutter Application
+
+### Windows
+
+From the `Frontend` directory:
 
 ```powershell
-cd Frontend
 flutter pub get
 flutter run -d windows --dart-define=API_BASE_URL=http://localhost:5000
 ```
 
-For Android emulator networking, use:
+Release build:
 
 ```powershell
-flutter run -d emulator --dart-define=API_BASE_URL=http://10.0.2.2:5000
+flutter build windows --release --dart-define=API_BASE_URL=http://localhost:5000
 ```
 
-If this folder was created before Flutter was installed, generate platform folders from inside `Frontend`:
+Output:
+
+```text
+Frontend/build/windows/x64/runner/Release/
+```
+
+### Android Emulator
+
+Run:
 
 ```powershell
-flutter create . --platforms=android,windows
-flutter pub get
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5000
+```
+
+Release APK:
+
+```powershell
+flutter build apk --release --dart-define=API_BASE_URL=http://10.0.2.2:5000
+```
+
+Output:
+
+```text
+Frontend/build/app/outputs/flutter-apk/app-release.apk
 ```
 
 ## Development Accounts
@@ -116,58 +170,74 @@ The database is seeded automatically on first startup.
 
 | Context | Username | Password |
 | --- | --- | --- |
-| Desktop version | desktop | test |
-| Mobile version | mobile | test |
-| Admin role | admin | test |
+| Desktop version | `desktop` | `test` |
+| Mobile version | `mobile` | `test` |
+| Admin role | `admin` | `test` |
 
-## Backend Status
+## PayPal Sandbox
 
-Implemented:
+VidiVideo uses PayPal Sandbox for creator subscriptions.
 
-- Authentication
-- Authorization
-- Seed data
-- CRUD endpoints
-- Categories
-- Countries
-- Hashtags
-- Videos
-- Comments
-- Likes
-- Follows
-- Notifications
-- Search History
-- Video Views
-- Content Reports
-- Creator Subscriptions
-- Payments
-- PayPal Sandbox verification
-- Revenue PDF report
-- Video Analytics PDF report
+Current payment model:
 
-## API Overview
+- subscription price: **5.00 USD**
+- VidiVideo platform fee: **1.00 USD**
+- the remaining amount is assigned to the creator before PayPal processing fees
 
-Main endpoints include:
+Creators must connect an eligible PayPal Sandbox Business account before publishing subscriber-only content.
 
-- Authentication
-- Users
-- Videos
-- Categories
-- Countries
-- Hashtags
-- Comments
-- Likes
-- Follows
-- Notifications
-- Search History
-- Video Views
-- Reports
-- PayPal
+Refunds are performed through the original PayPal capture. Refund contribution of the platform fee through `payment_instruction.platform_fees` requires an additional PayPal Commerce Platform capability that is not enabled on the sandbox partner account used for this project.
 
-## Technologies
+## RabbitMQ Worker
 
-Backend
+RabbitMQ is used for asynchronous background processing.
 
+The Worker consumes image-cleanup messages and removes orphaned images after avatar or thumbnail replacement when an image is no longer referenced by the application.
+
+The API and Worker share the image storage volume through Docker.
+
+## Reporting
+
+Administrators can generate:
+
+- Revenue Analytics Report
+- Video Analytics Report
+
+Revenue reporting distinguishes between:
+
+- total transaction value
+- VidiVideo platform revenue
+- completed payments
+- active subscriptions
+
+Reports support optional date filtering and are generated with QuestPDF.
+
+## Recommendation System
+
+VidiVideo includes a hybrid and explainable recommendation system based on:
+
+- content-based relevance
+- collaborative signals
+- popularity and engagement
+- video recency
+- likes
+- watch completion
+- followed creators
+- subscriptions
+- category and hashtag affinity
+- country affinity
+
+The system also supports cold-start users and guest recommendations.
+
+Detailed documentation is available in:
+
+```text
+recommender-dokumentacija.md
+```
+
+## Technology Stack
+
+### Backend
 - .NET 9
 - ASP.NET Core
 - Entity Framework Core
@@ -176,38 +246,19 @@ Backend
 - BCrypt
 - RabbitMQ
 - QuestPDF
-- FFMpegCore
+- Docker
 
-Frontend
-
+### Frontend
 - Flutter
+- Android
+- Windows
 
-## Architecture
+## Recommended Startup Order
 
-The backend follows a layered architecture.
+```text
+1. Configure .env
+2. docker compose up -d --build
+3. Start the Windows application or Android emulator application
+```
 
-- Domain
-- Application
-- Infrastructure
-- API
-- Worker
-
-Application logic is implemented using CQRS with Commands and Queries.
-
-Persistence is handled through repositories and a Unit of Work.
-
-Authentication is based on JWT access tokens.
-
-Background processing is handled through RabbitMQ.
-
-## Reporting
-
-The administrator can generate PDF reports.
-
-Available reports:
-
-- Revenue Analytics Report
-- Video Analytics Report
-
-Reports support optional date filtering and are generated using QuestPDF.
-
+Both clients communicate with the same API running in Docker.

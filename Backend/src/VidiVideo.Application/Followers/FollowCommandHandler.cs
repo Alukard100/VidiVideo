@@ -37,7 +37,7 @@ namespace VidiVideo.Application.Followers
             {
                 await _repo.FollowAsync(new Follow(follower, command.Creator));
 
-                var currentUser = await _userRepository.GetByIdAsync(follower);
+                var currentUser = await _userRepository.GetByIdAsync(follower) ?? throw new UnauthorizedException("Must be logged in");
                 var notification = new Notification(command.Creator, "New follower", $"{currentUser.DisplayName} started following you", NotificationType.Follow);
                 await _notificationRepository.CreateAsync(notification);
             }

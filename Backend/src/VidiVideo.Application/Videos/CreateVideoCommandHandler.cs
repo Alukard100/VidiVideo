@@ -36,6 +36,16 @@ namespace VidiVideo.Application.Videos
 
             var creatorId = _currentUser.UserId ?? throw new UnauthorizedException("Must be logged in");
 
+            if (command.Visibility == Domain.Enums.VideoVisibility.SubscribersOnly)
+            {
+                var creator = await _userRepo.GetByIdAsync(creatorId) ?? throw new NotFoundException("Creator doesn't exist");
+
+                if (!creator.HasConnectedPayPal)
+                {
+                    throw new ValidationException("Connect PayPal before publishing subscriber-only videos.");
+                }
+            }
+
             if (!await _categoryRepo.ExistsByIdAsync(command.CategoryId))
                 throw new NotFoundException($"{command.CategoryId} not found");
 
@@ -62,7 +72,7 @@ namespace VidiVideo.Application.Videos
 
             newVideo.AddHashtags(videoHashtags);
 
-            await _repo.CreateVideoAsync(newVideo);
+            await _repo.CreateVideoAsync(newVideo, cancellationToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

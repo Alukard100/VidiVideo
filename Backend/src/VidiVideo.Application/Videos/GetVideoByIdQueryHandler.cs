@@ -46,7 +46,7 @@ namespace VidiVideo.Application.Videos
                         var hasSubscription =
                             await _paymentRepository.HasActiveSubscriptionAsync(userId.Value, video.CreatorId);
 
-                        isLocked = hasSubscription;
+                        isLocked = !hasSubscription;
                     }
                 }
             }

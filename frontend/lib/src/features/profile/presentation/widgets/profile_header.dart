@@ -17,6 +17,7 @@ class ProfileHeader extends StatelessWidget {
     required this.onFollow,
     required this.onSubscribe,
     required this.onRefund,
+    required this.onConnectPayPal,
   });
 
   final UserProfile profile;
@@ -30,6 +31,7 @@ class ProfileHeader extends StatelessWidget {
   final VoidCallback onFollow;
   final VoidCallback onSubscribe;
   final VoidCallback onRefund;
+  final VoidCallback onConnectPayPal;
 
   @override
   Widget build(BuildContext context) {
@@ -129,12 +131,32 @@ class ProfileHeader extends StatelessWidget {
         ],
         const SizedBox(height: 14),
         if (isMyProfile)
-          Row(
+          Column(
             children: [
-              Expanded(
-                child: _ProfileActionButton(
-                  label: 'Edit profile',
-                  onPressed: onEditProfile,
+              Row(
+                children: [
+                  Expanded(
+                    child: _ProfileActionButton(
+                      label: 'Edit profile',
+                      onPressed: onEditProfile,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                height: 38,
+                child: _ProfileOutlinedButton(
+                  label: profile.hasConnectedPayPal
+                      ? 'PayPal connected'
+                      : 'Connect PayPal',
+                  icon: profile.hasConnectedPayPal
+                      ? Icons.check_circle_outline
+                      : Icons.account_balance_wallet_outlined,
+                  onPressed: profile.hasConnectedPayPal
+                      ? null
+                      : onConnectPayPal,
                 ),
               ),
             ],
@@ -289,6 +311,43 @@ class _ProfileActionButton extends StatelessWidget {
           ),
         ),
         child: Text(label),
+      ),
+    );
+  }
+}
+
+class _ProfileOutlinedButton extends StatelessWidget {
+  const _ProfileOutlinedButton({
+    required this.label,
+    required this.onPressed,
+    required this.icon,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 38,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: const Color(0xFF020011),
+          side: const BorderSide(
+            color: Color(0xFF020011),
+            width: 1,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(6),
+          ),
+        ),
+        icon: Icon(
+          icon,
+          size: 18,
+        ),
+        label: Text(label),
       ),
     );
   }

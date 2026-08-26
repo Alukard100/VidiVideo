@@ -44,10 +44,15 @@ class _CreateVideoPageState extends State<CreateVideoPage> {
   bool _isUploading = false;
   bool _isGeneratingThumbnail = false;
 
+  bool _hasConnectedPayPal = false;
+  bool _isLoadingCreatorProfile = true;
+
   String? _uploadStage;
 
   @override
   void dispose() {
+    AppServices.profileRefreshNotifier.removeListener(_loadCreatorProfile);
+
     _captionController.dispose(); 
     _pageController.dispose();
     super.dispose();
@@ -57,6 +62,9 @@ class _CreateVideoPageState extends State<CreateVideoPage> {
   void initState() {
     super.initState();
     _loadCategories();
+    _loadCreatorProfile();
+
+    AppServices.profileRefreshNotifier.addListener(_loadCreatorProfile);
   }
 
 
@@ -185,7 +193,7 @@ class _CreateVideoPageState extends State<CreateVideoPage> {
   }
 
   // ---------------------------------------------------------------------------
-  // Categories
+  // Categories & Creator Profile
   // ---------------------------------------------------------------------------
 
   Future<void> _loadCategories() async {
@@ -218,6 +226,32 @@ class _CreateVideoPageState extends State<CreateVideoPage> {
     }
   }
 
+  Future<void> _loadCreatorProfile() async {
+    try {
+      final profile = await AppServices.profileService.getMyProfile();
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _hasConnectedPayPal =
+            profile.hasConnectedPayPal;
+
+        _isLoadingCreatorProfile = false;
+      });
+
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _hasConnectedPayPal = false;
+        _isLoadingCreatorProfile = false;
+      });
+    }
+  }
   // ---------------------------------------------------------------------------
   // Step navigation
   // ---------------------------------------------------------------------------
@@ -572,6 +606,7 @@ class _CreateVideoPageState extends State<CreateVideoPage> {
                     visibility: _visibility,
                     isPublished: _isPublished,
                     enabled: !_isUploading,
+                    canCreateSubscriberContent: _hasConnectedPayPal && !_isLoadingCreatorProfile,
                     onCategoryChanged: (category) {
                       setState(() {
                         _selectedCategory = category;

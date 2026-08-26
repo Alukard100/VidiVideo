@@ -6,13 +6,14 @@ namespace VidiVideo.Infrastructure.Media
     public sealed class ImageStorageService : IImageStorageService
     {
         private readonly string _imageDirectory;
-        private readonly IConfiguration _configuration;
-
         public ImageStorageService(IConfiguration configuration)
         {
-            _configuration = configuration;
+            var configuredPath =
+                configuration["ImageSettings:ImageDirectory"]
+                ?? throw new InvalidOperationException(
+                    "Image directory is not configured.");
 
-            _imageDirectory = Path.Combine(Directory.GetCurrentDirectory(), _configuration["ImageSettings:ImageDirectory"]);
+            _imageDirectory = Path.Combine(Directory.GetCurrentDirectory(), configuredPath);
 
             if (!Directory.Exists(_imageDirectory))
                 Directory.CreateDirectory(_imageDirectory);

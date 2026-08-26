@@ -16,7 +16,8 @@ public sealed class AppUser : AuditableEntity
     public Country? Country { get; set; } = null!;
     public UserStatus Status { get; set; } = UserStatus.Active;
     public string Role { get; set; } = AppRoles.User;
-
+    public string? PayPalMerchantId { get; private set; }
+    public bool HasConnectedPayPal => !string.IsNullOrWhiteSpace(PayPalMerchantId);
     public ICollection<Video> Videos { get; set; } = [];
     public ICollection<Follow> Following { get; set; } = [];
     public ICollection<Follow> Followers { get; set; } = [];
@@ -58,6 +59,17 @@ public sealed class AppUser : AuditableEntity
     public void UpdateRole(string role)
     {
         Role = role;
+    }
+
+    public void ConnectPayPal(string merchantId)
+    {
+        if (string.IsNullOrWhiteSpace(merchantId))
+            throw new ArgumentException(
+                "PayPal merchant ID is required.",
+                nameof(merchantId));
+
+        PayPalMerchantId = merchantId;
+        UpdatedAtUtc = DateTime.UtcNow;
     }
 
 }

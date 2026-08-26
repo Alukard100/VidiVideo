@@ -10,23 +10,23 @@ public sealed class ApproveRefundRequestCommandHandler
     : ICommandHandler<ApproveRefundRequestCommand, bool>
 {
     private readonly IRefundRequestRepository _refundRepository;
-    private readonly IPaymentRepository _paymentRepository;
     private readonly IPayPalService _payPalService;
     private readonly ICurrentUser _currentUser;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IPaymentSettings _paymentSettings;
 
     public ApproveRefundRequestCommandHandler(
         IRefundRequestRepository refundRepository,
-        IPaymentRepository paymentRepository,
         IPayPalService payPalService,
         ICurrentUser currentUser,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IPaymentSettings paymentSettings)
     {
         _refundRepository = refundRepository;
-        _paymentRepository = paymentRepository;
         _payPalService = payPalService;
         _currentUser = currentUser;
         _unitOfWork = unitOfWork;
+        _paymentSettings = paymentSettings;
     }
 
     public async Task<bool> HandleAsync(
@@ -61,11 +61,15 @@ public sealed class ApproveRefundRequestCommandHandler
                 "Payment capture ID is missing.");
         }
 
+        var creator = payment.Subscription.Creator;
+        if (creator == null || string.IsNullOrWhiteSpace(creator.PayPalMerchantId)) throw new ValidationException("Creator PayPal account is not connected.");
+
         var refund =
             await _payPalService.RefundAsync(
                 payment.ProviderCaptureId,
                 payment.Amount,
-                payment.Currency);
+                payment.Currency,
+                creator.PayPalMerchantId);
 
         if (!refund.Status.Equals(
             "COMPLETED",

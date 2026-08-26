@@ -18,5 +18,6 @@ public sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.HasOne(x => x.Country).WithMany(c => c.Users).HasForeignKey(x => x.CountryId).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(x => x.Email).IsUnique();
         builder.HasIndex(x => x.UserName).IsUnique();
+        builder.Property(x => x.PayPalMerchantId).HasMaxLength(64);
     }
 }

@@ -2,4 +2,4 @@
 
 namespace VidiVideo.Application.Countries;
 
-public sealed record GetCountriesQuery() : IQuery<List<CountryDto>>;
+public sealed record GetCountriesQuery() : PagedRequest, IQuery<PagedResult<CountryDto>>;

@@ -71,7 +71,7 @@ public sealed class RecommendationService : IRecommendationService
             return await BuildPopularityRecommendations(page, pageSize, cancellationToken);
 
         var videos =
-            await _videoRepository.GetRecommendationCandidatesAsync(resolvedUserId);
+            await _videoRepository.GetRecommendationCandidatesAsync(resolvedUserId, cancellationToken: cancellationToken);
 
         var collaborativeScores =
             await _likeRepository.GetCollaborativeVideoScoreAsync(resolvedUserId);
@@ -353,7 +353,7 @@ public sealed class RecommendationService : IRecommendationService
     private async Task<PagedResult<VideoFeedDto>> BuildPopularityRecommendations(int page, int pageSize, CancellationToken cancellationToken)
     {
         var videos =
-            await _videoRepository.GetRecommendationCandidatesAsync(null);
+            await _videoRepository.GetRecommendationCandidatesAsync(null, cancellationToken: cancellationToken);
 
         var candidates = videos
             .Where(v => v.Visibility == VideoVisibility.Public)

@@ -19,9 +19,6 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task<bool> IsFollowingAsync(Guid current, Guid target)
             => await _db.Follows.AnyAsync(x => x.FollowerId == current && x.CreatorId == target && !x.IsDeleted);
 
-        public async Task HardUnfollowAsync(Follow follow)
-            => _db.Follows.Remove(follow);
-
         public async Task<Follow?> CheckExistingAsync(Guid current, Guid target)
             => await _db.Follows.FirstOrDefaultAsync(x => x.FollowerId == current && x.CreatorId == target);
 

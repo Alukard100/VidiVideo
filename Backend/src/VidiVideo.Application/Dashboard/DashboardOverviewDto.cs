@@ -5,6 +5,7 @@ public sealed record DashboardOverviewDto
     int TotalVideos,
     int TotalSubscriberVideos,
     int ActiveSubscribers,
+    decimal TotalTransactionValue,
     decimal TotalRevenue,
     int TotalTransactions,
     int TotalReports,

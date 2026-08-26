@@ -2,6 +2,6 @@
 
 namespace VidiVideo.Application.Hashtags
 {
-    public sealed record GetHashtagsQuery() : IQuery<List<HashtagDto>>;
+    public sealed record GetHashtagsQuery() : PagedRequest, IQuery<PagedResult<HashtagDto>>;
 
 }

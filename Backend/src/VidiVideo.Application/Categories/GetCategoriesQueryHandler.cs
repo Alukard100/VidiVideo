@@ -3,7 +3,7 @@ using VidiVideo.Application.Common;
 
 namespace VidiVideo.Application.Categories
 {
-    public sealed class GetCategoriesQueryHandler : IQueryHandler<GetCategoriesQuery, List<CategoryDTO>>
+    public sealed class GetCategoriesQueryHandler : IQueryHandler<GetCategoriesQuery, PagedResult<CategoryDTO>>
     {
         private readonly ICategoryRepository _repo;
 
@@ -12,15 +12,17 @@ namespace VidiVideo.Application.Categories
             _repo = repo;
         }
 
-        public async Task<List<CategoryDTO>> HandleAsync(GetCategoriesQuery query, CancellationToken cancellationToken)
+        public async Task<PagedResult<CategoryDTO>> HandleAsync(GetCategoriesQuery query, CancellationToken cancellationToken)
         {
 
-            var categories = await _repo.GetAllCategoriesAsync();
+            var categories = await _repo.GetAllCategoriesAsync(query.Page, query.PageSize, cancellationToken);
 
-            return categories
-                .Select(c => new CategoryDTO(
-                    c.Id, c.Name))
-                .ToList();
+            var count = await _repo.CountAsync(cancellationToken);
+
+            var items = categories.Select(c => new CategoryDTO(c.Id, c.Name)).ToList();
+
+            return new PagedResult<CategoryDTO>(items, query.Page, query.PageSize, count);
+
         }
     }
 }

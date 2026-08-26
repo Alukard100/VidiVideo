@@ -13,6 +13,11 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             _db = db;
         }
 
+        public async Task<int> CountAsync(CancellationToken cancellationToken = default)
+        {
+            return await _db.Hashtags.CountAsync(cancellationToken);
+        }
+
         public async Task CreateHashtagAsync(Hashtag hashtag)
             => await _db.Hashtags.AddAsync(hashtag);
 
@@ -26,8 +31,11 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task<bool> ExistByNameAsync(string name)
             => await _db.Hashtags.AnyAsync(h => h.Name == name);
 
-        public async Task<List<Hashtag>> GetAllHashtagsAsync()
-            => await _db.Hashtags.OrderBy(h => h.Name).ToListAsync();
+        public async Task<List<Hashtag>> GetAllHashtagsAsync(int page = 1, int pageSize = 30, CancellationToken cancellationToken = default)
+            => await _db.Hashtags
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
 
         public async Task<Hashtag?> GetByNameAsync(string name)
             => await _db.Hashtags.FirstOrDefaultAsync(h => h.Name == name);

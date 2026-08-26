@@ -2,6 +2,7 @@
 
 public sealed record RevenueAnalyticsDto(
     DateTime? From,
+    decimal TotalTransactionValue,
     decimal TotalRevenue,
     int TotalPayments,
     int TotalActiveSubscriptions,

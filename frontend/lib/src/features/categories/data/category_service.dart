@@ -9,21 +9,27 @@ class CategoryService {
 
   final ApiClient _apiClient;
 
-  Future<List<Category>> getAll() async {
-    final response = await _apiClient.getJson('/api/Category/getall', );
+ Future<List<Category>> getAll() async {
+    final response = await _apiClient.getJson(
+      '/api/Category/getall',
+      queryParameters: {
+        'Page': '1',
+        'PageSize': '30',
+      },
+    );
 
-    if (response is! List) {
+    final items = response['items'];
+
+    if (items is! List) {
       throw const ApiException(
         statusCode: 500,
         message: 'Unexpected categories response.',
       );
     }
 
-    return response.map(
-      (e) => Category.fromJson(
-        e as Map<String, dynamic>
-      ),
-    ).toList();
-    
+    return items
+        .whereType<Map<String, dynamic>>()
+        .map(Category.fromJson)
+        .toList();
   }
 }

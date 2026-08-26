@@ -2,4 +2,4 @@
 
 namespace VidiVideo.Application.Categories;
 
-public sealed record GetCategoriesQuery() : IQuery<List<CategoryDTO>>;
+public sealed record GetCategoriesQuery() : PagedRequest, IQuery<PagedResult<CategoryDTO>>;

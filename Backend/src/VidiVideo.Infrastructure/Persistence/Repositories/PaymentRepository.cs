@@ -42,7 +42,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
-        public async Task<List<DashboardRevenuePointDto>> GetMonthlyRevenueStats(DateTime f, CancellationToken cancellationToken = default)
+        public async Task<List<DashboardRevenuePointDto>> GetMonthlyRevenueStats(DateTime f, decimal platformFee, CancellationToken cancellationToken = default)
         {
             var data = await _db.Payments
                 .AsNoTracking()
@@ -59,7 +59,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
                 {
                     Year = g.Key.Year,
                     Month = g.Key.Month,
-                    Revenue = g.Sum(x => x.Amount)
+                    PaymentCount = g.Count()
                 })
                 .ToListAsync(cancellationToken);
 
@@ -69,7 +69,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
                 .Select(x => new DashboardRevenuePointDto(
                     x.Year,
                     x.Month,
-                    x.Revenue))
+                    x.PaymentCount * platformFee))
                 .ToList();
         }
 
@@ -81,7 +81,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             => await _db.Payments.FirstOrDefaultAsync(x => x.ProviderPaymentId == ProviderPaymentId);
 
         public async Task<CreatorSubscription?> GetSubscriptionByIdAsync(Guid Id)
-            => await _db.CreatorSubscriptions.FirstOrDefaultAsync(x => x.Id == Id);
+            => await _db.CreatorSubscriptions.Include(x => x.Creator).FirstOrDefaultAsync(x => x.Id == Id);
 
         public async Task<bool> HasActiveSubscriptionAsync(Guid SubscriberId, Guid CreatorId)
         {
@@ -164,5 +164,6 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
                 .Select(x => (decimal?)x.Amount)
                 .SumAsync(cancellationToken) ?? 0m;
         }
+
     }
 }

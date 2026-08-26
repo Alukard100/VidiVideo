@@ -16,6 +16,7 @@ class VideoDetailsStep extends StatelessWidget {
     required this.onCategoryChanged,
     required this.onVisibilityChanged,
     required this.onPublishedChanged,
+    required this.canCreateSubscriberContent,
   });
 
   final GlobalKey<FormState> formKey;
@@ -31,6 +32,8 @@ class VideoDetailsStep extends StatelessWidget {
   final ValueChanged<Category?> onCategoryChanged;
   final ValueChanged<VideoVisibility> onVisibilityChanged;
   final ValueChanged<bool> onPublishedChanged;
+
+  final bool canCreateSubscriberContent;
 
   @override
   Widget build(BuildContext context) {
@@ -176,15 +179,16 @@ class VideoDetailsStep extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           SegmentedButton<VideoVisibility>(
-            segments: const [
-              ButtonSegment(
+            segments: [
+              const ButtonSegment(
                 value: VideoVisibility.public,
                 icon: Icon(Icons.public),
                 label: Text('Public'),
               ),
               ButtonSegment(
                 value: VideoVisibility.subscribersOnly,
-                icon: Icon(Icons.lock_outline),
+                enabled: canCreateSubscriberContent,
+                icon: Icon(canCreateSubscriberContent ? Icons.lock_outline : Icons.lock_rounded),
                 label: Text('Subscribers'),
               ),
             ],
@@ -216,6 +220,30 @@ class VideoDetailsStep extends StatelessWidget {
               ),
             ),
           ),
+          
+          if (!canCreateSubscriberContent) ...[
+            const SizedBox(height: 8),
+            const Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: Colors.black54,
+                ),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Connect PayPal from your profile to publish subscriber-only videos.',
+                    style: TextStyle(
+                      color: Colors.black54,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          
           const SizedBox(height: 12),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,

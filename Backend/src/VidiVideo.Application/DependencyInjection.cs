@@ -41,7 +41,6 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<CreateThumbnailCommand, string>, CreateThumbnailCommandHandler>();
         services.AddScoped<ICommandHandler<CreateCategoryCommand, Guid>, CreateCategoryCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateCategoryCommand, CategoryDTO>, UpdateCategoryCommandHandler>();
-        services.AddScoped<ICommandHandler<CreateHashtagCommand, Guid>, CreateHashtagCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateVideoCommand, Guid>, UpdateVideoCommandHandler>();
         services.AddScoped<ICommandHandler<LikeVideoCommand, LikeDto>, LikeVideoCommandHandler>();
         services.AddScoped<ICommandHandler<CreateCommentCommand, Guid>, CreateCommentCommandHandler>();
@@ -65,15 +64,15 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<CreateRefundRequestCommand, Guid>, CreateRefundRequestCommandHandler>();
         services.AddScoped<ICommandHandler<ApproveRefundRequestCommand, bool>, ApproveRefundRequestCommandHandler>();
         services.AddScoped<ICommandHandler<RejectRefundRequestCommand, bool>, RejectRefundRequestCommandHandler>();
+        services.AddScoped<ICommandHandler<CreatePayPalOnboardingCommand, PayPalOnboardingResult>, CreatePayPalOnboardingCommandHandler>();
+        services.AddScoped<ICommandHandler<CompletePayPalOnboardingCommand, bool>, CompletePayPalOnboardingCommandHandler>();
         //Queries
         services.AddScoped<IQueryHandler<GetCountryByIdQuery, CountryDto>, GetCountryByIdQueryHandler>();
-        services.AddScoped<IQueryHandler<GetCountriesQuery, List<CountryDto>>, GetCountriesQueryHandler>();
+        services.AddScoped<IQueryHandler<GetCountriesQuery, PagedResult<CountryDto>>, GetCountriesQueryHandler>();
         services.AddScoped<IQueryHandler<GetHashtagByIdQuery, HashtagDto>, GetHashtagByIdQueryHandler>();
-        services.AddScoped<IQueryHandler<GetHashtagsQuery, List<HashtagDto>>, GetHashtagsQueryHandler>();
+        services.AddScoped<IQueryHandler<GetHashtagsQuery, PagedResult<HashtagDto>>, GetHashtagsQueryHandler>();
         services.AddScoped<IQueryHandler<GetCategoryByIdQuery, CategoryDTO>, GetCategoryByIdQueryHandler>();
-        services.AddScoped<IQueryHandler<GetCategoriesQuery, List<CategoryDTO>>, GetCategoriesQueryHandler>();
-        services.AddScoped<IQueryHandler<GetHashtagByIdQuery, HashtagDto>, GetHashtagByIdQueryHandler>();
-        services.AddScoped<IQueryHandler<GetHashtagsQuery, List<HashtagDto>>, GetHashtagsQueryHandler>();
+        services.AddScoped<IQueryHandler<GetCategoriesQuery, PagedResult<CategoryDTO>>, GetCategoriesQueryHandler>();
         services.AddScoped<IQueryHandler<GetVideosQuery, PagedResult<VideoSummaryDto>>, GetVideosQueryHandler>();
         services.AddScoped<IQueryHandler<GetVideoByIdQuery, VideoDto>, GetVideoByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetVideoCommentsQuery, PagedResult<CommentDto>>, GetVideoCommentsQueryHandler>();
@@ -94,14 +93,13 @@ public static class DependencyInjection
         services.AddScoped<IQueryHandler<GetContentReportStatsQuery, ContentReportStatsDto>, GetContentReportStatsQueryHandler>();
         services.AddScoped<IQueryHandler<GetModerationVideoStreamQuery, VideoStreamResult>, GetModerationVideoStreamQueryHandler>();
         services.AddScoped<IQueryHandler<GetReportsByStatusQuery, PagedResult<ContentReportDto>>, GetReportsByStatusQueryHandler>();
-        services.AddScoped<IQueryHandler<GetStaffCommand, List<StaffSummaryDto>>, GetStaffCommandHandler>();
+        services.AddScoped<IQueryHandler<GetStaffQuery, PagedResult<StaffSummaryDto>>, GetStaffQueryHandler>();
         services.AddScoped<IQueryHandler<GetDashboardOverviewQuery, DashboardOverviewDto>, GetDashboardOverviewQueryHandler>();
         services.AddScoped<IQueryHandler<GetAllRefundRequestsQuery, PagedResult<RefundRequestDto>>, GetAllRefundRequestsQueryHandler>();
         //Delete Commands
         services.AddScoped<ICommandHandler<DeleteCountryCommand, bool>, DeleteCountryCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteHashtagCommand, bool>, DeleteHashtagCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteCategoryCommand, bool>, DeleteCategoryCommandHandler>();
-        services.AddScoped<ICommandHandler<DeleteHashtagCommand, bool>, DeleteHashtagCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteVideoCommand, bool>, DeleteVideoCommandHandler>();
         services.AddScoped<ICommandHandler<UnlikeVideoCommand, bool>, UnlikeVideoCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteCommentCommand, bool>, DeleteCommentCommandHandler>();

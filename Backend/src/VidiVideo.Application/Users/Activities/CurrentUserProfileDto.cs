@@ -1,6 +1,6 @@
 ﻿using VidiVideo.Domain.Enums;
 
-namespace VidiVideo.Application.Users;
+namespace VidiVideo.Application.Users.Activities;
 
 public sealed record CurrentUserProfileDto(
     Guid Id,
@@ -12,6 +12,7 @@ public sealed record CurrentUserProfileDto(
     Guid? CountryId,
     string? CountryName,
     UserStatus Status,
+    bool HasConnectedPayPal,
     int FollowersCount,
     int FollowingCount,
     IReadOnlyList<ProfileVideoDto> PublicVideos,

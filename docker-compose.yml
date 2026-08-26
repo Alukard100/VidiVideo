@@ -22,6 +22,8 @@ services:
       dockerfile: Backend/src/VidiVideo.Worker/Dockerfile
     env_file:
       - .env
+    volumes:
+      - image-data:/app/wwwroot/images
     depends_on:
       sqlserver:
         condition: service_healthy

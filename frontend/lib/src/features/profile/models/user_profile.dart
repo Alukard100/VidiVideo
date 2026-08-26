@@ -9,6 +9,7 @@ class UserProfile {
     required this.avatarUrl,
     required this.countryId,
     required this.countryName,
+    required this.hasConnectedPayPal,
     required this.followersCount,
     required this.followingCount,
     required this.isSubscribed,
@@ -26,6 +27,7 @@ class UserProfile {
   final String? avatarUrl;
   final String? countryId;
   final String? countryName;
+  final bool hasConnectedPayPal;
   final int followersCount;
   final int followingCount;
   final bool isSubscribed;
@@ -44,6 +46,7 @@ class UserProfile {
       avatarUrl: json['avatarUrl']?.toString(),
       countryId: json['countryId']?.toString(),
       countryName: json['countryName']?.toString(),
+      hasConnectedPayPal: json['hasConnectedPayPal'] == true,
       followersCount: _readInt(json['followersCount']),
       followingCount: _readInt(json['followingCount']),
       isSubscribed: json['isSubscribed'] == true,

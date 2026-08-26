@@ -31,6 +31,8 @@ namespace VidiVideo.Infrastructure.Reports
 
                         column.Item().Text($"Total Revenue: {dto.TotalRevenue:N2} USD");
 
+                        column.Item().Text($"Total Transaction Value: {dto.TotalTransactionValue:N2} USD");
+
                         column.Item().Text($"Total Payments: {dto.TotalPayments}");
 
                         column.Item().Text($"Total Active subscribers: {dto.TotalActiveSubscriptions}");
@@ -70,7 +72,7 @@ namespace VidiVideo.Infrastructure.Reports
                         {
                             header.Cell().Element(HeaderCell).Text("No.");
                             header.Cell().Element(HeaderCell).Text("Creator");
-                            header.Cell().Element(HeaderCell).AlignRight().Text("Revenue");
+                            header.Cell().Element(HeaderCell).AlignRight().Text("Subscription Sales");
                             header.Cell().Element(HeaderCell).AlignRight().Text("Payments");
                             header.Cell().Element(HeaderCell).AlignRight().Text("Active subscribers");
                         });

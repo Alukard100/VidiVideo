@@ -4,6 +4,7 @@ class DashboardOverview {
     required this.totalVideos,
     required this.totalSubscriberVideos,
     required this.activeSubscribers,
+    required this.totalTransactionValue,
     required this.totalRevenue,
     required this.totalTransactions,
     required this.totalReports,
@@ -16,6 +17,7 @@ class DashboardOverview {
   final int totalVideos;
   final int totalSubscriberVideos;
   final int activeSubscribers;
+  final double totalTransactionValue;
   final double totalRevenue;
   final int totalTransactions;
   final int totalReports;
@@ -40,6 +42,9 @@ class DashboardOverview {
       ),
       activeSubscribers: _readInt(
         json['activeSubscribers'],
+      ),
+      totalTransactionValue: _readDouble(
+        json['totalTransactionValue'],
       ),
       totalRevenue: _readDouble(
         json['totalRevenue'],

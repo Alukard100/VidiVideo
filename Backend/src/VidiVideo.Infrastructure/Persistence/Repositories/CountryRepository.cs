@@ -16,6 +16,11 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             await _db.Countrys.AddAsync(country);
         }
 
+        public async Task<int> CountAsync(CancellationToken cancellationToken = default)
+        {
+            return await _db.Countrys.CountAsync(cancellationToken);
+        }
+
         public async Task DeleteAsync(Guid id)
         {
             var country = await _db.Countrys.FirstOrDefaultAsync(c => c.Id == id);
@@ -33,9 +38,13 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task<bool> ExistsByIdAsync(Guid id)
             => await _db.Countrys.AnyAsync(c => id == c.Id);
 
-        public async Task<List<Country>> GetAllAsync()
+        public async Task<List<Country>> GetAllAsync(int page = 1, int pageSize = 30, CancellationToken cancellationToken = default)
         {
-            return await _db.Countrys.OrderBy(c => c.Name).ToListAsync();
+            return await _db.Countrys
+                .OrderBy(c => c.Name)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
         }
 
         public async Task<Country?> GetByIdAsync(Guid id)

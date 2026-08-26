@@ -404,7 +404,7 @@ class _AdminDashboardPageState
         value:
             '\$${overview.totalRevenue.toStringAsFixed(2)}',
         subtitle:
-            '${_compactNumber(overview.totalTransactions)} successful transactions',
+            '${_compactNumber(overview.totalTransactions)} transactions • \$${overview.totalTransactionValue.toStringAsFixed(2)} processed',
         icon:
             Icons.attach_money_rounded,
       ),

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Users;
+using VidiVideo.Application.Users.Activities;
 using VidiVideo.Application.Users.Administrative;
 using VidiVideo.Domain.Constants;
 
@@ -20,7 +21,7 @@ namespace VidiVideo.Api.Controllers
         private readonly ICommandHandler<CreateStaffCommand, Guid> _addStaffHandler;
         private readonly ICommandHandler<UpdateStaffRoleCommand, bool> _updateStaffRoleHandler;
         private readonly ICommandHandler<DeleteStaffCommand, bool> _deleteStaffHandler;
-        private readonly IQueryHandler<GetStaffCommand, List<StaffSummaryDto>> _staffGetHandler;
+        private readonly IQueryHandler<GetStaffQuery, PagedResult<StaffSummaryDto>> _staffGetHandler;
 
         public UserController(
             IQueryHandler<GetMyProfileQuery, CurrentUserProfileDto> myProfileHandler,
@@ -32,7 +33,7 @@ namespace VidiVideo.Api.Controllers
             ICommandHandler<CreateStaffCommand, Guid> addStaffHandler,
             ICommandHandler<UpdateStaffRoleCommand, bool> updateStaffRoleHandler,
             ICommandHandler<DeleteStaffCommand, bool> deleteStaffHandler,
-            IQueryHandler<GetStaffCommand, List<StaffSummaryDto>> staffGetHandler)
+            IQueryHandler<GetStaffQuery, PagedResult<StaffSummaryDto>> staffGetHandler)
         {
             _myProfileHandler = myProfileHandler;
             _profileHandler = profileHandler;
@@ -169,7 +170,7 @@ namespace VidiVideo.Api.Controllers
         [HttpGet("staff")]
         public async Task<IActionResult> GetStaff(CancellationToken cancellationToken)
         {
-            var result = await _staffGetHandler.HandleAsync(new GetStaffCommand(), cancellationToken);
+            var result = await _staffGetHandler.HandleAsync(new GetStaffQuery(), cancellationToken);
             return Ok(result);
         }
     }

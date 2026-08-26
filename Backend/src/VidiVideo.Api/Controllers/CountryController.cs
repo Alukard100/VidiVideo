@@ -11,11 +11,11 @@ namespace VidiVideo.Api.Controllers;
 public class CountryController : ControllerBase
 {
     private readonly ICommandHandler<CreateCountryCommand, Guid> _createHandler;
-    private readonly IQueryHandler<GetCountriesQuery, List<CountryDto>> _getCountriesHandler;
+    private readonly IQueryHandler<GetCountriesQuery, PagedResult<CountryDto>> _getCountriesHandler;
     private readonly IQueryHandler<GetCountryByIdQuery, CountryDto> _getCountryByIdHandler;
     private readonly ICommandHandler<DeleteCountryCommand, bool> _deleteHandler;
     private readonly ICommandHandler<UpdateCountryCommand, CountryDto> _updateCountryHandler;
-    public CountryController(ICommandHandler<CreateCountryCommand, Guid> createHandler, IQueryHandler<GetCountriesQuery, List<CountryDto>> getCountriesHandler, IQueryHandler<GetCountryByIdQuery, CountryDto> getCountryByIdHandler, ICommandHandler<DeleteCountryCommand, bool> deleteHandler, ICommandHandler<UpdateCountryCommand, CountryDto> updateCountryHandler)
+    public CountryController(ICommandHandler<CreateCountryCommand, Guid> createHandler, IQueryHandler<GetCountriesQuery, PagedResult<CountryDto>> getCountriesHandler, IQueryHandler<GetCountryByIdQuery, CountryDto> getCountryByIdHandler, ICommandHandler<DeleteCountryCommand, bool> deleteHandler, ICommandHandler<UpdateCountryCommand, CountryDto> updateCountryHandler)
     {
         _createHandler = createHandler;
         _getCountriesHandler = getCountriesHandler;

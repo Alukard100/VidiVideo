@@ -156,7 +156,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             }
         }
 
-        public async Task<List<AppUser>> GetStaffAsync(CancellationToken cancellationToken = default)
+        public async Task<List<AppUser>> GetStaffAsync(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
         {
             var staff = await _db.Users
                 .Where(u => u.Role != AppRoles.User)
@@ -166,9 +166,16 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
                     u.Role == AppRoles.Moderator ? 2 :
                     3)
                 .ThenBy(u => u.CreatedAtUtc)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync(cancellationToken);
 
             return staff;
+        }
+
+        public async Task<int> CountStaffAsync(CancellationToken cancellationToken = default)
+        {
+            return await _db.Users.CountAsync(u => u.Role != AppRoles.User, cancellationToken);
         }
     }
 }

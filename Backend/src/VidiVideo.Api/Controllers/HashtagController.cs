@@ -11,11 +11,11 @@ namespace VidiVideo.Api.Controllers;
 public class HashtagController : ControllerBase
 {
     private readonly ICommandHandler<CreateHashtagCommand, Guid> _createHandler;
-    private readonly IQueryHandler<GetHashtagsQuery, List<HashtagDto>> _getHashtagsHandler;
+    private readonly IQueryHandler<GetHashtagsQuery, PagedResult<HashtagDto>> _getHashtagsHandler;
     private readonly IQueryHandler<GetHashtagByIdQuery, HashtagDto> _getHashtagByIdHandler;
     private readonly ICommandHandler<DeleteHashtagCommand, bool> _deleteHandler;
 
-    public HashtagController(ICommandHandler<CreateHashtagCommand, Guid> createHandler, IQueryHandler<GetHashtagsQuery, List<HashtagDto>> getHashtagsHandler, IQueryHandler<GetHashtagByIdQuery, HashtagDto> getHashtagByIdHandler, ICommandHandler<DeleteHashtagCommand, bool> deleteHandler)
+    public HashtagController(ICommandHandler<CreateHashtagCommand, Guid> createHandler, IQueryHandler<GetHashtagsQuery, PagedResult<HashtagDto>> getHashtagsHandler, IQueryHandler<GetHashtagByIdQuery, HashtagDto> getHashtagByIdHandler, ICommandHandler<DeleteHashtagCommand, bool> deleteHandler)
     {
         _createHandler = createHandler;
         _getHashtagsHandler = getHashtagsHandler;

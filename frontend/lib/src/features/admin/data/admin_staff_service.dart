@@ -11,16 +11,22 @@ class AdminStaffService {
   Future<List<AdminStaffMember>> getStaff() async {
     final response = await _apiClient.getJson(
       '/api/User/staff',
+      queryParameters: {
+        'Page': '1',
+        'PageSize': '10',
+      },
     );
 
-    if (response is! List) {
+    final items = response['items'];
+
+    if (items is! List) {
       throw const ApiException(
         statusCode: 500,
         message: 'Unexpected staff response.',
       );
     }
 
-    return response
+    return items
         .whereType<Map<String, dynamic>>()
         .map(AdminStaffMember.fromJson)
         .toList();

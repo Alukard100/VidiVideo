@@ -42,4 +42,45 @@ class PayPalPaymentService {
     return value?.toString().toLowerCase()
         == 'true';
   }
+
+  Future<String> createOnboarding() async {
+    final response =
+        await _apiClient.postJson(
+      '/api/PayPal/onboarding',
+      {},
+    );
+
+    final value =
+        response['onboardingUrl'];
+
+    if (value is! String ||
+        value.isEmpty) {
+      throw const ApiException(
+        statusCode: 500,
+        message:
+            'Server did not return PayPal onboarding URL.',
+      );
+    }
+
+    return value;
+  }
+
+  Future<bool> completeOnboarding() async {
+    final response =
+        await _apiClient.postJson(
+      '/api/PayPal/onboarding/complete',
+      {},
+    );
+
+    final value = response['value'];
+
+    if (value is bool) {
+      return value;
+    }
+
+    return value
+            ?.toString()
+            .toLowerCase() ==
+        'true';
+  }
 }

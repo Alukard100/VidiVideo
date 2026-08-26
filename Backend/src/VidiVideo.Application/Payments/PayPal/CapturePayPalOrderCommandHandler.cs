@@ -54,10 +54,9 @@ namespace VidiVideo.Application.Payments.PayPal
 
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 payment.MarkFailed();
-                Console.WriteLine(ex.ToString());
                 await _unitOfWork.CommitAsync(cancellationToken);
                 return false;
             }
