@@ -6,22 +6,23 @@ namespace VidiVideo.Domain.Entities;
 
 public sealed class AppUser : AuditableEntity
 {
-    public string UserName { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string PasswordHash { get; set; } = string.Empty;
-    public string DisplayName { get; set; } = string.Empty;
-    public string? Bio { get; set; }
-    public string? AvatarUrl { get; set; }
-    public Guid? CountryId { get; set; }
-    public Country? Country { get; set; } = null!;
-    public UserStatus Status { get; set; } = UserStatus.Active;
-    public string Role { get; set; } = AppRoles.User;
+    public string UserName { get; private set; } = string.Empty;
+    public string Email { get; private set; } = string.Empty;
+    public string PasswordHash { get; private set; } = string.Empty;
+    public string DisplayName { get; private set; } = string.Empty;
+    public string? Bio { get; private set; }
+    public string? AvatarUrl { get; private set; }
+    public Guid? CountryId { get; private set; }
+    public Country? Country { get; private set; } = null!;
+    public UserStatus Status { get; private set; } = UserStatus.Active;
+    public string Role { get; private set; } = AppRoles.User;
     public string? PayPalMerchantId { get; private set; }
     public bool HasConnectedPayPal => !string.IsNullOrWhiteSpace(PayPalMerchantId);
     public ICollection<Video> Videos { get; set; } = [];
     public ICollection<Follow> Following { get; set; } = [];
     public ICollection<Follow> Followers { get; set; } = [];
     public ICollection<Notification> Notifications { get; set; } = [];
+    public ICollection<ChannelEmoji> ChannelEmojis { get; set; } = [];
 
     protected AppUser() { }
 

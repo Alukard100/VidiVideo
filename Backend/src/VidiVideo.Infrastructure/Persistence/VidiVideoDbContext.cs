@@ -20,8 +20,8 @@ public sealed class VidiVideoDbContext(DbContextOptions<VidiVideoDbContext> opti
     public DbSet<VideoView> VideoViews => Set<VideoView>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<Country> Countrys => Set<Country>();
-
     public DbSet<RefundRequest> RefundRequests => Set<RefundRequest>();
+    public DbSet<ChannelEmoji> ChannelEmojis => Set<ChannelEmoji>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

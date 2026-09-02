@@ -4,6 +4,7 @@ using VidiVideo.Application.Common;
 using VidiVideo.Application.Exceptions;
 using VidiVideo.Application.Media;
 using VidiVideo.Application.Messaging;
+using VidiVideo.Domain.Enums;
 
 public sealed class UploadAvatarCommandHandler
     : ICommandHandler<UploadAvatarCommand, string>
@@ -13,19 +14,22 @@ public sealed class UploadAvatarCommandHandler
     private readonly ICurrentUser _currentUser;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMessagePublisher _messagePublisher;
+    private readonly IImageProcessor _imageProcessor;
 
     public UploadAvatarCommandHandler(
         IImageStorageService imageStorage,
         IUserRepository userRepository,
         ICurrentUser currentUser,
         IUnitOfWork unitOfWork,
-        IMessagePublisher messagePublisher)
+        IMessagePublisher messagePublisher,
+        IImageProcessor imageProcessor)
     {
         _imageStorage = imageStorage;
         _userRepository = userRepository;
         _currentUser = currentUser;
         _unitOfWork = unitOfWork;
         _messagePublisher = messagePublisher;
+        _imageProcessor = imageProcessor;
     }
 
     public async Task<string> HandleAsync(
@@ -41,9 +45,9 @@ public sealed class UploadAvatarCommandHandler
         var oldAvatar = user.AvatarUrl;
 
 
-        var avatarUrl = await _imageStorage.UploadAsync(
-            command.ImageStream,
-            command.FileName);
+        var processedImage = await _imageProcessor.ProcessAsync(command.ImageStream, command.FileName, ImagePurpose.ProfilePicture, cancellationToken);
+
+        var avatarUrl = await _imageStorage.UploadAsync(processedImage, cancellationToken);
 
         user.UpdateAvatar(avatarUrl);
 

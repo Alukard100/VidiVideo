@@ -1,7 +1,9 @@
-﻿namespace VidiVideo.Application.Abstractions
+﻿using VidiVideo.Application.Abstractions.DTOs;
+
+namespace VidiVideo.Application.Abstractions
 {
     public interface IImageStorageService
     {
-        Task<string> UploadAsync(Stream fileStream, string fileName);
+        Task<string> UploadAsync(ProcessedImage processedImage, CancellationToken cancellationToken = default);
     }
 }

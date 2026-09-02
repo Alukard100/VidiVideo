@@ -37,6 +37,7 @@ public static class DependencyInjection
         services.AddScoped<IHashtagRepository, HashtagRepository>();
         services.AddScoped<IVideoStorageService, VideoStorageService>();
         services.AddScoped<IImageStorageService, ImageStorageService>();
+        services.AddScoped<IImageProcessor, ImageProcessorService>();
         services.AddScoped<IVideoRepository, VideoRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IVideoRepository, VideoRepository>();
@@ -54,6 +55,7 @@ public static class DependencyInjection
         services.AddScoped<IRecommendationService, RecommendationService>();
         services.AddScoped<IPaymentSettings, PaymentSettings>();
         services.AddScoped<IRefundRequestRepository, RefundRequestRepository>();
+        services.AddScoped<IChannelEmojiRepository, ChannelEmojiRepository>();
 
         services.AddHttpClient<IPayPalService, PayPalService>();
 
