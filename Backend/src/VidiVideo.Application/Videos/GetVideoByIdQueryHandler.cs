@@ -11,12 +11,15 @@ namespace VidiVideo.Application.Videos
         private readonly IPaymentRepository _paymentRepository;
         private readonly ILikeRepository _likeRepository;
         private readonly ICurrentUser _currentUser;
-        public GetVideoByIdQueryHandler(IVideoRepository repo, IPaymentRepository paymentRepository, ILikeRepository likeRepository, ICurrentUser currentUser)
+        private readonly IVideoAccessService _videoAccessService;
+        public GetVideoByIdQueryHandler(IVideoRepository repo, IPaymentRepository paymentRepository, ILikeRepository likeRepository, ICurrentUser currentUser, IVideoAccessService videoAccessService)
         {
             _repo = repo;
             _paymentRepository = paymentRepository;
             _likeRepository = likeRepository;
             _currentUser = currentUser;
+            _videoAccessService = videoAccessService;
+
         }
 
         public async Task<VideoDto> HandleAsync(GetVideoByIdQuery query, CancellationToken cancellationToken)
@@ -25,33 +28,12 @@ namespace VidiVideo.Application.Videos
 
             var userId = _currentUser.UserId;
 
-            var isOwner = userId.HasValue && video.CreatorId == userId.Value;
+            var access = await _videoAccessService.GetAccessAsync(userId, video, cancellationToken);
 
-            if (video.IsDeleted)
+            if (!access.IsVisible)
                 throw new NotFoundException("Video doesn't exist");
 
-            if (!video.IsPublished && !isOwner)
-                throw new NotFoundException("Video doesn't exist.");
-
-            var isLocked = false;
-
-            if (video.Visibility == Domain.Enums.VideoVisibility.SubscribersOnly)
-            {
-                if (!isOwner)
-                {
-                    if (!userId.HasValue)
-                        isLocked = true;
-                    else
-                    {
-                        var hasSubscription =
-                            await _paymentRepository.HasActiveSubscriptionAsync(userId.Value, video.CreatorId);
-
-                        isLocked = !hasSubscription;
-                    }
-                }
-            }
-
-            var streamUrl = isLocked ? null : $"/api/Video/{video.Id}/stream";
+            var streamUrl = access.IsLocked ? null : $"/api/Video/{video.Id}/stream";
 
             var isLiked = userId.HasValue &&
                 await _likeRepository.IsLikedByCurrentUser(video.Id, userId.Value);
@@ -73,9 +55,9 @@ namespace VidiVideo.Application.Videos
                 video.Likes.Count,
                 video.Comments.Count,
                 video.VideoViews.Count,
-                isLocked,
+                access.IsLocked,
                 isLiked,
-                canEdit,
+                access.IsOwner,
                 video.VideoHashtags
                     .Select(vh => vh.Hashtag.Name)
                     .ToList()

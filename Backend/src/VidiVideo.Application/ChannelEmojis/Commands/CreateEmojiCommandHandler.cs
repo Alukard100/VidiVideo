@@ -3,6 +3,7 @@ using VidiVideo.Application.Abstractions.Repositories;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Exceptions;
 using VidiVideo.Domain.Entities;
+using VidiVideo.Domain.Enums;
 
 namespace VidiVideo.Application.ChannelEmojis.Commands;
 
@@ -12,15 +13,19 @@ public sealed class CreateEmojiCommandHandler : ICommandHandler<CreateEmojiComma
     private readonly IUnitOfWork _unitOfWork;
     private readonly IChannelEmojiRepository _emojiRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IImageProcessor _imageProcessor;
+    private readonly IImageStorageService _imageStorage;
 
-    private const int MaxemojisPerCreator = 3;
+    private const int MaxEmojisPerCreator = 3;
 
-    public CreateEmojiCommandHandler(ICurrentUser currentUser, IUnitOfWork unitOfWork, IChannelEmojiRepository emojiRepository, IUserRepository userRepository)
+    public CreateEmojiCommandHandler(ICurrentUser currentUser, IUnitOfWork unitOfWork, IChannelEmojiRepository emojiRepository, IUserRepository userRepository, IImageProcessor imageProcessor, IImageStorageService imageStorage)
     {
         _currentUser = currentUser;
         _unitOfWork = unitOfWork;
         _emojiRepository = emojiRepository;
         _userRepository = userRepository;
+        _imageProcessor = imageProcessor;
+        _imageStorage = imageStorage;
     }
 
     public async Task<ChannelEmojiDto> HandleAsync(CreateEmojiCommand command, CancellationToken cancellationToken)
@@ -36,11 +41,14 @@ public sealed class CreateEmojiCommandHandler : ICommandHandler<CreateEmojiComma
         if (!code.All(c => char.IsLetterOrDigit(c) || c == '_')) throw new ValidationException("Emoji code may contain only letters, numbers and underscores.");
 
         var count = await _emojiRepository.CountByCreatorAsync(userId, cancellationToken);
-        if (count >= MaxemojisPerCreator) throw new ValidationException("A creator can have at most 3 channel emojis, remove an emoji before adding a new one.");
-        var existing = await _emojiRepository.GetByCreatorAndCodeAsync(userId, code, cancellationToken);
+        if (count >= MaxEmojisPerCreator) throw new ValidationException("A creator can have at most 3 channel emojis, remove an emoji before adding a new one.");
+        var existing = await _emojiRepository.GetByCodeAsync(code, cancellationToken);
         if (existing is not null) throw new ConflictException("An emoji with this code already exists.");
 
-        var emoji = new ChannelEmoji(userId, code, command.ImageUrl);
+        var processedImage = await _imageProcessor.ProcessAsync(command.ImageStream, command.FileName, ImagePurpose.Emoji, cancellationToken);
+        var imageUrl = await _imageStorage.UploadAsync(processedImage, cancellationToken);
+
+        var emoji = new ChannelEmoji(userId, code, imageUrl);
 
         await _emojiRepository.AddAsync(emoji, cancellationToken);
 

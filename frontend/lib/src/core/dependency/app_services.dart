@@ -4,6 +4,7 @@ import '../../features/admin/data/admin_user_service.dart';
 import '../../features/admin/data/content_report_service.dart';
 import '../../features/categories/data/category_service.dart';
 import '../../features/countries/data/country_service.dart';
+import '../../features/emojis/data/emoji_service.dart';
 import '../../features/mobile/navigation/mobile_navigation_controller.dart';
 import '../../features/notifications/data/notification_service.dart';
 import '../../features/payments/data/paypal_service.dart';
@@ -93,5 +94,9 @@ class AppServices {
     apiClient: apiClient,
   );
 
+  static final EmojiService emojiService =
+      EmojiService(
+    apiClient: apiClient,
+  );
 
 }

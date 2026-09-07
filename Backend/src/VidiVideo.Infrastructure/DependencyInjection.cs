@@ -5,6 +5,7 @@ using VidiVideo.Api.Configuration;
 using VidiVideo.Application.Abstractions;
 using VidiVideo.Application.Abstractions.Recommendations;
 using VidiVideo.Application.Abstractions.Repositories;
+using VidiVideo.Infrastructure.AccessValidators;
 using VidiVideo.Infrastructure.Authentication;
 using VidiVideo.Infrastructure.Media;
 using VidiVideo.Infrastructure.Messaging;
@@ -56,6 +57,8 @@ public static class DependencyInjection
         services.AddScoped<IPaymentSettings, PaymentSettings>();
         services.AddScoped<IRefundRequestRepository, RefundRequestRepository>();
         services.AddScoped<IChannelEmojiRepository, ChannelEmojiRepository>();
+        services.AddScoped<IChannelEmojiUsageValidator, ChannelEmojiUsageValidator>();
+        services.AddScoped<IVideoAccessService, VideoAccessService>();
 
         services.AddHttpClient<IPayPalService, PayPalService>();
 

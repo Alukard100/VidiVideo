@@ -17,6 +17,8 @@ class VideoDetailsStep extends StatelessWidget {
     required this.onVisibilityChanged,
     required this.onPublishedChanged,
     required this.canCreateSubscriberContent,
+    required this.earlyAccessDays,
+    required this.onEarlyAccessDaysChanged,
   });
 
   final GlobalKey<FormState> formKey;
@@ -34,6 +36,9 @@ class VideoDetailsStep extends StatelessWidget {
   final ValueChanged<bool> onPublishedChanged;
 
   final bool canCreateSubscriberContent;
+
+  final int? earlyAccessDays;
+  final ValueChanged<int?> onEarlyAccessDaysChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -241,6 +246,95 @@ class VideoDetailsStep extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ],
+
+          if (canCreateSubscriberContent &&
+              visibility == VideoVisibility.public) ...[
+            const SizedBox(height: 20),
+            const Text(
+              'Delay',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Choose how long this video stays exclusive to subscribers before becoming public.',
+              style: TextStyle(
+                color: Colors.black54,
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            SegmentedButton<int?>(
+              segments: const [
+                ButtonSegment<int?>(
+                  value: null,
+                  label: Text('None'),
+                ),
+                ButtonSegment<int?>(
+                  value: 1,
+                  label: Text('1'),
+                ),
+                ButtonSegment<int?>(
+                  value: 3,
+                  label: Text('3'),
+                ),
+                ButtonSegment<int?>(
+                  value: 7,
+                  label: Text('7'),
+                ),
+              ],
+              selected: {earlyAccessDays},
+              onSelectionChanged: enabled
+                  ? (selection) {
+                      onEarlyAccessDaysChanged(selection.first);
+                    }
+                  : null,
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.resolveWith(
+                  (states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return const Color.fromARGB(
+                        255,
+                        196,
+                        62,
+                        129,
+                      );
+                    }
+
+                    return Colors.grey.shade200;
+                  },
+                ),
+                foregroundColor: WidgetStateProperty.resolveWith(
+                  (states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return Colors.white;
+                    }
+
+                    return Colors.black87;
+                  },
+                ),
+                side: WidgetStateProperty.all(
+                  const BorderSide(
+                    color: Colors.black12,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 6),
+            Text(
+              earlyAccessDays == null
+                  ? 'Available to everyone immediately.'
+                  : 'Subscribers get access ${earlyAccessDays!} ${earlyAccessDays == 1 ? 'day' : 'days'} earlier.',
+              style: const TextStyle(
+                color: Colors.black54,
+                fontSize: 12,
+              ),
             ),
           ],
           

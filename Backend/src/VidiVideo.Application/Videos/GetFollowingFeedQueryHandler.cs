@@ -40,8 +40,16 @@ public sealed class GetFollowingFeedQueryHandler : IQueryHandler<GetFollowingFee
 
         var items = videos.Select(video =>
         {
+            var isEarlyAccess =
+                video.Visibility == Domain.Enums.VideoVisibility.Public &&
+                video.IsEarlyAccessActive(DateTime.UtcNow);
+
+            var requiredSubscription =
+                video.Visibility == Domain.Enums.VideoVisibility.SubscribersOnly ||
+                isEarlyAccess;
+
             var isLocked =
-                video.Visibility == Domain.Enums.VideoVisibility.SubscribersOnly &&
+                requiredSubscription &&
                 !subscribedCreatorIds.Contains(video.CreatorId);
 
             return new VideoFeedDto(

@@ -1,4 +1,6 @@
-﻿namespace VidiVideo.Application.Videos.Comments;
+﻿using VidiVideo.Application.ChannelEmojis;
+
+namespace VidiVideo.Application.Videos.Comments;
 
 public sealed record CommentDto(
     Guid Id,
@@ -7,4 +9,5 @@ public sealed record CommentDto(
     DateTime? UpdatedAtUtc,
     Guid AuthorId,
     string AuthorDisplayName,
-    string? AuthorAvatarUrl);
+    string? AuthorAvatarUrl,
+    IReadOnlyList<CommentEmojiDto> Emojis);

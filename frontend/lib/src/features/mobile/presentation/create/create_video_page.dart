@@ -46,6 +46,7 @@ class _CreateVideoPageState extends State<CreateVideoPage> {
 
   bool _hasConnectedPayPal = false;
   bool _isLoadingCreatorProfile = true;
+  int? _earlyAccessDays;
 
   String? _uploadStage;
 
@@ -77,7 +78,7 @@ class _CreateVideoPageState extends State<CreateVideoPage> {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.video,
       allowMultiple: false,
-      withData: true, // temporary until VideoService supports path/stream upload.
+      withData: true,
     );
 
     if (result == null || result.files.isEmpty) {
@@ -91,10 +92,10 @@ class _CreateVideoPageState extends State<CreateVideoPage> {
       return;
     }
 
-    const maximumSize = 500 * 1024 * 1024;
+    const maximumSize = 72 * 1024 * 1024;
 
     if (file.size > maximumSize) {
-      _showMessage('Video must not be larger than 500 MB.');
+      _showMessage('Video must not be larger than 72 MB.');
       return;
     }
 
@@ -345,42 +346,22 @@ class _CreateVideoPageState extends State<CreateVideoPage> {
     });
 
     try {
-      final videoUrl = await _videoService.uploadVideo(
-        bytes: selectedVideo.bytes!,
-        fileName: selectedVideo.name,
-      );
-
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _uploadStage = 'Uploading thumbnail...';
-      });
-
-      final thumbnailUrl = await _videoService.uploadThumbnail(
-        bytes: thumbnailBytes,
-        fileName: thumbnailName,
-      );
-
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _uploadStage = 'Creating video...';
-      });
 
       final request = VideoCreateRequest(
         categoryId: selectedCategory.id,
         caption: _captionController.text.trim(),
-        videoUrl: videoUrl,
-        thumbnailUrl: thumbnailUrl,
         visibility: _visibility,
         isPublished: _isPublished,
+        earlyAccessDays: _earlyAccessDays,
       );
 
-      final videoId = await _videoService.createVideo(request);
+      final videoId = await _videoService.createVideo(
+        request: request,
+        videoBytes: selectedVideo.bytes!,
+        videoFileName: selectedVideo.name,
+        thumbnailBytes: thumbnailBytes,
+        thumbnailFileName: thumbnailName,
+      );
 
       if (!mounted) {
         return;
@@ -426,13 +407,13 @@ class _CreateVideoPageState extends State<CreateVideoPage> {
 
     setState(() {
       _selectedVideo = null;
-
       _selectedThumbnailBytes = null;
       _selectedThumbnailName = null;
-
       _selectedCategory = null;
 
       _visibility = VideoVisibility.public;
+      _earlyAccessDays = null;
+
       _isPublished = true;
       _currentStep = 0;
     });
@@ -607,6 +588,7 @@ class _CreateVideoPageState extends State<CreateVideoPage> {
                     isPublished: _isPublished,
                     enabled: !_isUploading,
                     canCreateSubscriberContent: _hasConnectedPayPal && !_isLoadingCreatorProfile,
+                    earlyAccessDays: _earlyAccessDays,
                     onCategoryChanged: (category) {
                       setState(() {
                         _selectedCategory = category;
@@ -620,6 +602,11 @@ class _CreateVideoPageState extends State<CreateVideoPage> {
                     onPublishedChanged: (value) {
                       setState(() {
                         _isPublished = value;
+                      });
+                    },
+                    onEarlyAccessDaysChanged: (days) {
+                      setState(() {
+                        _earlyAccessDays = days;
                       });
                     },
                   ),

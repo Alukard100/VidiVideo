@@ -14,7 +14,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         }
 
         public async Task<bool> CheckOwnershipAsync(Guid creatorId, Guid videoId, CancellationToken cancellationToken = default)
-            => await _db.Videos.AnyAsync(x => x.Id == videoId && x.CreatorId == creatorId, cancellationToken);
+            => await _db.Videos.AnyAsync(x => x.Id == videoId && x.CreatorId == creatorId && !x.IsDeleted, cancellationToken);
 
 
         public async Task<int> CountAsync(string? search, Guid? category, List<string> hashtags, CancellationToken cancellationToken = default)
@@ -22,8 +22,14 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             var query = _db.Videos
                 .Where(q => q.IsPublished && !q.IsDeleted)
                 .AsQueryable();
+
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(q => q.Caption.Contains(search));
+                query = query.Where(q =>
+                    q.Caption.Contains(search) ||
+                    q.Creator.UserName.Contains(search) ||
+                    q.Creator.DisplayName.Contains(search) ||
+                    q.VideoHashtags.Any(vh =>
+                        vh.Hashtag.Name.Contains(search)));
 
             if (hashtags.Any())
             {
@@ -41,7 +47,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task<int> CountFollowedFeedAsync(Guid userId, CancellationToken cancellationToken = default)
         {
             var followedCreatorIds = _db.Follows
-                .Where(f => f.FollowerId == userId)
+                .Where(f => f.FollowerId == userId && !f.IsDeleted)
                 .Select(f => f.CreatorId);
 
             var subscribedCreatorIds = _db.CreatorSubscriptions
@@ -64,7 +70,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
 
         public async Task<int> CountPublicAsync(DateTime? f, CancellationToken cancellationToken = default)
         {
-            var query = _db.Videos.AsQueryable();
+            var query = _db.Videos.Where(x => !x.IsDeleted).AsQueryable();
             if (f.HasValue)
                 query = query.Where(x => x.CreatedAtUtc >= f.Value);
             return await query.CountAsync(x => x.Visibility == Domain.Enums.VideoVisibility.Public, cancellationToken);
@@ -72,7 +78,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         }
         public async Task<int> CountPublishedAsync(DateTime? f, CancellationToken cancellationToken = default)
         {
-            var query = _db.Videos.AsQueryable();
+            var query = _db.Videos.Where(x => !x.IsDeleted).AsQueryable();
             if (f.HasValue)
                 query = query.Where(x => x.CreatedAtUtc >= f.Value);
             return await query.CountAsync(x => x.IsPublished, cancellationToken);
@@ -80,7 +86,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         }
         public async Task<int> CountSubscriberAsync(DateTime? f, CancellationToken cancellationToken = default)
         {
-            var query = _db.Videos.AsQueryable();
+            var query = _db.Videos.Where(x => !x.IsDeleted).AsQueryable();
             if (f.HasValue)
                 query = query.Where(x => x.CreatedAtUtc >= f.Value);
             return await query.CountAsync(x => x.Visibility == Domain.Enums.VideoVisibility.SubscribersOnly, cancellationToken);
@@ -89,7 +95,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
 
         public async Task<int> CountVideosFromAsync(DateTime? f = null, CancellationToken cancellationToken = default)
         {
-            var query = _db.Videos.AsQueryable();
+            var query = _db.Videos.Where(x => !x.IsDeleted).AsQueryable();
             if (f.HasValue)
                 query = query.Where(x => x.CreatedAtUtc >= f.Value);
             return await query.CountAsync(cancellationToken);
@@ -101,20 +107,20 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
 
         public async Task DeleteVideoAsync(Guid videoId, CancellationToken cancellationToken = default)
         {
-            var video = await _db.Videos.FirstOrDefaultAsync(x => x.Id == videoId, cancellationToken);
+            var video = await _db.Videos.FirstOrDefaultAsync(x => x.Id == videoId && !x.IsDeleted, cancellationToken);
             if (video != null)
                 _db.Videos.Remove(video);
         }
 
         public async Task<bool> ExistsByIdAsync(Guid videoId, CancellationToken cancellationToken = default)
-            => await _db.Videos.AnyAsync(x => x.Id == videoId, cancellationToken);
+            => await _db.Videos.AnyAsync(x => x.Id == videoId && !x.IsDeleted, cancellationToken);
 
         public async Task<List<Video>> GetFilteredVideosAsync(string? search, Guid? category, List<string> hashtags, int _page = 1, int _pageSize = 20, CancellationToken cancellationToken = default)
         {
             var query = _db.Videos
                     .Include(q => q.Creator)
                     .Include(q => q.Likes)
-                    .Include(q => q.Comments)
+                    .Include(q => q.Comments.Where(c => !c.IsDeleted))
                     .Include(q => q.VideoViews)
                     .Include(q => q.VideoHashtags)
                         .ThenInclude(vh => vh.Hashtag)
@@ -149,7 +155,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         {
 
             var followedCreatorIds = _db.Follows
-                .Where(f => f.FollowerId == userId)
+                .Where(f => f.FollowerId == userId && !f.IsDeleted)
                 .Select(f => f.CreatorId);
 
             var subscribedCreatorIds = _db.CreatorSubscriptions
@@ -166,7 +172,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
                 .Include(v => v.VideoHashtags)
                     .ThenInclude(vh => vh.Hashtag)
                 .Include(v => v.Likes)
-                .Include(v => v.Comments)
+                .Include(v => v.Comments.Where(c => !c.IsDeleted))
                 .Include(v => v.VideoViews)
                 .Where(v =>
                     v.IsPublished &&
@@ -192,7 +198,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
                 .Include(v => v.VideoHashtags)
                     .ThenInclude(vh => vh.Hashtag)
                 .Include(v => v.Likes)
-                .Include(v => v.Comments)
+                .Include(v => v.Comments.Where(c => !c.IsDeleted))
                 .Include(v => v.VideoViews)
                 .Where(v =>
                     v.IsPublished &&
@@ -218,7 +224,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
                 .Include(v => v.Category)
                 .Include(v => v.Likes)
                 .Include(v => v.VideoViews)
-                .Include(v => v.Comments)
+                .Include(v => v.Comments.Where(c => !c.IsDeleted))
                 .Include(v => v.VideoHashtags)
                     .ThenInclude(vh => vh.Hashtag)
                 .FirstOrDefaultAsync(v => v.Id == videoId, cancellationToken);
@@ -237,7 +243,8 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
                 .Include(v => v.Creator)
                 .Include(v => v.VideoViews)
                 .Include(v => v.Likes)
-                .Include(v => v.Comments)
+                .Include(v => v.Comments.Where(c => !c.IsDeleted))
+                .Where(v => !v.IsDeleted)
                 .AsQueryable();
 
             if (f.HasValue)

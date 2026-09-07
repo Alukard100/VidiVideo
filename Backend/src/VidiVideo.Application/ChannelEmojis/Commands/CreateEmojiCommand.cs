@@ -2,4 +2,4 @@
 
 namespace VidiVideo.Application.ChannelEmojis.Commands;
 
-public sealed record CreateEmojiCommand(string Code, string ImageUrl) : ICommand<ChannelEmojiDto>;
+public sealed record CreateEmojiCommand(string Code, Stream ImageStream, string FileName) : ICommand<ChannelEmojiDto>;

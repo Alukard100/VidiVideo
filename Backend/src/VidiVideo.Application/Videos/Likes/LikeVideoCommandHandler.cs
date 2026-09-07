@@ -15,7 +15,8 @@ public sealed class LikeVideoCommandHandler : ICommandHandler<LikeVideoCommand, 
     private readonly INotificationRepository _notificationRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUser _currentUser;
-    public LikeVideoCommandHandler(ILikeRepository repo, IUnitOfWork unitOfWork, IVideoRepository videoRepoisotry, IUserRepository userRepository, INotificationRepository notificationRepository, ICurrentUser currentUser)
+    private readonly IVideoAccessService _videoAccessService;
+    public LikeVideoCommandHandler(ILikeRepository repo, IUnitOfWork unitOfWork, IVideoRepository videoRepoisotry, IUserRepository userRepository, INotificationRepository notificationRepository, ICurrentUser currentUser, IVideoAccessService videoAccessService)
     {
         _repo = repo;
         _unitOfWork = unitOfWork;
@@ -23,6 +24,7 @@ public sealed class LikeVideoCommandHandler : ICommandHandler<LikeVideoCommand, 
         _userRepository = userRepository;
         _notificationRepository = notificationRepository;
         _currentUser = currentUser;
+        _videoAccessService = videoAccessService;
     }
 
     public async Task<LikeDto> HandleAsync(LikeVideoCommand command, CancellationToken cancellationToken)
@@ -30,6 +32,10 @@ public sealed class LikeVideoCommandHandler : ICommandHandler<LikeVideoCommand, 
         var video = await _videoRepository.GetVideoByIdAsync(command.VideoId) ?? throw new NotFoundException("Video doesn't exist");
 
         var userId = _currentUser.UserId ?? throw new UnauthorizedException("Must be logged in");
+
+        var access = await _videoAccessService.GetAccessAsync(userId, video, cancellationToken);
+        if (!access.IsVisible) throw new NotFoundException("Video doesn't exist");
+        if (access.IsLocked) throw new ForbiddenException("An active subscription is required to like this video");
 
         var currentUser = await _userRepository.GetByIdAsync(userId) ?? throw new NotFoundException("You must login to like");
 

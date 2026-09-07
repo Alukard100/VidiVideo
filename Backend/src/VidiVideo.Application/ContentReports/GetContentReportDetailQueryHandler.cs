@@ -1,4 +1,5 @@
 ﻿using VidiVideo.Application.Abstractions.Repositories;
+using VidiVideo.Application.ChannelEmojis;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Exceptions;
 
@@ -10,11 +11,12 @@ public sealed class GetContentReportDetailQueryHandler
         ContentReportDetailDto>
 {
     private readonly IContentReportRepository _repo;
+    private readonly IChannelEmojiRepository _emojiRepository;
 
-    public GetContentReportDetailQueryHandler(
-        IContentReportRepository repo)
+    public GetContentReportDetailQueryHandler(IContentReportRepository repo, IChannelEmojiRepository emojiRepository)
     {
         _repo = repo;
+        _emojiRepository = emojiRepository;
     }
 
     public async Task<ContentReportDetailDto>
@@ -22,12 +24,26 @@ public sealed class GetContentReportDetailQueryHandler
             GetContentReportDetailQuery query,
             CancellationToken cancellationToken)
     {
-        return await _repo
-            .GetContentReportDetailAsync(
+        var detail = await _repo.GetContentReportDetailAsync(
                 query.ContentId,
                 query.IsVideo,
-                cancellationToken)
-            ?? throw new NotFoundException(
-                "Reported content doesn't exist.");
+                cancellationToken) ?? throw new NotFoundException("Reported content doesn't exist.");
+
+        if (query.IsVideo) return detail;
+
+        var codes = EmojiParser.ExtractCodes(detail.ContentPreview);
+
+        if (codes.Count == 0) return detail;
+
+        var emojis = await _emojiRepository.GetByCodesAsync(codes, cancellationToken);
+
+        var emojisDto = emojis.Select(x => new CommentEmojiDto(x.Code, x.ImageUrl)).ToList();
+
+        return detail with
+        {
+            Emojis = emojisDto
+        };
+
+
     }
 }

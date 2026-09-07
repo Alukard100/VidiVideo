@@ -14,11 +14,11 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         }
 
         public async Task<bool> CheckOwnershipAsync(Guid userId, Guid commentId)
-            => await _db.Comments.AnyAsync(x => x.Id == commentId && x.AuthorId == userId);
+            => await _db.Comments.AnyAsync(x => x.Id == commentId && x.AuthorId == userId && !x.IsDeleted);
 
         public async Task<int> CountTotalCommentsAsync(DateTime? f)
         {
-            var query = _db.Comments.AsQueryable();
+            var query = _db.Comments.Where(x => !x.IsDeleted).AsQueryable();
             if (f.HasValue)
                 query = query.Where(x => x.CreatedAtUtc >= f.Value);
             return await query.CountAsync();
@@ -26,7 +26,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         }
 
         public async Task<int> CountVideoCommentsAsync(Guid videoId)
-            => await _db.Comments.CountAsync(c => c.VideoId == videoId);
+            => await _db.Comments.CountAsync(c => c.VideoId == videoId && !c.IsDeleted);
 
 
         public async Task<Guid> CreateCommentAsync(Comment comment)
@@ -37,7 +37,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
 
         public async Task DeleteCommentAsync(Guid commentId)
         {
-            var comment = await _db.Comments.FirstOrDefaultAsync(x => x.Id == commentId);
+            var comment = await _db.Comments.FirstOrDefaultAsync(x => x.Id == commentId && !x.IsDeleted);
 
             if (comment != null)
                 _db.Comments.Remove(comment);
@@ -45,17 +45,18 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         }
 
         public async Task<bool> ExistsByIdAsync(Guid commentId)
-            => await _db.Comments.AnyAsync(x => x.Id == commentId);
+            => await _db.Comments.AnyAsync(x => x.Id == commentId && !x.IsDeleted);
 
         public async Task<Comment?> GetCommentByIdAsync(Guid commentId)
-            => await _db.Comments.FirstOrDefaultAsync(c => c.Id == commentId);
+            => await _db.Comments.FirstOrDefaultAsync(c => c.Id == commentId && !c.IsDeleted);
 
 
         public async Task<List<Comment>> GetVideoCommentsAsync(Guid videoId, int _page = 1, int _pageSize = 20)
         {
             var comments = await _db.Comments
+                .AsNoTracking()
                 .Include(c => c.Author)
-                .Where(c => c.VideoId == videoId)
+                .Where(c => c.VideoId == videoId && !c.IsDeleted)
                 .OrderByDescending(c => c.CreatedAtUtc)
                 .Skip((_page - 1) * _pageSize)
                 .Take(_pageSize)

@@ -1,5 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using VidiVideo.Application.Categories;
+using VidiVideo.Application.ChannelEmojis;
+using VidiVideo.Application.ChannelEmojis.Commands;
+using VidiVideo.Application.ChannelEmojis.Queries;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.ContentReports;
 using VidiVideo.Application.Countries;
@@ -66,6 +69,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<RejectRefundRequestCommand, bool>, RejectRefundRequestCommandHandler>();
         services.AddScoped<ICommandHandler<CreatePayPalOnboardingCommand, PayPalOnboardingResult>, CreatePayPalOnboardingCommandHandler>();
         services.AddScoped<ICommandHandler<CompletePayPalOnboardingCommand, bool>, CompletePayPalOnboardingCommandHandler>();
+        services.AddScoped<ICommandHandler<CreateEmojiCommand, ChannelEmojiDto>, CreateEmojiCommandHandler>();
         //Queries
         services.AddScoped<IQueryHandler<GetCountryByIdQuery, CountryDto>, GetCountryByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetCountriesQuery, PagedResult<CountryDto>>, GetCountriesQueryHandler>();
@@ -96,6 +100,8 @@ public static class DependencyInjection
         services.AddScoped<IQueryHandler<GetStaffQuery, PagedResult<StaffSummaryDto>>, GetStaffQueryHandler>();
         services.AddScoped<IQueryHandler<GetDashboardOverviewQuery, DashboardOverviewDto>, GetDashboardOverviewQueryHandler>();
         services.AddScoped<IQueryHandler<GetAllRefundRequestsQuery, PagedResult<RefundRequestDto>>, GetAllRefundRequestsQueryHandler>();
+        services.AddScoped<IQueryHandler<GetMyChannelEmojisQuery, PagedResult<ChannelEmojiDto>>, GetMyChannelEmojisQueryHandler>();
+        services.AddScoped<IQueryHandler<GetAvailableChannelEmojisQuery, PagedResult<ChannelEmojiDto>>, GetAvailableChannelEmojisQueryHandler>();
         //Delete Commands
         services.AddScoped<ICommandHandler<DeleteCountryCommand, bool>, DeleteCountryCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteHashtagCommand, bool>, DeleteHashtagCommandHandler>();
@@ -107,6 +113,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<ClearSearchHistoryCommand, bool>, ClearSearchHistoryCommandHandler>();
         services.AddScoped<ICommandHandler<RemoveReportedContentCommand, bool>, RemoveReportedContentCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteStaffCommand, bool>, DeleteStaffCommandHandler>();
+        services.AddScoped<ICommandHandler<DeleteEmojiCommand, bool>, DeleteEmojiCommandHandler>();
 
         return services;
     }

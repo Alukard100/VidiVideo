@@ -92,8 +92,16 @@ public sealed class RecommendationService : IRecommendationService
         var candidates = videos
             .Select(video =>
             {
+                var isEarlyAccess =
+                    video.Visibility == VideoVisibility.Public &&
+                    video.IsEarlyAccessActive(DateTime.UtcNow);
+
+                var requiresSubscription =
+                    video.Visibility == VideoVisibility.SubscribersOnly ||
+                    isEarlyAccess;
+
                 var locked =
-                    video.Visibility == VideoVisibility.SubscribersOnly &&
+                    requiresSubscription &&
                     !subscribedCreatorIds.Contains(video.CreatorId);
 
                 return new RecommendationCandidate
@@ -355,8 +363,10 @@ public sealed class RecommendationService : IRecommendationService
         var videos =
             await _videoRepository.GetRecommendationCandidatesAsync(null, cancellationToken: cancellationToken);
 
+        var now = DateTime.UtcNow;
+
         var candidates = videos
-            .Where(v => v.Visibility == VideoVisibility.Public)
+            .Where(v => v.Visibility == VideoVisibility.Public && !v.IsEarlyAccessActive(now))
             .Select(video => new RecommendationCandidate
             {
                 Video = video,

@@ -12,6 +12,7 @@ public sealed class VideoConfiguration : IEntityTypeConfiguration<Video>
         builder.Property(x => x.Caption).HasMaxLength(500).IsRequired();
         builder.Property(x => x.VideoUrl).HasMaxLength(1024).IsRequired();
         builder.Property(x => x.ThumbnailUrl).HasMaxLength(1024).IsRequired();
+        builder.Property(x => x.EarlyAccessUntilUtc);
         builder.HasOne(x => x.Creator)
             .WithMany(x => x.Videos)
             .HasForeignKey(x => x.CreatorId)

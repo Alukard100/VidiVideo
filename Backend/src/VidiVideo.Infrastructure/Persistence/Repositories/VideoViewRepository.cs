@@ -14,16 +14,18 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
 
         public async Task<decimal> AverageVideoCompletionAsync(CancellationToken cancellationToken = default)
         {
-            if (!await _db.VideoViews.AnyAsync(cancellationToken))
+            var query = _db.VideoViews.Where(v => !v.Video.IsDeleted);
+
+            if (!await query.AnyAsync(cancellationToken))
             {
                 return 0m;
             }
-            return await _db.VideoViews.AverageAsync(v => v.CompletionRate, cancellationToken);
+            return await query.AverageAsync(v => v.CompletionRate, cancellationToken);
         }
 
         public async Task<int> CountTotalViewsAsync(DateTime? f)
         {
-            var query = _db.VideoViews.AsQueryable();
+            var query = _db.VideoViews.Where(v => !v.Video.IsDeleted).AsQueryable();
             if (f.HasValue)
                 query = query.Where(x => x.CreatedAtUtc >= f.Value);
             return await query.CountAsync();
@@ -31,7 +33,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         }
 
         public async Task<int> CountViewsAsync(Guid videoId)
-            => await _db.VideoViews.CountAsync(x => x.VideoId == videoId);
+            => await _db.VideoViews.CountAsync(x => x.VideoId == videoId && !x.Video.IsDeleted);
 
         public async Task CreateAsync(VideoView view)
             => await _db.VideoViews.AddAsync(view);
@@ -42,7 +44,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task<List<VideoView>> GetUserVideoViewsAsync(Guid userId)
         {
             return await _db.VideoViews
-                .Where(v => v.UserId == userId)
+                .Where(v => v.UserId == userId && !v.Video.IsDeleted)
                 .Include(v => v.Video)
                     .ThenInclude(video => video.Category)
                 .Include(v => v.Video)

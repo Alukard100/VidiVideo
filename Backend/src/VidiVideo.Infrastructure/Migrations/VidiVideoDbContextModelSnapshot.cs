@@ -120,6 +120,45 @@ namespace VidiVideo.Infrastructure.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("VidiVideo.Domain.Entities.ChannelEmoji", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.HasIndex("CreatorId");
+
+                    b.ToTable("ChannelEmojis");
+                });
+
             modelBuilder.Entity("VidiVideo.Domain.Entities.Comment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -218,7 +257,8 @@ namespace VidiVideo.Infrastructure.Migrations
 
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
@@ -228,12 +268,16 @@ namespace VidiVideo.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
 
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name", "Code")
+                        .IsUnique();
 
                     b.ToTable("Countrys");
                 });
@@ -373,9 +417,13 @@ namespace VidiVideo.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("AppUserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
@@ -391,7 +439,8 @@ namespace VidiVideo.Infrastructure.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
 
                     b.Property<int>("Type")
                         .HasColumnType("int");
@@ -404,7 +453,9 @@ namespace VidiVideo.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("AppUserId");
+
+                    b.HasIndex("UserId", "IsRead");
 
                     b.ToTable("Notifications");
                 });
@@ -554,6 +605,9 @@ namespace VidiVideo.Infrastructure.Migrations
                     b.Property<Guid>("CreatorId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("EarlyAccessUntilUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -645,6 +699,17 @@ namespace VidiVideo.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Country");
+                });
+
+            modelBuilder.Entity("VidiVideo.Domain.Entities.ChannelEmoji", b =>
+                {
+                    b.HasOne("VidiVideo.Domain.Entities.AppUser", "Creator")
+                        .WithMany("ChannelEmojis")
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Creator");
                 });
 
             modelBuilder.Entity("VidiVideo.Domain.Entities.Comment", b =>
@@ -755,8 +820,12 @@ namespace VidiVideo.Infrastructure.Migrations
 
             modelBuilder.Entity("VidiVideo.Domain.Entities.Notification", b =>
                 {
-                    b.HasOne("VidiVideo.Domain.Entities.AppUser", "User")
+                    b.HasOne("VidiVideo.Domain.Entities.AppUser", null)
                         .WithMany("Notifications")
+                        .HasForeignKey("AppUserId");
+
+                    b.HasOne("VidiVideo.Domain.Entities.AppUser", "User")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -780,12 +849,13 @@ namespace VidiVideo.Infrastructure.Migrations
                     b.HasOne("VidiVideo.Domain.Entities.Payment", "Payment")
                         .WithMany()
                         .HasForeignKey("PaymentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("VidiVideo.Domain.Entities.AppUser", "ReviewedBy")
                         .WithMany()
-                        .HasForeignKey("ReviewedById");
+                        .HasForeignKey("ReviewedById")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Payment");
 
@@ -862,6 +932,8 @@ namespace VidiVideo.Infrastructure.Migrations
 
             modelBuilder.Entity("VidiVideo.Domain.Entities.AppUser", b =>
                 {
+                    b.Navigation("ChannelEmojis");
+
                     b.Navigation("Followers");
 
                     b.Navigation("Following");

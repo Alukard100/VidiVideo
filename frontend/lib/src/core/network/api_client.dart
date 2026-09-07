@@ -6,7 +6,6 @@ import '../config/app_config.dart';
 import '../storage/session_store.dart';
 
 class ApiClient {
-  // ignore: prefer_initializing_formals
   ApiClient({
     required SessionStore sessionStore,
   }) : _sessionStore = sessionStore;
@@ -94,7 +93,6 @@ class ApiClient {
         return decoded;
       }
 
-      // Endpoint /create vraća samo Guid string, a ne JSON objekat.
       return <String, dynamic>{
         'value': decoded,
       };
@@ -336,6 +334,91 @@ class ApiClient {
     }
   }
 
+  Future<Map<String, dynamic>> postMultipart({
+    required String path,
+    required Map<String, String> fields,
+    required List<MultipartFileData> files,
+  }) async {
+    final client = HttpClient();
+
+    try {
+    final request = await client.postUrl(_buildUri(path));
+
+    final token = _sessionStore.accessToken;
+
+    if (token != null && token.isNotEmpty) {
+      request.headers.set(
+        HttpHeaders.authorizationHeader,
+        'Bearer $token',
+      );
+    }
+
+    final boundary =
+        '----VidiVideoBoundary${DateTime.now().microsecondsSinceEpoch}';
+
+    request.headers.set(
+      HttpHeaders.contentTypeHeader,
+      'multipart/form-data; boundary=$boundary',
+    );
+
+    for (final entry in fields.entries) {
+      request.write('--$boundary\r\n');
+      request.write(
+        'Content-Disposition: form-data; name="${entry.key}"\r\n\r\n',
+      );
+      request.write(entry.value);
+      request.write('\r\n');
+    }
+
+    for (final file in files) {
+      request.write('--$boundary\r\n');
+      request.write(
+        'Content-Disposition: form-data; '
+        'name="${file.fieldName}"; '
+        'filename="${file.fileName}"\r\n',
+      );
+      request.write(
+        'Content-Type: ${file.contentType}\r\n\r\n',
+      );
+
+      request.add(file.bytes);
+
+      request.write('\r\n');
+    }
+
+    request.write('--$boundary--\r\n');
+
+    final response = await request.close();
+
+    final responseBody =
+        await response.transform(utf8.decoder).join();
+
+    if (response.statusCode < 200 ||
+        response.statusCode >= 300) {
+      throw ApiException(
+        statusCode: response.statusCode,
+        message: _extractErrorMessage(responseBody),
+      );
+    }
+
+    if (responseBody.trim().isEmpty) {
+      return <String, dynamic>{};
+    }
+
+    final decoded = jsonDecode(responseBody);
+
+    if (decoded is Map<String, dynamic>) {
+      return decoded;
+    }
+
+    return <String, dynamic>{
+      'value': decoded,
+    };
+  } finally {
+    client.close(force: true);
+  }
+}
+
   String _extractErrorMessage(String responseBody) {
     if (responseBody.trim().isEmpty) {
       return 'Request failed.';
@@ -356,6 +439,20 @@ class ApiClient {
       return responseBody;
     }
   }
+}
+
+class MultipartFileData {
+  const MultipartFileData({
+    required this.fieldName,
+    required this.fileName,
+    required this.bytes,
+    this.contentType = 'application/octet-stream',
+  });
+
+  final String fieldName;
+  final String fileName;
+  final Uint8List bytes;
+  final String contentType;
 }
 
 class ApiException implements Exception {

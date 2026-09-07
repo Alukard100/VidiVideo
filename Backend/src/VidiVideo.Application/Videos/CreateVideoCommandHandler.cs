@@ -35,15 +35,22 @@ namespace VidiVideo.Application.Videos
                 throw new ValidationException("ThumbnailUrl is required");
 
             var creatorId = _currentUser.UserId ?? throw new UnauthorizedException("Must be logged in");
+            var creator = await _userRepo.GetByIdAsync(creatorId) ?? throw new NotFoundException("Creator doesn't exist");
 
-            if (command.Visibility == Domain.Enums.VideoVisibility.SubscribersOnly)
+            DateTime? earlyAccessUntilUtc = null;
+
+            if ((command.Visibility == Domain.Enums.VideoVisibility.SubscribersOnly || command.EarlyAccessDays.HasValue) && !creator.HasConnectedPayPal)
             {
-                var creator = await _userRepo.GetByIdAsync(creatorId) ?? throw new NotFoundException("Creator doesn't exist");
+                throw new ValidationException("Connect PayPal before publishing subscriber-only or early access videos.");
+            }
 
-                if (!creator.HasConnectedPayPal)
-                {
-                    throw new ValidationException("Connect PayPal before publishing subscriber-only videos.");
-                }
+            if (command.EarlyAccessDays.HasValue)
+            {
+                if (command.Visibility != Domain.Enums.VideoVisibility.Public) throw new ValidationException("Early access can only be enabled for public videos.");
+
+                if (command.EarlyAccessDays.Value is not (1 or 3 or 7)) throw new ValidationException("Early access duration must be 1, 3 or 7 days.");
+
+                earlyAccessUntilUtc = DateTime.UtcNow.AddDays(command.EarlyAccessDays.Value);
             }
 
             if (!await _categoryRepo.ExistsByIdAsync(command.CategoryId))
@@ -68,7 +75,7 @@ namespace VidiVideo.Application.Videos
                     new VideoHashtag(hashtag));
             }
 
-            var newVideo = new Video(creatorId, command.CategoryId, command.Caption, command.VideoUrl, command.ThumbnailUrl, command.Visibility, command.IsPublished);
+            var newVideo = new Video(creatorId, command.CategoryId, command.Caption, command.VideoUrl, command.ThumbnailUrl, command.Visibility, command.IsPublished, earlyAccessUntilUtc);
 
             newVideo.AddHashtags(videoHashtags);
 

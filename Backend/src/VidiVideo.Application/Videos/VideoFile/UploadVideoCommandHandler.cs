@@ -31,7 +31,7 @@ namespace VidiVideo.Application.Videos.VideoFile
             if (command.VideoStream.Length > maxSize)
             {
                 throw new ValidationException(
-                    "Video exceeds maximum size.");
+                    "Video exceeds maximum size of 72MB.");
             }
 
             var tempPath = Path.GetTempFileName();
@@ -60,7 +60,7 @@ namespace VidiVideo.Application.Videos.VideoFile
 
                 command.VideoStream.Position = 0;
 
-                return await _videoStorageService.UploadAsync(command.VideoStream, command.FileName);
+                return await _videoStorageService.UploadAsync(command.VideoStream, command.FileName, cancellationToken);
 
             }
             finally

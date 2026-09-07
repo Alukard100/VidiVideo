@@ -13,29 +13,34 @@ namespace VidiVideo.Application.VideoViews
         private readonly IUserRepository _userRepo;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUser _currentUser;
+        private readonly IVideoAccessService _videoAccessService;
 
         public RecordVideoViewCommandHandler(
             IVideoViewRepository repo,
             IVideoRepository videoRepo,
             IUserRepository userRepo,
             IUnitOfWork unitOfWork,
-            ICurrentUser currentUser)
+            ICurrentUser currentUser,
+            IVideoAccessService videoAccessService)
         {
             _repo = repo;
             _videoRepo = videoRepo;
             _userRepo = userRepo;
             _unitOfWork = unitOfWork;
             _currentUser = currentUser;
+            _videoAccessService = videoAccessService;
         }
         public async Task<Guid> HandleAsync(RecordVideoViewCommand command, CancellationToken cancellationToken)
         {
-            if (!await _videoRepo.ExistsByIdAsync(command.VideoId))
-                throw new NotFoundException("Video not found");
+            var video = await _videoRepo.GetVideoByIdAsync(command.VideoId) ?? throw new NotFoundException("Video not found");
 
             var userId = _currentUser.UserId ?? throw new UnauthorizedException("Must be logged in");
-
             if (!await _userRepo.ExistsByIdAsync(userId))
                 throw new NotFoundException("User not found");
+
+            var access = await _videoAccessService.GetAccessAsync(userId, video, cancellationToken);
+            if (!access.IsVisible) throw new NotFoundException("Video doesn't exist can't record view");
+            if (access.IsLocked) throw new ForbiddenException("An active subscription is required to view this video");
 
             var existing =
                 await _repo.GetByUserAndVideoAsync(

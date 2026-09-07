@@ -4,27 +4,25 @@ class VideoCreateRequest {
   const VideoCreateRequest({
     required this.categoryId,
     required this.caption,
-    required this.videoUrl,
-    required this.thumbnailUrl,
     required this.visibility,
     required this.isPublished,
+    this.earlyAccessDays,
   });
 
   final String categoryId;
   final String caption;
-  final String videoUrl;
-  final String thumbnailUrl;
   final VideoVisibility visibility;
   final bool isPublished;
+  final int? earlyAccessDays;
 
-  Map<String, dynamic> toJson() {
+  Map<String, String> toFormFields() {
     return {
-      'categoryId': categoryId,
-      'caption': caption,
-      'videoUrl': videoUrl,
-      'thumbnailUrl': thumbnailUrl,
-      'visibility': visibility.value,
-      'isPublished': isPublished,
+      'CategoryId': categoryId,
+      'Caption': caption,
+      'Visibility': visibility.value.toString(),
+      'IsPublished': isPublished.toString(),
+      if (earlyAccessDays != null)
+        'EarlyAccessDays': earlyAccessDays.toString(),
     };
   }
 }

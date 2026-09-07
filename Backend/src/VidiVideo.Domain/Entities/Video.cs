@@ -14,12 +14,13 @@ public sealed class Video : AuditableEntity
     public string ThumbnailUrl { get; private set; } = string.Empty;
     public VideoVisibility Visibility { get; private set; } = VideoVisibility.Public;
     public bool IsPublished { get; private set; } = true;
+    public DateTime? EarlyAccessUntilUtc { get; private set; }
     public ICollection<Comment> Comments { get; private set; } = [];
     public ICollection<Like> Likes { get; private set; } = [];
     public ICollection<VideoHashtag> VideoHashtags { get; private set; } = [];
     public ICollection<VideoView> VideoViews { get; private set; } = [];
     protected Video() { }
-    public Video(Guid creatorId, Guid categoryId, string caption, string videoUrl, string thumbnailUrl, VideoVisibility visibility, bool isPublished)
+    public Video(Guid creatorId, Guid categoryId, string caption, string videoUrl, string thumbnailUrl, VideoVisibility visibility, bool isPublished, DateTime? earlyAccessUntilUtc = null)
     {
         CreatorId = creatorId;
         CategoryId = categoryId;
@@ -28,6 +29,7 @@ public sealed class Video : AuditableEntity
         ThumbnailUrl = thumbnailUrl;
         Visibility = visibility;
         IsPublished = isPublished;
+        EarlyAccessUntilUtc = earlyAccessUntilUtc;
     }
 
     public void AddHashtags(
@@ -57,13 +59,17 @@ public sealed class Video : AuditableEntity
         }
     }
 
-    public void Update(Guid categoryId, string caption, string thumbnailUrl, VideoVisibility visibility, bool isPublished)
+    public void Update(Guid categoryId, string caption, VideoVisibility visibility, bool isPublished)
     {
         CategoryId = categoryId;
         Caption = caption;
-        ThumbnailUrl = thumbnailUrl;
         Visibility = visibility;
         IsPublished = isPublished;
+    }
+
+    public bool IsEarlyAccessActive(DateTime utcNow)
+    {
+        return EarlyAccessUntilUtc.HasValue && EarlyAccessUntilUtc.Value > utcNow;
     }
 
     public void Remove()

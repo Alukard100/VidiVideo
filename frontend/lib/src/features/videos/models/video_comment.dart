@@ -1,3 +1,5 @@
+import '../../emojis/models/comment_emoji.dart';
+
 class VideoComment {
   const VideoComment({
     required this.id,
@@ -7,6 +9,7 @@ class VideoComment {
     required this.authorId,
     required this.authorDisplayName,
     required this.authorAvatarUrl,
+    required this.emojis,
   });
 
   final String id;
@@ -16,6 +19,7 @@ class VideoComment {
   final String authorId;
   final String authorDisplayName;
   final String? authorAvatarUrl;
+  final List<CommentEmoji> emojis;
 
   factory VideoComment.fromJson(Map<String, dynamic> json) {
     return VideoComment(
@@ -26,6 +30,11 @@ class VideoComment {
       authorId: json['authorId']?.toString() ?? '',
       authorDisplayName: json['authorDisplayName']?.toString() ?? '',
       authorAvatarUrl: json['authorAvatarUrl']?.toString(),
+      emojis: (json['emojis'] as List?)
+          ?.whereType<Map<String, dynamic>>()
+          .map(CommentEmoji.fromJson)
+          .toList() ??
+        const [],
     );
   }
 }

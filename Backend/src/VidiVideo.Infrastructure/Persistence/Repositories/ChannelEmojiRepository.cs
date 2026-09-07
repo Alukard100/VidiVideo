@@ -33,7 +33,9 @@ public sealed class ChannelEmojiRepository : IChannelEmojiRepository
     {
         var now = DateTime.UtcNow;
 
-        var subscribedCreatorIds = _db.CreatorSubscriptions.Where(x => x.SubscriberId == userId && x.IsActive && x.EndsAtUtc > now).Select(x => x.CreatorId);
+        var subscribedCreatorIds = _db.CreatorSubscriptions
+            .Where(x => x.SubscriberId == userId && x.IsActive && x.EndsAtUtc > now)
+            .Select(x => x.CreatorId);
 
         return await _db.ChannelEmojis
             .AsNoTracking()
@@ -47,16 +49,28 @@ public sealed class ChannelEmojiRepository : IChannelEmojiRepository
 
     }
 
-    public async Task<ChannelEmoji?> GetByCreatorAndCodeAsync(Guid creatorId, string code, CancellationToken cancellationToken)
+    public async Task<ChannelEmoji?> GetByCodeAsync(string code, CancellationToken cancellationToken)
     {
-        return await _db.ChannelEmojis.FirstOrDefaultAsync(x => x.CreatorId == creatorId && x.Code == code && !x.IsDeleted, cancellationToken);
+        return await _db.ChannelEmojis.FirstOrDefaultAsync(x => x.Code == code && !x.IsDeleted, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<ChannelEmoji>> GetByCodesAsync(IReadOnlyCollection<string> codes, CancellationToken cancellationToken = default)
+    {
+        if (codes.Count == 0) return [];
+
+        return await _db.ChannelEmojis
+            .AsNoTracking()
+            .Where(x => !x.IsDeleted && codes.Contains(x.Code))
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<ChannelEmoji>> GetByCreatorAsync(Guid creatorId, int page, int pageSize, CancellationToken cancellationToken)
     {
         return await _db.ChannelEmojis
             .AsNoTracking()
+            .Include(x => x.Creator)
             .Where(x => x.CreatorId == creatorId && !x.IsDeleted)
+            .OrderBy(x => x.Code)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);

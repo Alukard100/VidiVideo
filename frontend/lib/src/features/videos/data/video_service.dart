@@ -2,13 +2,13 @@ import 'dart:typed_data';
 
 import '../../../core/network/api_client.dart';
 import '../../../core/utils/file_name_utils.dart';
+import '../../../shared/models/paged_result.dart';
 import '../models/video_create_request.dart';
 import '../models/video_comment.dart';
 import '../models/video_detail.dart';
 import 'video_summary.dart';
 
 class VideoService {
-  // ignore: prefer_initializing_formals
   VideoService({
     required ApiClient apiClient,
   }) : _apiClient = apiClient;
@@ -61,10 +61,30 @@ class VideoService {
     return thumbnailUrl;
   }
 
-  Future<String> createVideo(VideoCreateRequest request) async {
-    final response = await _apiClient.postJson(
-      '/api/Video/create',
-      request.toJson(),
+  Future<String> createVideo({
+    required VideoCreateRequest request,
+    required Uint8List videoBytes,
+    required String videoFileName,
+    required Uint8List thumbnailBytes,
+    required String thumbnailFileName,
+  }) async {
+    final response = await _apiClient.postMultipart(
+      path: '/api/Video/create-video',
+      fields: request.toFormFields(),
+      files: [
+        MultipartFileData(
+          fieldName: 'VideoFile',
+          fileName: safeUploadFileName(videoFileName),
+          bytes: videoBytes,
+          contentType: 'application/octet-stream',
+        ),
+        MultipartFileData(
+          fieldName: 'ThumbnailFile',
+          fileName: safeUploadFileName(thumbnailFileName),
+          bytes: thumbnailBytes,
+          contentType: 'application/octet-stream',
+        ),
+      ],
     );
 
     final value = response['value'];
@@ -203,13 +223,17 @@ class VideoService {
     return VideoDetail.fromJson(response);
   }
 
-  Future<List<VideoComment>> getComments(String videoId) async {
+  Future<PagedResult<VideoComment>> getComments(
+    String videoId, {
+    int page = 1,
+    int pageSize = 6,
+  }) async {
     final response = await _apiClient.getJson(
       '/api/Comment/getComments',
       queryParameters: {
         'videoId': videoId,
-        'page': 1,
-        'pageSize': 50,
+        'page': page,
+        'pageSize': pageSize,
       },
     );
 
@@ -220,15 +244,10 @@ class VideoService {
       );
     }
 
-    final items = response['items'];
-
-    if (items is! List) {
-      return const [];
-    }
-
-    return items
-        .map((item) => VideoComment.fromJson(item as Map<String, dynamic>))
-        .toList();
+    return PagedResult<VideoComment>.fromJson(
+      response,
+      VideoComment.fromJson,
+    );
   }
 
   Future<void> addComment({

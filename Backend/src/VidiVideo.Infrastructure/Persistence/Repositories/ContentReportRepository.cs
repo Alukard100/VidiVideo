@@ -217,7 +217,8 @@ public sealed class ContentReportRepository : IContentReportRepository
             preview,
             videoStreamUrl,
             isDeleted,
-            items);
+            items,
+            []);
     }
 
     public async Task<List<ContentReport>>

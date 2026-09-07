@@ -15,7 +15,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
 
         public async Task<int> CountTotalLikesAsync(DateTime? f)
         {
-            var query = _db.Likes.AsQueryable();
+            var query = _db.Likes.Where(x => !x.Video.IsDeleted).AsQueryable();
             if (f.HasValue)
                 query = query.Where(x => x.CreatedAtUtc >= f.Value);
             return await query.CountAsync();
@@ -25,7 +25,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task<Dictionary<Guid, double>> GetCollaborativeVideoScoreAsync(Guid userId)
         {
             var currentUserLikedVideoIds = await _db.Likes
-                .Where(l => l.UserId == userId)
+                .Where(l => l.UserId == userId && !l.Video.IsDeleted)
                 .Select(l => l.VideoId)
                 .ToListAsync();
 
@@ -34,6 +34,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
 
             var similarUsers = await _db.Likes
                 .Where(l =>
+                    !l.Video.IsDeleted &&
                     l.UserId != userId &&
                     currentUserLikedVideoIds.Contains(l.VideoId))
                 .GroupBy(l => l.UserId)
@@ -58,6 +59,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
 
             var recommendations = await _db.Likes
                 .Where(l =>
+                    !l.Video.IsDeleted &&
                     similarUserIds.Contains(l.UserId) &&
                     !currentUserLikedVideoIds.Contains(l.VideoId))
                 .Select(l => new
@@ -83,7 +85,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
                 .Include(v => v.VideoHashtags)
                     .ThenInclude(vh => vh.Hashtag)
                 .Where(v =>
-                    v.Likes.Any(l => l.UserId == userId))
+                    !v.IsDeleted && v.Likes.Any(l => l.UserId == userId))
                 .ToListAsync(cancellationToken);
         }
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using VidiVideo.Api.Requests;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Recommendations;
 using VidiVideo.Application.Videos;
@@ -38,44 +39,31 @@ public class VideoController : ControllerBase
     }
 
     [Authorize]
-    [HttpPost("create")]
-    public async Task<IActionResult> Create([FromBody] VideoCreateRequest request, CancellationToken cancellation)
+    [HttpPost("create-video")]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(83886080)] //80MB total
+    public async Task<IActionResult> Create([FromForm] VideoCreateRequest request, CancellationToken cancellationToken)
     {
-        var command = new CreateVideoCommand(request.CategoryId, request.Caption, request.VideoUrl, request.ThumbnailUrl, request.Visibility, request.IsPublished);
+        if (request.VideoFile is null || request.VideoFile.Length == 0)
+            return BadRequest("Video file is required");
 
-        var videoId = await _createVideoHandler.HandleAsync(command, cancellation);
+        if (request.ThumbnailFile is null || request.ThumbnailFile.Length == 0)
+            return BadRequest("Thumbnail file is required");
+
+        await using var videoStream = request.VideoFile.OpenReadStream();
+        await using var thumbnailStream = request.ThumbnailFile.OpenReadStream();
+
+        var videoCommand = new UploadVideoCommand(videoStream, request.VideoFile.FileName);
+        var videoUrl = await _videoFileHandler.HandleAsync(videoCommand, cancellationToken);
+
+        var thumbnailCommand = new CreateThumbnailCommand(thumbnailStream, request.ThumbnailFile.FileName);
+        var thumbnailUrl = await _thumbnailFileHandler.HandleAsync(thumbnailCommand, cancellationToken);
+
+        var command = new CreateVideoCommand(request.CategoryId, request.Caption, videoUrl, thumbnailUrl, request.Visibility, request.IsPublished, request.EarlyAccessDays);
+
+        var videoId = await _createVideoHandler.HandleAsync(command, cancellationToken);
 
         return Ok(videoId);
-    }
-
-    [Authorize]
-    [HttpPost("upload-video")]
-    [RequestSizeLimit(75497472)]
-    public async Task<IActionResult> UploadVideo(IFormFile formFile, CancellationToken cancellation)
-    {
-        var command = new UploadVideoCommand(formFile.OpenReadStream(), formFile.FileName);
-
-        string videoUrl = await _videoFileHandler.HandleAsync(command, cancellation);
-
-        return Ok(new
-        {
-            videoUrl
-        });
-    }
-
-    [Authorize]
-    [HttpPost("upload-thumbnail")]
-    [RequestSizeLimit(5242880)]
-    public async Task<IActionResult> UploadImage(IFormFile formFile, CancellationToken cancellation)
-    {
-        var command = new CreateThumbnailCommand(formFile.OpenReadStream(), formFile.FileName);
-
-        string thumbnailUrl = await _thumbnailFileHandler.HandleAsync(command, cancellation);
-
-        return Ok(new
-        {
-            thumbnailUrl
-        });
     }
 
     [HttpGet("getall")]
@@ -110,7 +98,7 @@ public class VideoController : ControllerBase
     [HttpPatch("update")]
     public async Task<IActionResult> UpdateVideo([FromBody] VideoUpdateRequest request, CancellationToken cancellationToken)
     {
-        var command = new UpdateVideoCommand(request.VideoId, request.CategoryId, request.Caption, request.ThumbnailUrl, request.Visibility, request.IsPublished);
+        var command = new UpdateVideoCommand(request.VideoId, request.CategoryId, request.Caption, request.Visibility, request.IsPublished);
 
         var result = await _updateHandler.HandleAsync(command, cancellationToken);
 

@@ -2,7 +2,6 @@
 using VidiVideo.Application.Abstractions.Repositories;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Exceptions;
-using VidiVideo.Domain.Enums;
 
 namespace VidiVideo.Application.Videos.VideoFile;
 
@@ -10,19 +9,19 @@ public sealed class GetVideoStreamQueryHandler : IQueryHandler<GetVideoStreamQue
 {
     private readonly IVideoRepository _videoRepository;
     private readonly IVideoStorageService _videoStorageService;
-    private readonly IPaymentRepository _paymentRepository;
     private readonly ICurrentUser _currentUser;
+    private readonly IVideoAccessService _videoAccessService;
 
     public GetVideoStreamQueryHandler(
         IVideoRepository videoRepository,
         IVideoStorageService videoStorageService,
-        IPaymentRepository paymentRepository,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        IVideoAccessService videoAccessService)
     {
         _videoRepository = videoRepository;
         _videoStorageService = videoStorageService;
-        _paymentRepository = paymentRepository;
         _currentUser = currentUser;
+        _videoAccessService = videoAccessService;
     }
 
     public async Task<VideoStreamResult> HandleAsync(GetVideoStreamQuery query, CancellationToken cancellationToken)
@@ -31,31 +30,11 @@ public sealed class GetVideoStreamQueryHandler : IQueryHandler<GetVideoStreamQue
             await _videoRepository.GetVideoForStreamingAsync(query.VideoId, cancellationToken)
             ?? throw new NotFoundException("Video doesn't exist.");
 
-        if (video.IsDeleted)
-            throw new NotFoundException("Video doesn't exist.");
-
         var userId = _currentUser.UserId;
 
-        var isOwner =
-            userId.HasValue &&
-            video.CreatorId == userId.Value;
-
-        if (!video.IsPublished && !isOwner)
-            throw new NotFoundException("Video doesn't exist");
-
-        if (video.Visibility == VideoVisibility.SubscribersOnly)
-        {
-            if (!isOwner)
-            {
-                if (!userId.HasValue)
-                    throw new UnauthorizedException("Must be logged in.");
-
-                var hasSubscription = await _paymentRepository.HasActiveSubscriptionAsync(userId.Value, video.CreatorId);
-
-                if (!hasSubscription)
-                    throw new ForbiddenException("Subscription required");
-            }
-        }
+        var access = await _videoAccessService.GetAccessAsync(userId, video, cancellationToken);
+        if (!access.IsVisible) throw new NotFoundException("Video doesn't exist");
+        if (access.IsLocked) throw new ForbiddenException("An active subscription is required to access this video");
 
         var stream = await _videoStorageService.OpenReadAsync(video.VideoUrl, cancellationToken);
 

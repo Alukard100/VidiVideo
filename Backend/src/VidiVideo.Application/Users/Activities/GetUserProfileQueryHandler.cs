@@ -36,10 +36,18 @@ public sealed class GetUserProfileQueryHandler
              await _repo.HasActiveSubscriptionAsync(currentUserId.Value, user.Id));
         var isFollowing = currentUserId.HasValue && !isOwnProfile && await _followersRepository.IsFollowingAsync(currentUserId.Value, user.Id);
 
+        var now = DateTime.UtcNow;
+
         var publicVideos = user.Videos
             .Where(v => v.Visibility == VideoVisibility.Public && !v.IsDeleted && (v.IsPublished || isOwnProfile))
             .OrderByDescending(v => v.CreatedAtUtc)
-            .Select(v => new ProfileVideoDto(v.Id, v.Caption, v.ThumbnailUrl, v.Visibility, v.IsPublished, IsLocked: false))
+            .Select(v =>
+            {
+                var isEarlyAccess = v.IsEarlyAccessActive(now);
+                var isLocked = !isOwnProfile && isEarlyAccess && !isSubscribed;
+                return new ProfileVideoDto(v.Id, v.Caption, v.ThumbnailUrl, v.Visibility, v.IsPublished, isLocked);
+
+            })
             .ToList();
         var subscriberOnlyVideos = user.Videos
             .Where(v => v.Visibility == VideoVisibility.SubscribersOnly && !v.IsDeleted && (isOwnProfile || v.IsPublished))

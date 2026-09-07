@@ -12,10 +12,12 @@ namespace VidiVideo.Application.Videos.Comments
         private readonly ICommentRepository _repo;
         private readonly IUserRepository _userRepository;
         private readonly IVideoRepository _videoRepository;
+        private readonly IVideoAccessService _videoAccessService;
         private readonly INotificationRepository _notificationRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUser _currentUser;
-        public CreateCommentCommandHandler(ICommentRepository repo, IUserRepository userRepository, IVideoRepository videoRepository, IUnitOfWork unitOfWork, INotificationRepository notificationRepository, ICurrentUser currentUser)
+        private readonly IChannelEmojiUsageValidator _emojiUsageValidator;
+        public CreateCommentCommandHandler(ICommentRepository repo, IUserRepository userRepository, IVideoRepository videoRepository, IUnitOfWork unitOfWork, INotificationRepository notificationRepository, ICurrentUser currentUser, IChannelEmojiUsageValidator emojiUsageValidator, IVideoAccessService videoAccessService)
         {
             _repo = repo;
             _userRepository = userRepository;
@@ -23,6 +25,8 @@ namespace VidiVideo.Application.Videos.Comments
             _unitOfWork = unitOfWork;
             _notificationRepository = notificationRepository;
             _currentUser = currentUser;
+            _emojiUsageValidator = emojiUsageValidator;
+            _videoAccessService = videoAccessService;
         }
 
         public async Task<Guid> HandleAsync(CreateCommentCommand command, CancellationToken cancellationToken)
@@ -32,9 +36,16 @@ namespace VidiVideo.Application.Videos.Comments
 
             var creatorId = _currentUser.UserId ?? throw new UnauthorizedException("Must be logged in");
 
-            var currentUser = await _userRepository.GetByIdAsync(creatorId) ?? throw new UnauthorizedException("You must login");
+            var video = await _videoRepository.GetVideoByIdAsync(command.VideoId, cancellationToken) ?? throw new NotFoundException("Video doesn't exist");
 
-            var video = await _videoRepository.GetVideoByIdAsync(command.VideoId) ?? throw new NotFoundException("Video doesn't exist");
+            var access = await _videoAccessService.GetAccessAsync(creatorId, video, cancellationToken);
+
+            if (!access.IsVisible) throw new NotFoundException("Video doesn't exist");
+            if (access.IsLocked) throw new ForbiddenException("An active subscription is required to access this video");
+
+            await _emojiUsageValidator.ValidateAsync(creatorId, command.Content, cancellationToken);
+
+            var currentUser = await _userRepository.GetByIdAsync(creatorId) ?? throw new UnauthorizedException("You must login");
 
             var comment = new Comment(command.VideoId, creatorId, command.Content);
 

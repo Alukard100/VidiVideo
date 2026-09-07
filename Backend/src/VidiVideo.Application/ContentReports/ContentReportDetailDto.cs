@@ -1,4 +1,6 @@
-﻿namespace VidiVideo.Application.ContentReports;
+﻿using VidiVideo.Application.ChannelEmojis;
+
+namespace VidiVideo.Application.ContentReports;
 
 public sealed record ContentReportDetailDto(
     Guid ContentId,
@@ -8,4 +10,5 @@ public sealed record ContentReportDetailDto(
     string ContentPreview,
     string? VideoStreamUrl,
     bool IsDeleted,
-    IReadOnlyList<ContentReportItemDto> Reports);
+    IReadOnlyList<ContentReportItemDto> Reports,
+    IReadOnlyList<CommentEmojiDto> Emojis);

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../app/app_routes.dart';
 import '../../../core/dependency/app_services.dart';
 import '../../../core/network/api_client.dart';
+import '../../emojis/presentation/channel_emojis_sheet.dart';
 import '../../payments/presentation/paypal_checkout_page.dart';
 import '../../payments/presentation/paypal_onboarding_page.dart';
 import '../../profile/models/follow_user.dart';
@@ -78,7 +79,10 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _handleProfileMenuAction(
     _ProfileMenuAction action,
   ) async {
-    switch (action) {
+    switch (action) { 
+      case _ProfileMenuAction.emojis:
+        await _openEmojiManager();
+        break;
       case _ProfileMenuAction.changePassword:
         await _openChangePassword();
         break;
@@ -535,12 +539,23 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 PopupMenuButton<_ProfileMenuAction>(
                   onSelected: _handleProfileMenuAction,
-                  itemBuilder: (context) => const [
-                    PopupMenuItem(
+                  itemBuilder: (context) =>  [
+                    if (profile?.hasConnectedPayPal == true)
+                    const PopupMenuItem(
+                      value: _ProfileMenuAction.emojis,
+                      child: Row(
+                        children: [
+                          Icon(Icons.emoji_emotions_outlined),
+                          SizedBox(width: 10),
+                          Text('Emojis'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
                       value: _ProfileMenuAction.changePassword,
                       child: Text('Change password'),
                     ),
-                    PopupMenuItem(
+                    const PopupMenuItem(
                       value: _ProfileMenuAction.logout,
                       child: Text('Logout'),
                     ),
@@ -554,6 +569,17 @@ class _ProfilePageState extends State<ProfilePage> {
       },
     );
   }
+
+  Future<void> _openEmojiManager() async {
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    backgroundColor: Colors.white,
+    builder: (_) =>
+        const ChannelEmojisSheet(),
+  );
+}
 
   Future<void> _logout() async {
     AppServices.sessionStore.clearSession();
@@ -762,6 +788,7 @@ class _ProfilePageState extends State<ProfilePage> {
 enum _FollowListType { followers, following }
 
 enum _ProfileMenuAction {
+  emojis,
   changePassword,
   logout,
 }
