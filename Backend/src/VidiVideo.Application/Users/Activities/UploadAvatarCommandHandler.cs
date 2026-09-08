@@ -6,8 +6,7 @@ using VidiVideo.Application.Media;
 using VidiVideo.Application.Messaging;
 using VidiVideo.Domain.Enums;
 
-public sealed class UploadAvatarCommandHandler
-    : ICommandHandler<UploadAvatarCommand, string>
+public sealed class UploadAvatarCommandHandler : ICommandHandler<UploadAvatarCommand, string>
 {
     private readonly IImageStorageService _imageStorage;
     private readonly IUserRepository _userRepository;
@@ -32,18 +31,13 @@ public sealed class UploadAvatarCommandHandler
         _imageProcessor = imageProcessor;
     }
 
-    public async Task<string> HandleAsync(
-        UploadAvatarCommand command,
-        CancellationToken cancellationToken)
+    public async Task<string> HandleAsync(UploadAvatarCommand command, CancellationToken cancellationToken)
     {
-        var userId = _currentUser.UserId
-            ?? throw new UnauthorizedException("Must be logged in.");
+        var userId = _currentUser.UserId ?? throw new UnauthorizedException("Must be logged in.");
 
-        var user = await _userRepository.GetByIdAsync(userId)
-            ?? throw new NotFoundException("User doesn't exist.");
+        var user = await _userRepository.GetByIdAsync(userId) ?? throw new NotFoundException("User doesn't exist.");
 
         var oldAvatar = user.AvatarUrl;
-
 
         var processedImage = await _imageProcessor.ProcessAsync(command.ImageStream, command.FileName, ImagePurpose.ProfilePicture, cancellationToken);
 

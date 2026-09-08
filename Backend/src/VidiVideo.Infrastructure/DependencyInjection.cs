@@ -29,7 +29,7 @@ public static class DependencyInjection
         services.Configure<RabbitMqOptions>(configuration.GetSection("RabbitMq"));
         services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
 
-        services.AddScoped<IMessagePublisher, RabbitMqMessagePublisher>();
+        services.AddSingleton<IMessagePublisher, RabbitMqMessagePublisher>();
         services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
         services.AddScoped<ITokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -41,7 +41,6 @@ public static class DependencyInjection
         services.AddScoped<IImageProcessor, ImageProcessorService>();
         services.AddScoped<IVideoRepository, VideoRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
-        services.AddScoped<IVideoRepository, VideoRepository>();
         services.AddScoped<ILikeRepository, LikeRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();
         services.AddScoped<IFollowersRepository, FollowersRepository>();
@@ -52,7 +51,6 @@ public static class DependencyInjection
         services.AddScoped<IContentReportRepository, ContentReportRepository>();
         services.AddScoped<IRevenueReportGenerator, RevenueReportGenerator>();
         services.AddScoped<IVideoAnalyticsReportGenerator, VideoAnalyticsReportGenerator>();
-        services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRecommendationService, RecommendationService>();
         services.AddScoped<IPaymentSettings, PaymentSettings>();
         services.AddScoped<IRefundRequestRepository, RefundRequestRepository>();

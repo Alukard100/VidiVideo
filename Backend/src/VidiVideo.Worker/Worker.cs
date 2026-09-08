@@ -32,37 +32,39 @@ public sealed class Worker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        var retryAttempt = 0;
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                await RunConsumerAsync(stoppingToken);
-
-                // Ako consumer iz nekog razloga normalno završi,
-                // pokušaj ponovo nakon kratke pauze.
-                await Task.Delay(
-                    TimeSpan.FromSeconds(5),
-                    stoppingToken);
+                await RunConsumerAsync(() => retryAttempt = 0, stoppingToken);
+                retryAttempt = 0;
             }
-            catch (OperationCanceledException)
-                when (stoppingToken.IsCancellationRequested)
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
                 break;
             }
             catch (Exception exception)
             {
+                retryAttempt++;
+
+                var delaySeconds = Math.Min(Math.Pow(2, retryAttempt - 1), 30);
+                var delay = TimeSpan.FromSeconds(delaySeconds);
+
                 _logger.LogError(
                     exception,
-                    "RabbitMQ worker connection failed. Retrying in 5 seconds.");
+                    "RabbitMQ worker connection failed. " +
+                    "Retry attempt {Attempt}. " +
+                    "Retrying in {DelaySeconds} seconds.",
+                    retryAttempt, delay.TotalSeconds);
 
-                await Task.Delay(
-                    TimeSpan.FromSeconds(5),
-                    stoppingToken);
+                await Task.Delay(delay, stoppingToken);
             }
         }
     }
 
-    private async Task RunConsumerAsync(CancellationToken stoppingToken)
+    private async Task RunConsumerAsync(Action onConnected, CancellationToken stoppingToken)
     {
         var factory = new ConnectionFactory
         {
@@ -150,13 +152,22 @@ public sealed class Worker : BackgroundService
             consumer: consumer,
             cancellationToken: stoppingToken);
 
+        onConnected();
+
         _logger.LogInformation(
             "Image cleanup worker connected. Queue: {Queue}",
             QueueNames.ImageCleanup);
 
-        await Task.Delay(
-            Timeout.Infinite,
-            stoppingToken);
+        while (!stoppingToken.IsCancellationRequested && connection.IsOpen && channel.IsOpen)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
+        }
+
+        if (!stoppingToken.IsCancellationRequested)
+        {
+            throw new InvalidOperationException("RabbitMQ connection or channel was closed.");
+        }
+
     }
 
     private async Task ProcessImageCleanupAsync(OldImageCleanupRequested message, CancellationToken cancellationToken)
