@@ -27,11 +27,16 @@ public sealed class Payment : AuditableEntity
         Status = PaymentStatus.Pending;
     }
 
-    public void MarkCompleted(
-        string providerCaptureId)
+    public void MarkCompleted(string providerCaptureId)
     {
-        if (string.IsNullOrWhiteSpace(
-            providerCaptureId))
+        if (Status == PaymentStatus.Completed) return;
+
+        if (Status != PaymentStatus.Pending)
+        {
+            throw new InvalidOperationException($"Payment in status {Status} cannot be completed.");
+        }
+
+        if (string.IsNullOrWhiteSpace(providerCaptureId))
         {
             throw new ArgumentException(
                 "Capture ID is required.",
@@ -45,7 +50,13 @@ public sealed class Payment : AuditableEntity
     }
 
     public void MarkFailed()
-        => Status = PaymentStatus.Failed;
+    {
+        if (Status != PaymentStatus.Pending)
+            throw new InvalidOperationException($"Only pending payments can be marked as failed. Current status: {Status}.");
+
+        Status = PaymentStatus.Failed;
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
 
     public void MarkRefunded(string providerRefundId)
     {

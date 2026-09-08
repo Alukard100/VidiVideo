@@ -2,5 +2,4 @@
 
 namespace VidiVideo.Application.Payments.PayPal;
 
-public sealed record CreatePayPalOnboardingCommand
-    : ICommand<PayPalOnboardingResult>;
+public sealed record CreatePayPalOnboardingCommand : ICommand<PayPalOnboardingResult>;

@@ -28,6 +28,13 @@ namespace VidiVideo.Infrastructure.Payments
             _http.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
+            _http.DefaultRequestHeaders.Remove(
+                "PayPal-Request-Id");
+
+            _http.DefaultRequestHeaders.Add(
+                "PayPal-Request-Id",
+                $"vidivideo-capture-{orderId}");
+
             var response = await _http.PostAsJsonAsync(
                 $"{_config["PayPal:BaseUrl"]}/v2/checkout/orders/{orderId}/capture",
                 new { });

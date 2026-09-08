@@ -30,7 +30,9 @@ namespace VidiVideo.Application.Payments.PayPal
 
             if (subscriberId == command.CreatorId) throw new ValidationException("You cannot subscribe to yourself.");
 
-            if (await _paymentRepository.HasActiveSubscriptionAsync(subscriberId, command.CreatorId)) throw new ConflictException("Already subscribed.");
+            if (await _paymentRepository.HasActiveSubscriptionAsync(subscriberId, command.CreatorId)) throw new ConflictException("You already have an active subscription to this creator.");
+
+            if (await _paymentRepository.HasPendingSubscriptionPaymentAsync(subscriberId, command.CreatorId, cancellationToken)) throw new ConflictException("A subscription payment for this creator is already pending.");
 
             var creator = await _userRepository.GetByIdAsync(command.CreatorId) ?? throw new NotFoundException("Creator doesn't exist.");
 

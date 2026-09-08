@@ -78,7 +78,9 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
 
 
         public async Task<Payment?> GetPaymentByProviderIdAsync(string ProviderPaymentId)
-            => await _db.Payments.FirstOrDefaultAsync(x => x.ProviderPaymentId == ProviderPaymentId);
+        {
+            return await _db.Payments.Include(x => x.Subscription).FirstOrDefaultAsync(x => x.ProviderPaymentId == ProviderPaymentId);
+        }
 
         public async Task<CreatorSubscription?> GetSubscriptionByIdAsync(Guid Id)
             => await _db.CreatorSubscriptions.Include(x => x.Creator).FirstOrDefaultAsync(x => x.Id == Id);
@@ -86,6 +88,15 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task<bool> HasActiveSubscriptionAsync(Guid SubscriberId, Guid CreatorId)
         {
             return await _db.CreatorSubscriptions.AnyAsync(x => x.SubscriberId == SubscriberId && x.CreatorId == CreatorId && x.IsActive && x.EndsAtUtc > DateTime.UtcNow);
+        }
+
+        public async Task<bool> HasPendingSubscriptionPaymentAsync(Guid subscriberId, Guid creatorId, CancellationToken cancellationToken = default)
+        {
+            return await _db.Payments.AnyAsync(payment =>
+                payment.Status == Domain.Enums.PaymentStatus.Pending &&
+                payment.Subscription.SubscriberId == subscriberId &&
+                payment.Subscription.CreatorId == creatorId,
+                cancellationToken);
         }
 
         public async Task<List<CreatorRevenueStats>> TopCreatorsAsync(DateTime? f = null)
@@ -109,7 +120,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
                     CreatorName =
                         p.Subscription.Creator.DisplayName,
                     SubscriptionIsActive =
-                        p.Subscription.IsActive
+                        (p.Subscription.IsActive && p.Subscription.EndsAtUtc > DateTime.UtcNow)
                 })
                 .ToListAsync();
 
@@ -140,7 +151,7 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         {
             var query = _db.CreatorSubscriptions.AsQueryable();
 
-            return await query.CountAsync(x => x.IsActive, cancellationToken);
+            return await query.CountAsync(x => x.IsActive && x.EndsAtUtc > DateTime.UtcNow, cancellationToken);
         }
 
         public async Task<int> TotalPaymentsAsync(DateTime? f = null, CancellationToken cancellationToken = default)

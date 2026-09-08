@@ -19,4 +19,5 @@ public interface IPaymentRepository
     Task<List<CreatorRevenueStats>> TopCreatorsAsync(DateTime? f = null);
     Task<HashSet<Guid>> GetActiveSubscribedCreatorIdsAsync(Guid subscriberId);
     Task<List<DashboardRevenuePointDto>> GetMonthlyRevenueStats(DateTime f, decimal platformFee, CancellationToken cancellationToken = default);
+    Task<bool> HasPendingSubscriptionPaymentAsync(Guid subscriberId, Guid creatorId, CancellationToken cancellationToken = default);
 }

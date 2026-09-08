@@ -5,11 +5,7 @@ using VidiVideo.Application.Exceptions;
 
 namespace VidiVideo.Application.Payments.PayPal;
 
-public sealed class
-    CreatePayPalOnboardingCommandHandler
-    : ICommandHandler<
-        CreatePayPalOnboardingCommand,
-        PayPalOnboardingResult>
+public sealed class CreatePayPalOnboardingCommandHandler : ICommandHandler<CreatePayPalOnboardingCommand, PayPalOnboardingResult>
 {
     private readonly ICurrentUser _currentUser;
     private readonly IUserRepository _userRepository;
@@ -25,21 +21,11 @@ public sealed class
         _payPalService = payPalService;
     }
 
-    public async Task<PayPalOnboardingResult>
-        HandleAsync(
-            CreatePayPalOnboardingCommand command,
-            CancellationToken cancellationToken)
+    public async Task<PayPalOnboardingResult> HandleAsync(CreatePayPalOnboardingCommand command, CancellationToken cancellationToken)
     {
-        var userId =
-            _currentUser.UserId
-            ?? throw new UnauthorizedException(
-                "Must be logged in.");
+        var userId = _currentUser.UserId ?? throw new UnauthorizedException("Must be logged in.");
 
-        var user =
-            await _userRepository
-                .GetByIdAsync(userId)
-            ?? throw new NotFoundException(
-                "User doesn't exist.");
+        var user = await _userRepository.GetByIdAsync(userId) ?? throw new NotFoundException("User doesn't exist.");
 
         if (user.HasConnectedPayPal)
         {
