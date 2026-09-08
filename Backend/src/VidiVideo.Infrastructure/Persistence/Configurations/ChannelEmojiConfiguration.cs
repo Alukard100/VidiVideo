@@ -13,7 +13,6 @@ public sealed class ChannelEmojiConfiguration : IEntityTypeConfiguration<Channel
         builder.Property(x => x.ImageUrl).HasMaxLength(1024).IsRequired();
         builder.HasOne(x => x.Creator).WithMany(x => x.ChannelEmojis).HasForeignKey(x => x.CreatorId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(x => x.Code)
-        .IsUnique()
-        .HasFilter("[IsDeleted] = 0");
+        .IsUnique();
     }
 }

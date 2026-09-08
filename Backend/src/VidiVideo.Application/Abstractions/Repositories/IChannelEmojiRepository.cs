@@ -11,6 +11,7 @@ public interface IChannelEmojiRepository
     Task<IReadOnlyList<ChannelEmoji>> GetAvailableForUserAsync(Guid userId, int page = 1, int pageSize = 16, CancellationToken cancellationToken = default);
     Task<int> CountAvailableForUserAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ChannelEmoji>> GetByCodesAsync(IReadOnlyCollection<string> codes, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ChannelEmoji>> GetByCodesWithoutDeletedAsync(IReadOnlyCollection<string> codes, CancellationToken cancellationToken = default);
     Task AddAsync(ChannelEmoji emoji, CancellationToken cancellationToken = default);
     void Remove(ChannelEmoji emoji);
 }

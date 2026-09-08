@@ -51,10 +51,20 @@ public sealed class ChannelEmojiRepository : IChannelEmojiRepository
 
     public async Task<ChannelEmoji?> GetByCodeAsync(string code, CancellationToken cancellationToken)
     {
-        return await _db.ChannelEmojis.FirstOrDefaultAsync(x => x.Code == code && !x.IsDeleted, cancellationToken);
+        return await _db.ChannelEmojis.FirstOrDefaultAsync(x => x.Code == code, cancellationToken);
     }
 
     public async Task<IReadOnlyList<ChannelEmoji>> GetByCodesAsync(IReadOnlyCollection<string> codes, CancellationToken cancellationToken = default)
+    {
+        if (codes.Count == 0) return [];
+
+        return await _db.ChannelEmojis
+            .AsNoTracking()
+            .Where(x => codes.Contains(x.Code))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<ChannelEmoji>> GetByCodesWithoutDeletedAsync(IReadOnlyCollection<string> codes, CancellationToken cancellationToken = default)
     {
         if (codes.Count == 0) return [];
 

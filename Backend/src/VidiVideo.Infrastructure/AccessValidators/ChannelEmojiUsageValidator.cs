@@ -21,7 +21,7 @@ namespace VidiVideo.Infrastructure.AccessValidators
 
             if (codes.Count == 0) return;
 
-            var emojis = await _emojiRepository.GetByCodesAsync(codes, cancellationToken);
+            var emojis = await _emojiRepository.GetByCodesWithoutDeletedAsync(codes, cancellationToken);
 
             var foundCodes = emojis.Select(x => x.Code).ToHashSet(StringComparer.OrdinalIgnoreCase);
 

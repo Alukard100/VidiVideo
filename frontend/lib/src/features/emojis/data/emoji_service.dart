@@ -62,7 +62,7 @@ class EmojiService {
     );
   }
 
-  Future<String> uploadEmoji({
+  Future<ChannelEmoji> uploadEmoji({
     required String code,
     required Uint8List bytes,
     required String fileName,
@@ -82,16 +82,7 @@ class EmojiService {
       ],
     );
 
-    final value = response['value'];
-
-    if (value == null || value.toString().isEmpty) {
-      throw const ApiException(
-        statusCode: 500,
-        message: 'Server did not return emoji ID.',
-      );
-    }
-
-    return value.toString();
+    return ChannelEmoji.fromJson(response);
   }
 
   Future<void> deleteEmoji(

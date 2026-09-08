@@ -30,7 +30,7 @@ namespace VidiVideo.Application.Videos.Comments
                 throw new ValidationException("New comment can't be empty");
 
             var comment = await _repo.GetCommentByIdAsync(command.Id) ?? throw new NotFoundException("Comment doesn't exist");
-            var video = await _videoRepository.GetVideoByIdAsync(comment.VideoId) ?? throw new NotFoundException("Video doesn't exist");
+            var video = await _videoRepository.GetVideoByIdAsync(comment.VideoId, cancellationToken) ?? throw new NotFoundException("Video doesn't exist");
 
             var creatorId = _currentUser.UserId ?? throw new UnauthorizedException("Must be logged in");
 
