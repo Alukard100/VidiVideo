@@ -14,10 +14,11 @@ namespace VidiVideo.Application.Categories
 
         public async Task<PagedResult<CategoryDTO>> HandleAsync(GetCategoriesQuery query, CancellationToken cancellationToken)
         {
+            var search = string.IsNullOrWhiteSpace(query.Search) ? null : query.Search.Trim();
 
-            var categories = await _repo.GetAllCategoriesAsync(query.Page, query.PageSize, cancellationToken);
+            var categories = await _repo.GetAllCategoriesAsync(search, query.Page, query.PageSize, cancellationToken);
 
-            var count = await _repo.CountAsync(cancellationToken);
+            var count = await _repo.CountAsync(search, cancellationToken);
 
             var items = categories.Select(c => new CategoryDTO(c.Id, c.Name)).ToList();
 

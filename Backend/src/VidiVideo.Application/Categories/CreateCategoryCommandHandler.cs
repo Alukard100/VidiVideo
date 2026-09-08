@@ -22,10 +22,12 @@ namespace VidiVideo.Application.Categories
                 throw new ValidationException(
                     "Cant be empty");
 
-            if (await _repo.ExistByNameAsync(command.Name))
+            var name = command.Name.Trim();
+
+            if (await _repo.ExistByNameAsync(name))
                 throw new ConflictException("Category already exists");
 
-            Category category = new(command.Name);
+            Category category = new(name);
 
             await _repo.CreateCategoryAsync(category);
 

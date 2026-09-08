@@ -8,6 +8,7 @@ class AppRoutes {
   static const adminUsers = '/admin/users';
   static const adminReports = '/admin/reports';
   static const adminStaff = '/admin/staff';
+  static const adminReferenceData = '/admin/reference-data';
   static const feed = '/feed';
   static const search = '/search';
   static const createVideo = '/create-video';

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../../app/app_routes.dart';
 import '../../../core/dependency/app_services.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/media_url.dart';
@@ -337,10 +336,10 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
       }
     } on ApiException catch (exception) {
       _rollbackLike(nextLiked);
-      if (_redirectToRegisterIfAuthRequired(exception)) {
-        return;
-      }
-      _showMessage('Like action failed (${exception.statusCode}): ${exception.message}');
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Like action failed',
+      );
     } catch (exception) {
       _rollbackLike(nextLiked);
       _showMessage('Like action failed: $exception');
@@ -489,10 +488,10 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
       );
       _showMessage('Report submitted.');
     } on ApiException catch (exception) {
-      if (_redirectToRegisterIfAuthRequired(exception)) {
-        return;
-      }
-      _showMessage('Report failed (${exception.statusCode}): ${exception.message}');
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Report failed',
+      );
     } catch (exception) {
       _showMessage('Report failed: $exception');
     }
@@ -548,19 +547,6 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  bool _redirectToRegisterIfAuthRequired(ApiException exception) {
-    if (exception.statusCode != 401 && exception.statusCode != 403) {
-      return false;
-    }
-
-    if (!mounted) {
-      return true;
-    }
-
-    Navigator.of(context).pushNamed(AppRoutes.register);
-    return true;
   }
 
   @override
@@ -699,4 +685,3 @@ class _CaughtUpPage extends StatelessWidget {
     );
   }
 }
-

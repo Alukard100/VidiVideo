@@ -123,21 +123,10 @@ class _LoginPageState extends State<LoginPage> {
         (_) => false,
       );
     } on ApiException catch (exception) {
-      if (!mounted) {
-        return;
-      }
-
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(
-              'Login failed '
-              '(${exception.statusCode}): '
-              '${exception.message}',
-            ),
-          ),
-        );
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Login failed',
+      );
     } catch (exception) {
       debugPrint(
         'LOGIN ERROR: $exception',

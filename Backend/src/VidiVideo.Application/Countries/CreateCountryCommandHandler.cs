@@ -20,6 +20,7 @@ namespace VidiVideo.Application.Countries
                 throw new ValidationException(
                     "Name and Code cannot be empty, Country code cannot have more than 4 characters");
 
+            var name = command.Name.Trim();
             var code = command.Code.ToUpperInvariant();
 
             if (await _countryRepository.ExistsByCodeAsync(code))
@@ -28,7 +29,7 @@ namespace VidiVideo.Application.Countries
                     "Country code already exists");
             }
 
-            Country country = new(command.Name, command.Code);
+            Country country = new(name, command.Code);
 
             await _countryRepository.AddAsync(country);
 

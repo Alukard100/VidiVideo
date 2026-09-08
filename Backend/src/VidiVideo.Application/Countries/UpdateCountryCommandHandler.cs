@@ -20,7 +20,10 @@ namespace VidiVideo.Application.Countries
                 throw new ValidationException(
                     "Name and Code cannot be empty, Country code cannot have more than 4 characters");
 
-            if (await _countryRepository.ExistsByCodeUpdateAsync(command.Id, command.Code))
+            var name = command.Name.Trim();
+            var code = command.Code.Trim().ToUpperInvariant();
+
+            if (await _countryRepository.ExistsByCodeUpdateAsync(command.Id, code))
             {
                 throw new ConflictException(
                     "Country with code already exists");
@@ -28,12 +31,12 @@ namespace VidiVideo.Application.Countries
 
             var country = await _countryRepository.GetByIdAsync(command.Id) ?? throw new NotFoundException("Country doesn't exist");
 
-            country.Update(command.Name, command.Code);
+            country.Update(name, code);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var result = new CountryDto(
-                Id: country.Id, Name: country.Name, Code: country.Code);
+                country.Id, country.Name, country.Code);
 
             return result;
         }

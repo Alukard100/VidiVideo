@@ -60,7 +60,10 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
 
       Navigator.of(context).pop(true);
     } on ApiException catch (exception) {
-      _showMessage('Profile update failed (${exception.statusCode}): ${exception.message}');
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Profile update failed',
+      );
     } catch (exception) {
       _showMessage('Profile update failed: $exception');
     } finally {

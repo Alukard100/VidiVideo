@@ -68,14 +68,9 @@ class _ChannelEmojisSheetState
       _showMessage('Emoji uploaded successfully.');
       _refresh();
     } on ApiException catch (exception) {
-      if (!mounted) {
-        return;
-      }
-
-      _showMessage(
-        'Emoji upload failed '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Emoji upload failed',
       );
     } catch (exception) {
       if (!mounted) {
@@ -143,14 +138,9 @@ class _ChannelEmojisSheetState
       _showMessage('Emoji deleted.');
       _refresh();
     } on ApiException catch (exception) {
-      if (!mounted) {
-        return;
-      }
-
-      _showMessage(
-        'Emoji delete failed '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Emoji delete failed',
       );
     } catch (exception) {
       if (!mounted) {

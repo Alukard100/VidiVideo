@@ -25,7 +25,7 @@ namespace VidiVideo.Api.Controllers
             _getCategoriesHandler = getCategoriesHandler;
         }
 
-        [Authorize(Roles = AppRoles.Admin)]
+        [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin},{AppRoles.Moderator}")]
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] CreateCategoryRequest request, CancellationToken cancellationToken)
         {
@@ -36,7 +36,7 @@ namespace VidiVideo.Api.Controllers
             return Ok(categoryId);
         }
 
-        [Authorize(Roles = AppRoles.Admin)]
+        [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin},{AppRoles.Moderator}")]
         [HttpPatch("update")]
         public async Task<IActionResult> Update([FromBody] UpdateCategoryRequest request, CancellationToken cancellationToken)
         {
@@ -47,9 +47,9 @@ namespace VidiVideo.Api.Controllers
             return Ok(category);
         }
 
-        [Authorize(Roles = AppRoles.Admin)]
+        [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin},{AppRoles.Moderator}")]
         [HttpDelete("{categoryId:guid}")]
-        public async Task<IActionResult> DeleteCountry(Guid categoryId, CancellationToken cancellationToken)
+        public async Task<IActionResult> DeleteCategory(Guid categoryId, CancellationToken cancellationToken)
         {
             var command = new DeleteCategoryCommand(categoryId);
 
@@ -59,7 +59,7 @@ namespace VidiVideo.Api.Controllers
         }
 
         [HttpGet("{Id:Guid}")]
-        public async Task<IActionResult> GetCountry(Guid Id, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetCategory(Guid Id, CancellationToken cancellationToken)
         {
             var query = new GetCategoryByIdQuery(Id);
 
@@ -69,9 +69,9 @@ namespace VidiVideo.Api.Controllers
         }
 
         [HttpGet("getall")]
-        public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAll([FromQuery] GetCategoriesQuery query, CancellationToken cancellationToken)
         {
-            var result = await _getCategoriesHandler.HandleAsync(new GetCategoriesQuery(), cancellationToken);
+            var result = await _getCategoriesHandler.HandleAsync(query, cancellationToken);
 
             return Ok(result);
         }

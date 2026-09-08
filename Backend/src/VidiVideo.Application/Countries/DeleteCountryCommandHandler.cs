@@ -19,6 +19,8 @@ namespace VidiVideo.Application.Countries
         {
             _ = await _countryRepository.GetByIdAsync(command.Id) ?? throw new NotFoundException("Country doesn't exist");
 
+            if (await _countryRepository.IsInUseAsync(command.Id, cancellationToken)) throw new ConflictException("Country cannot be deleted because it is currently used by one or more users.");
+
             await _countryRepository.DeleteAsync(command.Id);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

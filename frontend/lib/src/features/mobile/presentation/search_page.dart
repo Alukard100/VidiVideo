@@ -148,10 +148,9 @@ class _SearchPageState extends State<SearchPage> {
         'Search history cleared.',
       );
     } on ApiException catch (exception) {
-      _showMessage(
-        'Could not clear search history '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Could not clear search history',
       );
     } catch (exception) {
       _showMessage(
@@ -220,10 +219,9 @@ class _SearchPageState extends State<SearchPage> {
         );
       });
     } on ApiException catch (exception) {
-      _showMessage(
-        'Could not delete search '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Could not delete search',
       );
     }
   }

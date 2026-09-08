@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/app_routes.dart';
 import '../../../../core/dependency/app_services.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../categories/models/category.dart';
@@ -66,12 +65,10 @@ class _EditVideoSheetState extends State<EditVideoSheet> {
 
       Navigator.of(context).pop(true);
     } on ApiException catch (exception) {
-      if (exception.statusCode == 401 || exception.statusCode == 403) {
-        Navigator.of(context).pushNamed(AppRoutes.register);
-        return;
-      }
-
-      _showMessage('Video update failed (${exception.statusCode}): ${exception.message}');
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Video update failed',
+      );
     } catch (exception) {
       _showMessage('Video update failed: $exception');
     } finally {

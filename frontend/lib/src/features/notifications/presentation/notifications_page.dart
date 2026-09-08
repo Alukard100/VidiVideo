@@ -92,9 +92,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
       await _refreshNotifications();
     } on ApiException catch (exception) {
-      _showMessage(
-        'Could not mark notification as read '
-        '(${exception.statusCode}): ${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Could not mark notification as read',
       );
     } catch (exception) {
       _showMessage(
@@ -126,9 +126,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
         'All notifications marked as read.',
       );
     } on ApiException catch (exception) {
-      _showMessage(
-        'Could not mark notifications as read '
-        '(${exception.statusCode}): ${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Could not mark notifications as read',
       );
     } catch (exception) {
       _showMessage(

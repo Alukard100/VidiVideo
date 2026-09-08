@@ -437,31 +437,22 @@ class _UsersManagementPageState extends State<UsersManagementPage> {
       );
       await _loadUsers();
     } on ApiException catch (exception) {
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            'Unable to update member '
-            '(${exception.statusCode}): '
-            '${exception.message}',
-          ),
-        ),
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Unable to update member',
       );
-  } catch (_) {
-    if (!mounted) return;
+    } catch (_) {
+      if (!mounted) return;
 
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Unable to update member.',
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Unable to update member.',
+            ),
           ),
-        ),
-      );
+        );
     }
   }
 

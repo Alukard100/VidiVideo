@@ -161,50 +161,35 @@ public sealed class Worker : BackgroundService
 
     private async Task ProcessImageCleanupAsync(OldImageCleanupRequested message, CancellationToken cancellationToken)
     {
-        await using var scope =
-            _scopeFactory.CreateAsyncScope();
+        var canonicalImageUrl = GetCanonicalImagePath(message.ImageUrl);
 
-        var db =
-            scope.ServiceProvider
-                .GetRequiredService<
-                    VidiVideoDbContext>();
+        if (canonicalImageUrl is null)
+        {
+            _logger.LogWarning("Rejected non-canonical image cleanup path {ImageUrl}.", message.ImageUrl);
+            return;
+        }
 
-        // Conservative:
-        // ako URL postoji bilo gdje u DB,
-        // fajl NE diramo.
-        var usedAsAvatar =
-            await db.Users.AnyAsync(
-                user =>
-                    user.AvatarUrl ==
-                    message.ImageUrl,
-                cancellationToken);
+        await using var scope = _scopeFactory.CreateAsyncScope();
+
+        var db = scope.ServiceProvider.GetRequiredService<VidiVideoDbContext>();
+
+        var usedAsAvatar = await db.Users.AnyAsync(user => user.AvatarUrl == canonicalImageUrl, cancellationToken);
 
         if (usedAsAvatar)
         {
-            _logger.LogInformation(
-                "Image {ImageUrl} is still used as an avatar.",
-                message.ImageUrl);
-
+            _logger.LogInformation("Image {ImageUrl} is still used as an avatar.", canonicalImageUrl);
             return;
         }
 
-        var usedAsThumbnail =
-            await db.Videos.AnyAsync(
-                video =>
-                    video.ThumbnailUrl ==
-                    message.ImageUrl,
-                cancellationToken);
+        var usedAsThumbnail = await db.Videos.AnyAsync(video => video.ThumbnailUrl == canonicalImageUrl, cancellationToken);
 
         if (usedAsThumbnail)
         {
-            _logger.LogInformation(
-                "Image {ImageUrl} is still used as a video thumbnail.",
-                message.ImageUrl);
-
+            _logger.LogInformation("Image {ImageUrl} is still used as a video thumbnail.", canonicalImageUrl);
             return;
         }
 
-        DeleteImageFile(message.ImageUrl);
+        DeleteImageFile(canonicalImageUrl);
     }
 
     private void DeleteImageFile(string imageUrl)
@@ -273,4 +258,49 @@ public sealed class Worker : BackgroundService
             "Deleted orphan image {ImageUrl}.",
             imageUrl);
     }
+
+    private string? GetCanonicalImagePath(string imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl)) return null;
+
+        var normalized = imageUrl.Trim().Replace('\\', '/');
+
+        if (!normalized.StartsWith("/images/", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        if (normalized.Contains("..") ||
+            normalized.Contains('?') ||
+            normalized.Contains('#'))
+        {
+            return null;
+        }
+
+        var fileName = Path.GetFileName(normalized);
+
+        if (string.IsNullOrWhiteSpace(fileName)) return null;
+
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+
+        if (extension is not (".jpg" or ".jpeg" or ".png" or ".webp"))
+        {
+            _logger.LogWarning("Rejected unsupported image cleanup path {ImageUrl}.", imageUrl);
+
+            return null;
+        }
+
+        var canonical = $"/images/{fileName}";
+
+        if (!string.Equals(
+                normalized,
+                canonical,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return canonical;
+    }
+
 }

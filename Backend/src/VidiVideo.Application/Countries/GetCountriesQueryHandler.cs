@@ -14,9 +14,11 @@ public sealed class GetCountriesQueryHandler : IQueryHandler<GetCountriesQuery, 
 
     public async Task<PagedResult<CountryDto>> HandleAsync(GetCountriesQuery query, CancellationToken cancellationToken)
     {
-        var countries = await _countryRepository.GetAllAsync(query.Page, query.PageSize, cancellationToken);
+        var search = string.IsNullOrWhiteSpace(query.Search) ? null : query.Search.Trim();
 
-        var count = await _countryRepository.CountAsync(cancellationToken);
+        var countries = await _countryRepository.GetAllAsync(search, query.Page, query.PageSize, cancellationToken);
+
+        var count = await _countryRepository.CountAsync(search, cancellationToken);
 
         var items = countries.Select(c => new CountryDto(c.Id, c.Name, c.Code)).ToList();
 

@@ -13,7 +13,11 @@ import '../../features/refunds/data/refund_service.dart';
 import '../../features/search_history/data/search_history.service.dart';
 import '../../features/videos/data/video_service.dart';
 import '../../features/auth/data/auth_service.dart';
+import '../error/app_error_handler.dart';
+import '../navigation/app_navigation.dart';
 import '../network/api_client.dart';
+import '../notifications/app_notification_service.dart';
+import '../session/app_session_handler.dart';
 import '../storage/session_store.dart';
 import '../utils/feed_refresh_notifier.dart';
 import '../utils/profile_refresh_notifier.dart';
@@ -26,12 +30,26 @@ class AppServices {
 
   static final SessionStore sessionStore = SessionStore();
 
+  static final AppNotificationService appNotificationService =
+      AppNotificationService();
+
+  static final AppErrorHandler errorHandler = AppErrorHandler(
+    notificationService: appNotificationService,
+  );
+
+  static final AppSessionHandler sessionHandler = AppSessionHandler(
+    sessionStore: sessionStore,
+    notificationService: appNotificationService,
+    navigatorKey: AppNavigation.navigatorKey,
+  );
+
   static final profileRefreshNotifier = ProfileRefreshNotifier();
 
   static final feedRefreshNotifier = FeedRefreshNotifier();
 
   static final ApiClient apiClient = ApiClient(
     sessionStore: sessionStore,
+    onUnauthorized: sessionHandler.handleUnauthorized,
   );
 
   static final AuthService authService = AuthService(

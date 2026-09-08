@@ -121,10 +121,9 @@ class _AdminProfileMenuState
         'Profile picture updated.',
       );
     } on ApiException catch (exception) {
-      _showMessage(
-        'Avatar update failed '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Avatar update failed',
       );
     } catch (exception) {
       debugPrint(

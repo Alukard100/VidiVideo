@@ -46,10 +46,9 @@ class _EditStaffRoleDialogState
 
       Navigator.of(context).pop(true);
     } on ApiException catch (exception) {
-      _showMessage(
-        'Unable to change role '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Unable to change role',
       );
     } finally {
       if (mounted) {
@@ -58,14 +57,6 @@ class _EditStaffRoleDialogState
         });
       }
     }
-  }
-
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(message)),
-      );
   }
 
   @override

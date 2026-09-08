@@ -60,10 +60,9 @@ class _AddStaffDialogState
 
       Navigator.of(context).pop(true);
     } on ApiException catch (exception) {
-      _showMessage(
-        'Unable to add team member '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Unable to add team member',
       );
     } catch (_) {
       _showMessage(

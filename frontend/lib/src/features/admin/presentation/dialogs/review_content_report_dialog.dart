@@ -75,10 +75,9 @@ class _ReviewContentReportDialogState
 
       Navigator.of(context).pop(true);
     } on ApiException catch (exception) {
-      _showMessage(
-        'Review failed '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Review failed',
       );
     } catch (_) {
       _showMessage(
@@ -154,10 +153,9 @@ class _ReviewContentReportDialogState
 
       Navigator.of(context).pop(true);
     } on ApiException catch (exception) {
-      _showMessage(
-        'Unable to remove content '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Unable to remove content',
       );
     } catch (exception) {
       debugPrint(

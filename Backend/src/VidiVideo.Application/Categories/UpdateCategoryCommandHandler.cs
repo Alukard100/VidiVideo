@@ -22,16 +22,18 @@ namespace VidiVideo.Application.Categories
             if (string.IsNullOrWhiteSpace(command.Name))
                 throw new ValidationException("Category name cannot be empty.");
 
-            if (await _repo.ExistsByNameUpdateAsync(command.Id, command.Name))
+            var name = command.Name.Trim();
+
+            if (await _repo.ExistsByNameUpdateAsync(command.Id, name))
                 throw new ConflictException("Category with that name already exists");
 
             Category current = await _repo.GetByIdAsync(command.Id) ?? throw new NotFoundException("Category doesn't exist");
 
-            current.Update(command.Name);
+            current.Update(name);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return new CategoryDTO(Id: current.Id, Name: current.Name);
+            return new CategoryDTO(current.Id, current.Name);
         }
     }
 }

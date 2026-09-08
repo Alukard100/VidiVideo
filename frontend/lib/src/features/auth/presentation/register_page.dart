@@ -64,7 +64,10 @@ class _RegisterPageState extends State<RegisterPage> {
         (_) => false,
       );
     } on ApiException catch (exception) {
-      _showMessage('Registration failed (${exception.statusCode}): ${exception.message}');
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Registration failed',
+      );
     } catch (_) {
       _showMessage('Unable to connect to the server.');
     } finally {

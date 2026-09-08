@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../core/dependency/app_services.dart';
+import '../core/navigation/app_navigation.dart';
+import '../core/notifications/app_notification_service.dart';
 import '../core/theme/app_theme.dart';
 import '../features/admin/presentation/admin_dashboard_page.dart';
 import '../features/admin/presentation/content_reports_page.dart';
+import '../features/admin/presentation/reference_data_page.dart';
 import '../features/admin/presentation/refund_requests_page.dart';
 import '../features/admin/presentation/staff_management_page.dart';
 import '../features/admin/presentation/users_management_page.dart';
@@ -23,9 +27,16 @@ class VidiVideoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: AppNavigation.navigatorKey,
       title: 'VidiVideo',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      builder: (context, child) {
+        return AppNotificationOverlay(
+          notificationService: AppServices.appNotificationService,
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       initialRoute: AppRoutes.login,
       routes: {
         AppRoutes.login: (_) => const LoginPage(),
@@ -42,6 +53,7 @@ class VidiVideoApp extends StatelessWidget {
         AppRoutes.subscriptions: (_) => const SubscriptionsPage(),
         AppRoutes.mobileShell: (_) => const MobileShellPage(),
         AppRoutes.adminRefunds: (_) => const RefundRequestsPage(),
+        AppRoutes.adminReferenceData: (_) => const ReferenceDataPage(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == AppRoutes.userProfile) {

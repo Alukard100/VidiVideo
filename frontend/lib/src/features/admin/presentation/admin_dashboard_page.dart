@@ -125,10 +125,9 @@ class _AdminDashboardPageState
         'Revenue report saved to ${file.path}',
       );
     } on ApiException catch (exception) {
-      _showMessage(
-        'Unable to generate report '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Unable to generate revenue report',
       );
     } catch (exception) {
       _showMessage(
@@ -173,10 +172,9 @@ class _AdminDashboardPageState
         'Video analytics report saved to ${file.path}',
       );
     } on ApiException catch (exception) {
-      _showMessage(
-        'Unable to generate report '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Unable to generate video analytics report',
       );
     } catch (exception) {
       _showMessage(

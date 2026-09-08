@@ -209,12 +209,9 @@ class _CreateVideoPageState extends State<CreateVideoPage> {
         _categories = categories;
       });
     } on ApiException catch (exception) {
-      if (!mounted) {
-        return;
-      }
-
-      _showMessage(
-        'Failed to load categories (${exception.statusCode}): ${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Failed to load categories',
       );
     } catch (exception) {
       if (!mounted) {
@@ -377,12 +374,9 @@ class _CreateVideoPageState extends State<CreateVideoPage> {
       _resetForm();
       widget.onPublished?.call();
     } on ApiException catch (exception) {
-      if (!mounted) {
-        return;
-      }
-
-      _showMessage(
-        'Upload failed (${exception.statusCode}): ${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Upload failed',
       );
     } catch (exception) {
       if (!mounted) {

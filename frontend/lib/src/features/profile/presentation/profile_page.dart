@@ -159,7 +159,10 @@ class _ProfilePageState extends State<ProfilePage> {
       _showMessage('Avatar updated.');
       _refreshProfile();
     } on ApiException catch (exception) {
-      _showMessage('Avatar upload failed (${exception.statusCode}): ${exception.message}');
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Avatar upload failed',
+      );
     } catch (exception) {
       _showMessage('Avatar upload failed: $exception');
     }
@@ -200,14 +203,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
       _refreshProfile();
     } on ApiException catch (exception) {
-      if (_redirectToRegisterIfAuthRequired(exception)) {
-        return;
-      }
-
-      _showMessage(
-        'Follow action failed '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Follow action failed',
       );
     } catch (exception) {
       _showMessage(
@@ -233,14 +231,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
       _refreshProfile();
     } on ApiException catch (exception) {
-      if (_redirectToRegisterIfAuthRequired(exception)) {
-        return;
-      }
-
-      _showMessage(
-        'Follow failed '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Follow failed',
       );
     } catch (exception) {
       _showMessage('Follow failed: $exception');
@@ -297,10 +290,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
       _refreshProfile();
     } on ApiException catch (exception) {
-      _showMessage(
-        'Subscription failed '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Subscription failed',
       );
     } catch (exception) {
       _showMessage(
@@ -414,14 +406,9 @@ class _ProfilePageState extends State<ProfilePage> {
         'Refund request submitted.',
       );
     } on ApiException catch (exception) {
-      if (!mounted) {
-        return;
-      }
-
-      _showMessage(
-        'Refund request failed '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Refund request failed',
       );
     } catch (exception) {
       if (!mounted) {
@@ -441,15 +428,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _openRegister() {
     Navigator.of(context).pushNamed(AppRoutes.register);
-  }
-
-  bool _redirectToRegisterIfAuthRequired(ApiException exception) {
-    if (exception.statusCode != 401 && exception.statusCode != 403) {
-      return false;
-    }
-
-    _openRegister();
-    return true;
   }
 
   void _showMessage(String message) {
@@ -760,14 +738,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
       _refreshProfile();
     } on ApiException catch (exception) {
-      if (!mounted) {
-        return;
-      }
-
-      _showMessage(
-        'PayPal connection failed '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'PayPal connection failed',
       );
     } catch (exception) {
       if (!mounted) {
@@ -792,4 +765,3 @@ enum _ProfileMenuAction {
   changePassword,
   logout,
 }
-

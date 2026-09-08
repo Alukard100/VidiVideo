@@ -13,9 +13,18 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             _db = db;
         }
 
-        public async Task<int> CountAsync(CancellationToken cancellationToken = default)
+        public async Task<int> CountAsync(string? search, CancellationToken cancellationToken = default)
         {
-            return await _db.Categories.CountAsync(cancellationToken);
+            var query = _db.Categories.AsNoTracking().AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim();
+
+                query = query.Where(x => x.Name.Contains(term));
+            }
+
+            return await query.CountAsync(cancellationToken);
         }
 
         public async Task CreateCategoryAsync(Category category)
@@ -37,14 +46,29 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task<bool> ExistsByNameUpdateAsync(Guid id, string name)
             => await _db.Categories.AnyAsync(c => c.Id != id && c.Name == name);
 
-        public async Task<List<Category>> GetAllCategoriesAsync(int page = 1, int pageSize = 30, CancellationToken cancellationToken = default)
-            => await _db.Categories
-            .OrderBy(c => c.Name)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
+        public async Task<List<Category>> GetAllCategoriesAsync(string? search, int page, int pageSize, CancellationToken cancellationToken = default)
+        {
+            var query = _db.Categories.AsNoTracking().AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim();
+
+                query = query.Where(x => x.Name.Contains(term));
+            }
+
+            return await query
+                .OrderBy(x => x.Name)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+        }
 
         public async Task<Category?> GetByIdAsync(Guid id)
             => await _db.Categories.FirstOrDefaultAsync(c => c.Id == id);
+
+        public async Task<bool> IsInUseAsync(Guid id, CancellationToken cancellationToken = default)
+            => await _db.Videos.AnyAsync(x => x.CategoryId == id, cancellationToken);
+
     }
 }

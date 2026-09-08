@@ -16,9 +16,17 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             await _db.Countrys.AddAsync(country);
         }
 
-        public async Task<int> CountAsync(CancellationToken cancellationToken = default)
+        public async Task<int> CountAsync(string? search, CancellationToken cancellationToken = default)
         {
-            return await _db.Countrys.CountAsync(cancellationToken);
+            var query = _db.Countrys.AsNoTracking().AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim();
+
+                query = query.Where(c => c.Name.Contains(term) || c.Code.Contains(term));
+            }
+            return await query.CountAsync(cancellationToken);
         }
 
         public async Task DeleteAsync(Guid id)
@@ -38,9 +46,18 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task<bool> ExistsByIdAsync(Guid id)
             => await _db.Countrys.AnyAsync(c => id == c.Id);
 
-        public async Task<List<Country>> GetAllAsync(int page = 1, int pageSize = 30, CancellationToken cancellationToken = default)
+        public async Task<List<Country>> GetAllAsync(string? search, int page, int pageSize, CancellationToken cancellationToken = default)
         {
-            return await _db.Countrys
+            var query = _db.Countrys.AsNoTracking().AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim();
+
+                query = query.Where(c => c.Name.Contains(term) || c.Code.Contains(term));
+            }
+
+            return await query
                 .OrderBy(c => c.Name)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
@@ -49,5 +66,10 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
 
         public async Task<Country?> GetByIdAsync(Guid id)
             => await _db.Countrys.FirstOrDefaultAsync(c => c.Id.Equals(id));
+
+        public async Task<bool> IsInUseAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            return await _db.Users.AnyAsync(u => u.CountryId == id, cancellationToken);
+        }
     }
 }

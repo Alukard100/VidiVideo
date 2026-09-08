@@ -93,14 +93,9 @@ class _CommentsSheetState extends State<CommentsSheet> {
         _commentTotalCount = result.totalCount;
       });
     } on ApiException catch (exception) {
-      if (!mounted) {
-        return;
-      }
-
-      _showMessage(
-        'Could not load comments '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Could not load comments',
       );
     } catch (exception) {
       if (!mounted) {
@@ -149,14 +144,9 @@ class _CommentsSheetState extends State<CommentsSheet> {
         _commentTotalCount = result.totalCount;
       });
     } on ApiException catch (exception) {
-      if (!mounted) {
-        return;
-      }
-
-      _showMessage(
-        'Could not load more comments '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Could not load more comments',
       );
     } catch (exception) {
       if (!mounted) {
@@ -210,21 +200,9 @@ class _CommentsSheetState extends State<CommentsSheet> {
       // Refresh page 1 so the newest comment appears immediately.
       await _loadInitialComments();
     } on ApiException catch (exception) {
-      if (exception.statusCode == 401 ||
-          exception.statusCode == 403) {
-        if (mounted) {
-          Navigator.of(context).pushNamed(
-            AppRoutes.register,
-          );
-        }
-
-        return;
-      }
-
-      _showMessage(
-        'Comment failed '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Comment failed',
       );
     } catch (exception) {
       _showMessage(
@@ -888,19 +866,9 @@ class _CommentsSheetState extends State<CommentsSheet> {
         'Comment reported successfully.',
       );
     } on ApiException catch (exception) {
-      if (exception.statusCode == 401 ||
-          exception.statusCode == 403) {
-        Navigator.of(context).pushNamed(
-          AppRoutes.register,
-        );
-
-        return;
-      }
-
-      _showMessage(
-        'Report failed '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Report failed',
       );
     } catch (exception) {
       _showMessage(

@@ -29,6 +29,14 @@ List<NavigationItem> adminNavigationItems(String selectedRoute) {
       route: AppRoutes.adminReports,
       selected: selectedRoute == AppRoutes.adminReports,
     ),
+    NavigationItem(
+      label: 'Reference Data',
+      icon: Icons.list_alt_outlined,
+      route: AppRoutes.adminReferenceData,
+      selected:
+          selectedRoute ==
+          AppRoutes.adminReferenceData,
+    ),
     if (canManageStaff)
       NavigationItem(
         label: 'Refund Requests',

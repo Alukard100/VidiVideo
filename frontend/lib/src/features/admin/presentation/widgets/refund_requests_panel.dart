@@ -78,14 +78,9 @@ class _RefundRequestsPanelState
 
       _refresh();
     } on ApiException catch (exception) {
-      if (!mounted) {
-        return;
-      }
-
-      _showMessage(
-        'Refund failed '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Refund failed',
       );
     } catch (_) {
       if (!mounted) {
@@ -128,14 +123,9 @@ class _RefundRequestsPanelState
 
       _refresh();
     } on ApiException catch (exception) {
-      if (!mounted) {
-        return;
-      }
-
-      _showMessage(
-        'Reject failed '
-        '(${exception.statusCode}): '
-        '${exception.message}',
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Reject failed',
       );
     } catch (_) {
       if (!mounted) {

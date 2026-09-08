@@ -24,7 +24,7 @@ public class CountryController : ControllerBase
         _updateCountryHandler = updateCountryHandler;
     }
 
-    [Authorize(Roles = AppRoles.Admin)]
+    [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin},{AppRoles.Moderator}")]
     [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] CreateCountryRequest request, CancellationToken cancellationToken)
     {
@@ -36,9 +36,9 @@ public class CountryController : ControllerBase
     }
 
     [HttpGet("getall")]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAll([FromQuery] GetCountriesQuery query, CancellationToken cancellationToken)
     {
-        var result = await _getCountriesHandler.HandleAsync(new GetCountriesQuery(), cancellationToken);
+        var result = await _getCountriesHandler.HandleAsync(query, cancellationToken);
 
         return Ok(result);
     }
@@ -53,7 +53,7 @@ public class CountryController : ControllerBase
         return Ok(country);
     }
 
-    [Authorize(Roles = AppRoles.Admin)]
+    [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin},{AppRoles.Moderator}")]
     [HttpDelete("{countryId:guid}")]
     public async Task<IActionResult> DeleteCountry(Guid countryId, CancellationToken cancellationToken)
     {
@@ -64,7 +64,7 @@ public class CountryController : ControllerBase
         return Ok(result);
     }
 
-    [Authorize(Roles = AppRoles.Admin)]
+    [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin},{AppRoles.Moderator}")]
     [HttpPatch("update")]
     public async Task<IActionResult> Update([FromBody] UpdateCountryRequest request, CancellationToken cancellationToken)
     {

@@ -126,19 +126,10 @@ class _StaffManagementPageState
 
       _refresh();
     } on ApiException catch (exception) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(
-              'Unable to remove member '
-              '(${exception.statusCode}): '
-              '${exception.message}',
-            ),
-          ),
-        );
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Unable to remove member',
+      );
     }
   }
 

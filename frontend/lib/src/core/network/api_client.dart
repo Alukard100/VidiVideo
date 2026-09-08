@@ -5,12 +5,20 @@ import 'dart:typed_data';
 import '../config/app_config.dart';
 import '../storage/session_store.dart';
 
+typedef UnauthorizedCallback = Future<void> Function(
+  ApiException exception,
+  int requestSessionRevision,
+);
+
 class ApiClient {
   ApiClient({
     required SessionStore sessionStore,
-  }) : _sessionStore = sessionStore;
+    UnauthorizedCallback? onUnauthorized,
+  }) : _sessionStore = sessionStore,
+       _onUnauthorized = onUnauthorized;
 
   final SessionStore _sessionStore;
+  final UnauthorizedCallback? _onUnauthorized;
 
   Uri _buildUri(String path, [Map<String, dynamic>? queryParameters]) {
     final baseUrl = AppConfig.apiBaseUrl;
@@ -46,9 +54,15 @@ class ApiClient {
     return uri.replace(query: queryItems.join('&'));
   }
 
-  void _addDefaultHeaders(HttpHeaders headers) {
+  int? _addDefaultHeaders(HttpHeaders headers) {
     headers.contentType = ContentType.json;
     headers.set(HttpHeaders.acceptHeader, ContentType.json.toString());
+
+    return _addAuthorizationHeader(headers);
+  }
+
+  int? _addAuthorizationHeader(HttpHeaders headers) {
+    final sessionRevision = _sessionStore.revision;
 
     final token = _sessionStore.accessToken;
 
@@ -57,7 +71,10 @@ class ApiClient {
         HttpHeaders.authorizationHeader,
         'Bearer $token',
       );
+      return sessionRevision;
     }
+
+    return null;
   }
 
   Future<Map<String, dynamic>> postJson(
@@ -69,19 +86,18 @@ class ApiClient {
     try {
       final request = await client.postUrl(_buildUri(path));
 
-      _addDefaultHeaders(request.headers);
+      final sessionRevision = _addDefaultHeaders(request.headers);
 
       request.write(jsonEncode(body));
 
       final response = await request.close();
       final responseBody = await response.transform(utf8.decoder).join();
 
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw ApiException(
-          statusCode: response.statusCode,
-          message: _extractErrorMessage(responseBody),
-        );
-      }
+      await _throwIfError(
+        statusCode: response.statusCode,
+        responseBody: responseBody,
+        requestSessionRevision: sessionRevision,
+      );
 
       if (responseBody.trim().isEmpty) {
         return <String, dynamic>{};
@@ -110,19 +126,18 @@ class ApiClient {
     try {
       final request = await client.patchUrl(_buildUri(path));
 
-      _addDefaultHeaders(request.headers);
+      final sessionRevision = _addDefaultHeaders(request.headers);
 
       request.write(jsonEncode(body));
 
       final response = await request.close();
       final responseBody = await response.transform(utf8.decoder).join();
 
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw ApiException(
-          statusCode: response.statusCode,
-          message: _extractErrorMessage(responseBody),
-        );
-      }
+      await _throwIfError(
+        statusCode: response.statusCode,
+        responseBody: responseBody,
+        requestSessionRevision: sessionRevision,
+      );
 
       if (responseBody.trim().isEmpty) {
         return <String, dynamic>{};
@@ -151,19 +166,18 @@ class ApiClient {
     try {
       final request = await client.deleteUrl(_buildUri(path));
 
-      _addDefaultHeaders(request.headers);
+      final sessionRevision = _addDefaultHeaders(request.headers);
 
       request.write(jsonEncode(body));
 
       final response = await request.close();
       final responseBody = await response.transform(utf8.decoder).join();
 
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw ApiException(
-          statusCode: response.statusCode,
-          message: _extractErrorMessage(responseBody),
-        );
-      }
+      await _throwIfError(
+        statusCode: response.statusCode,
+        responseBody: responseBody,
+        requestSessionRevision: sessionRevision,
+      );
 
       if (responseBody.trim().isEmpty) {
         return <String, dynamic>{};
@@ -194,17 +208,16 @@ class ApiClient {
         _buildUri(path, queryParameters),
       );
 
-      _addDefaultHeaders(request.headers);
+      final sessionRevision = _addDefaultHeaders(request.headers);
 
       final response = await request.close();
       final responseBody = await response.transform(utf8.decoder).join();
 
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw ApiException(
-          statusCode: response.statusCode,
-          message: _extractErrorMessage(responseBody),
-        );
-      }
+      await _throwIfError(
+        statusCode: response.statusCode,
+        responseBody: responseBody,
+        requestSessionRevision: sessionRevision,
+      );
 
       if (responseBody.trim().isEmpty) {
         return null;
@@ -227,14 +240,7 @@ class ApiClient {
         _buildUri(path, queryParameters),
       );
 
-      final token = _sessionStore.accessToken;
-
-      if (token != null && token.isNotEmpty) {
-        request.headers.set(
-          HttpHeaders.authorizationHeader,
-          'Bearer $token',
-        );
-      }
+      final sessionRevision = _addAuthorizationHeader(request.headers);
 
       final response = await request.close();
 
@@ -244,17 +250,11 @@ class ApiClient {
             previous..addAll(element),
       );
 
-      if (response.statusCode < 200 ||
-          response.statusCode >= 300) {
-        final responseBody =
-            utf8.decode(bytes);
-
-        throw ApiException(
-          statusCode: response.statusCode,
-          message:
-              _extractErrorMessage(responseBody),
-        );
-      }
+      await _throwIfError(
+        statusCode: response.statusCode,
+        responseBody: utf8.decode(bytes),
+        requestSessionRevision: sessionRevision,
+      );
 
       return Uint8List.fromList(bytes);
     } finally {
@@ -273,14 +273,7 @@ class ApiClient {
     try {
       final request = await client.postUrl(_buildUri(path));
 
-      final token = _sessionStore.accessToken;
-
-      if (token != null && token.isNotEmpty) {
-        request.headers.set(
-          HttpHeaders.authorizationHeader,
-          'Bearer $token',
-        );
-      }
+      final sessionRevision = _addAuthorizationHeader(request.headers);
 
       final boundary =
           '----VidiVideoBoundary${DateTime.now().microsecondsSinceEpoch}';
@@ -305,12 +298,11 @@ class ApiClient {
       final response = await request.close();
       final responseBody = await response.transform(utf8.decoder).join();
 
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw ApiException(
-          statusCode: response.statusCode,
-          message: _extractErrorMessage(responseBody),
-        );
-      }
+      await _throwIfError(
+        statusCode: response.statusCode,
+        responseBody: responseBody,
+        requestSessionRevision: sessionRevision,
+      );
 
       if (responseBody.trim().isEmpty) {
         throw const ApiException(
@@ -342,82 +334,97 @@ class ApiClient {
     final client = HttpClient();
 
     try {
-    final request = await client.postUrl(_buildUri(path));
+      final request = await client.postUrl(_buildUri(path));
 
-    final token = _sessionStore.accessToken;
+      final sessionRevision = _addAuthorizationHeader(request.headers);
 
-    if (token != null && token.isNotEmpty) {
+      final boundary =
+          '----VidiVideoBoundary${DateTime.now().microsecondsSinceEpoch}';
+
       request.headers.set(
-        HttpHeaders.authorizationHeader,
-        'Bearer $token',
+        HttpHeaders.contentTypeHeader,
+        'multipart/form-data; boundary=$boundary',
       );
+
+      for (final entry in fields.entries) {
+        request.write('--$boundary\r\n');
+        request.write(
+          'Content-Disposition: form-data; name="${entry.key}"\r\n\r\n',
+        );
+        request.write(entry.value);
+        request.write('\r\n');
+      }
+
+      for (final file in files) {
+        request.write('--$boundary\r\n');
+        request.write(
+          'Content-Disposition: form-data; '
+          'name="${file.fieldName}"; '
+          'filename="${file.fileName}"\r\n',
+        );
+        request.write(
+          'Content-Type: ${file.contentType}\r\n\r\n',
+        );
+
+        request.add(file.bytes);
+
+        request.write('\r\n');
+      }
+
+      request.write('--$boundary--\r\n');
+
+      final response = await request.close();
+
+      final responseBody = await response.transform(utf8.decoder).join();
+
+      await _throwIfError(
+        statusCode: response.statusCode,
+        responseBody: responseBody,
+        requestSessionRevision: sessionRevision,
+      );
+
+      if (responseBody.trim().isEmpty) {
+        return <String, dynamic>{};
+      }
+
+      final decoded = jsonDecode(responseBody);
+
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+
+      return <String, dynamic>{
+        'value': decoded,
+      };
+    } finally {
+      client.close(force: true);
+    }
+  }
+
+  Future<void> _throwIfError({
+    required int statusCode,
+    required String responseBody,
+    required int? requestSessionRevision,
+  }) async {
+    if (statusCode >= 200 && statusCode < 300) {
+      return;
     }
 
-    final boundary =
-        '----VidiVideoBoundary${DateTime.now().microsecondsSinceEpoch}';
-
-    request.headers.set(
-      HttpHeaders.contentTypeHeader,
-      'multipart/form-data; boundary=$boundary',
+    final exception = ApiException(
+      statusCode: statusCode,
+      message: _extractErrorMessage(responseBody),
+      isAuthenticatedUnauthorized:
+          statusCode == HttpStatus.unauthorized &&
+          requestSessionRevision != null,
     );
 
-    for (final entry in fields.entries) {
-      request.write('--$boundary\r\n');
-      request.write(
-        'Content-Disposition: form-data; name="${entry.key}"\r\n\r\n',
-      );
-      request.write(entry.value);
-      request.write('\r\n');
+    if (statusCode == HttpStatus.unauthorized &&
+        requestSessionRevision != null) {
+      await _onUnauthorized?.call(exception, requestSessionRevision);
     }
 
-    for (final file in files) {
-      request.write('--$boundary\r\n');
-      request.write(
-        'Content-Disposition: form-data; '
-        'name="${file.fieldName}"; '
-        'filename="${file.fileName}"\r\n',
-      );
-      request.write(
-        'Content-Type: ${file.contentType}\r\n\r\n',
-      );
-
-      request.add(file.bytes);
-
-      request.write('\r\n');
-    }
-
-    request.write('--$boundary--\r\n');
-
-    final response = await request.close();
-
-    final responseBody =
-        await response.transform(utf8.decoder).join();
-
-    if (response.statusCode < 200 ||
-        response.statusCode >= 300) {
-      throw ApiException(
-        statusCode: response.statusCode,
-        message: _extractErrorMessage(responseBody),
-      );
-    }
-
-    if (responseBody.trim().isEmpty) {
-      return <String, dynamic>{};
-    }
-
-    final decoded = jsonDecode(responseBody);
-
-    if (decoded is Map<String, dynamic>) {
-      return decoded;
-    }
-
-    return <String, dynamic>{
-      'value': decoded,
-    };
-  } finally {
-    client.close(force: true);
+    throw exception;
   }
-}
 
   String _extractErrorMessage(String responseBody) {
     if (responseBody.trim().isEmpty) {
@@ -459,10 +466,12 @@ class ApiException implements Exception {
   const ApiException({
     required this.statusCode,
     required this.message,
+    this.isAuthenticatedUnauthorized = false,
   });
 
   final int statusCode;
   final String message;
+  final bool isAuthenticatedUnauthorized;
 
   @override
   String toString() {
