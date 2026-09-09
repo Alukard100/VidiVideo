@@ -65,7 +65,12 @@ class _AdminProfileMenuState
   }
 
   Future<void> _logout() async {
-    AppServices.sessionStore.clearSession();
+    try {
+      await AppServices.authService.logout();
+    } catch (_) {
+    } finally {
+      AppServices.sessionStore.clearSession();
+    }
 
     if (!mounted) {
       return;

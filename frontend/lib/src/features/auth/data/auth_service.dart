@@ -66,4 +66,11 @@ class AuthService {
     );
   }
 
+  Future<void> logout() async {
+    await _apiClient.postJson(
+      '/api/auth/logout',
+      const <String, dynamic>{},
+    );
+  }
+  
 }

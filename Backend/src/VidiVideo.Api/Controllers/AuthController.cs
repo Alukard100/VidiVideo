@@ -14,14 +14,16 @@ public sealed class AuthController : ControllerBase
     private readonly ICommandHandler<ChangePasswordCommand, bool> _changePasswordHandler;
     private readonly ICommandHandler<ForgetPasswordCommand, bool> _forgetPasswordHandler;
     private readonly ICommandHandler<ResetPasswordCommand, bool> _resetPasswordHandler;
+    private readonly ICommandHandler<LogoutCommand, bool> _logoutHandler;
 
-    public AuthController(ICommandHandler<RegisterUserCommand, Guid> registerHandler, ICommandHandler<LoginUserCommand, LoginUserResponse> loginHandler, ICommandHandler<ChangePasswordCommand, bool> changePasswordHandler, ICommandHandler<ForgetPasswordCommand, bool> forgetPasswordHandler, ICommandHandler<ResetPasswordCommand, bool> resetPasswordHandler)
+    public AuthController(ICommandHandler<RegisterUserCommand, Guid> registerHandler, ICommandHandler<LoginUserCommand, LoginUserResponse> loginHandler, ICommandHandler<ChangePasswordCommand, bool> changePasswordHandler, ICommandHandler<ForgetPasswordCommand, bool> forgetPasswordHandler, ICommandHandler<ResetPasswordCommand, bool> resetPasswordHandler, ICommandHandler<LogoutCommand, bool> logoutHandler)
     {
         _registerHandler = registerHandler;
         _loginHandler = loginHandler;
         _changePasswordHandler = changePasswordHandler;
         _forgetPasswordHandler = forgetPasswordHandler;
         _resetPasswordHandler = resetPasswordHandler;
+        _logoutHandler = logoutHandler;
     }
 
     [HttpPost("register")]
@@ -87,6 +89,17 @@ public sealed class AuthController : ControllerBase
         {
             message = "Password has been reset successfully."
         });
+    }
+
+    [Authorize]
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout(CancellationToken cancellationToken)
+    {
+        await _logoutHandler.HandleAsync(
+            new LogoutCommand(),
+            cancellationToken);
+
+        return Ok();
     }
 
     [Authorize]

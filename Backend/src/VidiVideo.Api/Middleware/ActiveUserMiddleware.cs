@@ -25,40 +25,61 @@ public sealed class ActiveUserMiddleware
                 context.User.FindFirstValue(
                     ClaimTypes.NameIdentifier);
 
-            if (Guid.TryParse(
-                idClaim,
-                out var userId))
+            var tokenVersionClaim =
+                context.User.FindFirstValue(
+                    "token_version");
+
+            if (!Guid.TryParse(
+                    idClaim,
+                    out var userId) ||
+                !int.TryParse(
+                    tokenVersionClaim,
+                    out var tokenVersion))
             {
-                var status =
-                    await db.Users
-                        .AsNoTracking()
-                        .Where(u => u.Id == userId)
-                        .Select(u => new
-                        {
-                            u.Status,
-                            u.IsDeleted
-                        })
-                        .FirstOrDefaultAsync(
-                            context.RequestAborted);
+                context.Response.StatusCode =
+                    StatusCodes.Status401Unauthorized;
 
-                if (status == null ||
-                    status.IsDeleted ||
-                    status.Status != UserStatus.Active)
-                {
-                    context.Response.StatusCode =
-                        StatusCodes
-                            .Status401Unauthorized;
+                await context.Response.WriteAsJsonAsync(
+                    new
+                    {
+                        message =
+                            "Invalid authentication token."
+                    },
+                    context.RequestAborted);
 
-                    await context.Response.WriteAsJsonAsync(
-                        new
-                        {
-                            message =
-                                "Account is not active."
-                        },
+                return;
+            }
+
+            var status =
+                await db.Users
+                    .AsNoTracking()
+                    .Where(u => u.Id == userId)
+                    .Select(u => new
+                    {
+                        u.Status,
+                        u.IsDeleted,
+                        u.TokenVersion
+                    })
+                    .FirstOrDefaultAsync(
                         context.RequestAborted);
 
-                    return;
-                }
+            if (status == null ||
+                status.IsDeleted ||
+                status.Status != UserStatus.Active ||
+                status.TokenVersion != tokenVersion)
+            {
+                context.Response.StatusCode =
+                    StatusCodes.Status401Unauthorized;
+
+                await context.Response.WriteAsJsonAsync(
+                    new
+                    {
+                        message =
+                            "Authentication is no longer valid."
+                    },
+                    context.RequestAborted);
+
+                return;
             }
         }
 

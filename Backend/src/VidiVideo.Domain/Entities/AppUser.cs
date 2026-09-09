@@ -20,6 +20,7 @@ public sealed class AppUser : AuditableEntity
     public bool HasConnectedPayPal => !string.IsNullOrWhiteSpace(PayPalMerchantId);
     public string? PasswordResetCodeHash { get; private set; }
     public DateTime? PasswordResetCodeExpiresAtUtc { get; private set; }
+    public int TokenVersion { get; private set; } = 0;
     public ICollection<Video> Videos { get; set; } = [];
     public ICollection<Follow> Following { get; set; } = [];
     public ICollection<Follow> Followers { get; set; } = [];
@@ -87,6 +88,11 @@ public sealed class AppUser : AuditableEntity
     {
         PasswordResetCodeHash = null;
         PasswordResetCodeExpiresAtUtc = null;
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
+    public void RevokeTokens()
+    {
+        TokenVersion++;
         UpdatedAtUtc = DateTime.UtcNow;
     }
 

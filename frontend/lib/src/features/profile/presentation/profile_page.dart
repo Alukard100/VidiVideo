@@ -591,7 +591,14 @@ class _ProfilePageState extends State<ProfilePage> {
 }
 
   Future<void> _logout() async {
-    AppServices.sessionStore.clearSession();
+    try {
+      await AppServices.authService.logout();
+    } catch (_) {
+      // Local logout should still succeed
+      // even if the server is unavailable.
+    } finally {
+      AppServices.sessionStore.clearSession();
+    }
 
     if (!mounted) {
       return;
@@ -599,7 +606,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     Navigator.of(context).pushNamedAndRemoveUntil(
       AppRoutes.login,
-      (route) => false,
+      (_) => false,
     );
   }
 

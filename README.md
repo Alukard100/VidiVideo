@@ -37,6 +37,7 @@ The system consists of a Flutter mobile client, a Flutter Windows administration
 - .NET 9 / ASP.NET Core REST API
 - Entity Framework Core with SQL Server
 - JWT authentication and role-based authorization
+- Server-side JWT invalidation using token versioning
 - CQRS-style Commands and Queries
 - Repository and Unit of Work patterns
 - RabbitMQ messaging
@@ -89,6 +90,7 @@ Important configuration includes:
 - RabbitMQ credentials
 - PayPal Sandbox Client ID and Secret
 - PayPal partner configuration
+- SMTP credentials for password reset emails
 
 The SQL Server password in the connection string must match the configured SQL Server SA password.
 
@@ -193,6 +195,8 @@ Refunds are performed through the original PayPal capture. Refund contribution o
 RabbitMQ is used for asynchronous background processing.
 
 The Worker consumes image-cleanup messages and removes orphaned images after avatar or thumbnail replacement when an image is no longer referenced by the application.
+
+The Worker uses exponential retry/backoff for RabbitMQ connection failures and bounded retry handling for failed message processing.
 
 The API and Worker share the image storage volume through Docker.
 

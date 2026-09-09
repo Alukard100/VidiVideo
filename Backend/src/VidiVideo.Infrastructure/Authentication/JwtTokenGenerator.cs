@@ -32,7 +32,8 @@ namespace VidiVideo.Infrastructure.Authentication
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new(ClaimTypes.Name, user.UserName),
                 new(ClaimTypes.Email, user.Email),
-                new(ClaimTypes.Role, user.Role)
+                new(ClaimTypes.Role, user.Role),
+                new("token_version", user.TokenVersion.ToString())
             };
 
             var token = new JwtSecurityToken(

@@ -17,6 +17,7 @@ public sealed class Worker : BackgroundService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly RabbitMqOptions _rabbitMqOptions;
     private readonly IConfiguration _configuration;
+    private const int MaxProcessingAttempts = 3;
 
     public Worker(
         ILogger<Worker> logger,
@@ -121,28 +122,95 @@ public sealed class Worker : BackgroundService
                     return;
                 }
 
-                await ProcessImageCleanupAsync(
-                    message,
-                    stoppingToken);
+                for (var attempt = 1;
+                     attempt <= MaxProcessingAttempts;
+                     attempt++)
+                {
+                    try
+                    {
+                        await ProcessImageCleanupAsync(
+                            message,
+                            stoppingToken);
 
-                await channel.BasicAckAsync(
-                    args.DeliveryTag,
-                    multiple: false,
-                    cancellationToken:
-                        stoppingToken);
+                        await channel.BasicAckAsync(
+                            args.DeliveryTag,
+                            multiple: false,
+                            cancellationToken:
+                                stoppingToken);
+
+                        return;
+                    }
+                    catch (OperationCanceledException)
+                        when (stoppingToken.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    catch (Exception exception)
+                    {
+                        if (attempt == MaxProcessingAttempts)
+                        {
+                            _logger.LogError(
+                                exception,
+                                "Failed processing image cleanup message " +
+                                "after {AttemptCount} attempts.",
+                                MaxProcessingAttempts);
+
+                            await channel.BasicNackAsync(
+                                args.DeliveryTag,
+                                multiple: false,
+                                requeue: false,
+                                cancellationToken:
+                                    stoppingToken);
+
+                            return;
+                        }
+
+                        var delaySeconds =
+                            Math.Min(
+                                Math.Pow(2, attempt - 1),
+                                8);
+
+                        _logger.LogWarning(
+                            exception,
+                            "Image cleanup attempt {Attempt} failed. " +
+                            "Retrying in {DelaySeconds} seconds.",
+                            attempt,
+                            delaySeconds);
+
+                        await Task.Delay(
+                            TimeSpan.FromSeconds(
+                                delaySeconds),
+                            stoppingToken);
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+                when (stoppingToken.IsCancellationRequested)
+            {
+                // Normal worker shutdown.
             }
             catch (Exception exception)
             {
                 _logger.LogError(
                     exception,
-                    "Failed processing image cleanup message.");
+                    "Failed to deserialize or process " +
+                    "image cleanup message.");
 
-                await channel.BasicNackAsync(
-                    args.DeliveryTag,
-                    multiple: false,
-                    requeue: false,
-                    cancellationToken:
-                        stoppingToken);
+                try
+                {
+                    await channel.BasicNackAsync(
+                        args.DeliveryTag,
+                        multiple: false,
+                        requeue: false,
+                        cancellationToken:
+                            stoppingToken);
+                }
+                catch (Exception nackException)
+                {
+                    _logger.LogError(
+                        nackException,
+                        "Failed to NACK RabbitMQ message.");
+                }
             }
         };
 
