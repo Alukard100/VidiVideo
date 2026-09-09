@@ -19,5 +19,6 @@ public sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.HasIndex(x => x.Email).IsUnique();
         builder.HasIndex(x => x.UserName).IsUnique();
         builder.Property(x => x.PayPalMerchantId).HasMaxLength(64);
+        builder.Property(x => x.PasswordResetCodeHash).HasMaxLength(512);
     }
 }

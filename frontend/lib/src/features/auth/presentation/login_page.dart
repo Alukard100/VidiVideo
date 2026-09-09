@@ -229,7 +229,6 @@ class _LoginPageState extends State<LoginPage> {
                     if (!isWindows) ...[
                       const SizedBox(height: 8),
                       FilledButton(
-            
                         onPressed: _isLoading
                             ? null
                             : () {
@@ -251,6 +250,16 @@ class _LoginPageState extends State<LoginPage> {
                         child: const Text('Open mobile preview'),
                       ),
                     ],
+                    OutlinedButton(
+                        onPressed: _isLoading
+                            ? null
+                            : () {
+                                Navigator.of(context).pushReplacementNamed(
+                                  AppRoutes.forgotPassword,
+                                );
+                              },
+                        child: const Text('Forgot password?'),
+                      ),
                   ],
                 ),
               ),

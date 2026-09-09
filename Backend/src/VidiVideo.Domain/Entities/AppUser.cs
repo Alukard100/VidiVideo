@@ -18,6 +18,8 @@ public sealed class AppUser : AuditableEntity
     public string Role { get; private set; } = AppRoles.User;
     public string? PayPalMerchantId { get; private set; }
     public bool HasConnectedPayPal => !string.IsNullOrWhiteSpace(PayPalMerchantId);
+    public string? PasswordResetCodeHash { get; private set; }
+    public DateTime? PasswordResetCodeExpiresAtUtc { get; private set; }
     public ICollection<Video> Videos { get; set; } = [];
     public ICollection<Follow> Following { get; set; } = [];
     public ICollection<Follow> Followers { get; set; } = [];
@@ -70,6 +72,21 @@ public sealed class AppUser : AuditableEntity
                 nameof(merchantId));
 
         PayPalMerchantId = merchantId;
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
+
+    public void SetPasswordResetCode(string codeHash, DateTime expiresAtUtc)
+    {
+        if (string.IsNullOrWhiteSpace(codeHash)) throw new ArgumentException("Reset code hash is required.", nameof(codeHash));
+        PasswordResetCodeHash = codeHash;
+        PasswordResetCodeExpiresAtUtc = expiresAtUtc;
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
+
+    public void ClearPasswordResetCode()
+    {
+        PasswordResetCodeHash = null;
+        PasswordResetCodeExpiresAtUtc = null;
         UpdatedAtUtc = DateTime.UtcNow;
     }
 

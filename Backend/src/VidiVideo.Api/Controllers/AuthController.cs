@@ -12,12 +12,16 @@ public sealed class AuthController : ControllerBase
     private readonly ICommandHandler<RegisterUserCommand, Guid> _registerHandler;
     private readonly ICommandHandler<LoginUserCommand, LoginUserResponse> _loginHandler;
     private readonly ICommandHandler<ChangePasswordCommand, bool> _changePasswordHandler;
+    private readonly ICommandHandler<ForgetPasswordCommand, bool> _forgetPasswordHandler;
+    private readonly ICommandHandler<ResetPasswordCommand, bool> _resetPasswordHandler;
 
-    public AuthController(ICommandHandler<RegisterUserCommand, Guid> registerHandler, ICommandHandler<LoginUserCommand, LoginUserResponse> loginHandler, ICommandHandler<ChangePasswordCommand, bool> changePasswordHandler)
+    public AuthController(ICommandHandler<RegisterUserCommand, Guid> registerHandler, ICommandHandler<LoginUserCommand, LoginUserResponse> loginHandler, ICommandHandler<ChangePasswordCommand, bool> changePasswordHandler, ICommandHandler<ForgetPasswordCommand, bool> forgetPasswordHandler, ICommandHandler<ResetPasswordCommand, bool> resetPasswordHandler)
     {
         _registerHandler = registerHandler;
         _loginHandler = loginHandler;
         _changePasswordHandler = changePasswordHandler;
+        _forgetPasswordHandler = forgetPasswordHandler;
+        _resetPasswordHandler = resetPasswordHandler;
     }
 
     [HttpPost("register")]
@@ -53,6 +57,36 @@ public sealed class AuthController : ControllerBase
         var response = await _changePasswordHandler.HandleAsync(command, cancellationToken);
 
         return Ok(response);
+    }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        await _forgetPasswordHandler.HandleAsync(
+            new ForgetPasswordCommand(
+                request.Email),
+            cancellationToken);
+
+        return Ok(new
+        {
+            message = "If an account exists for this email, a reset code has been sent."
+        });
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        await _resetPasswordHandler.HandleAsync(
+            new ResetPasswordCommand(
+                request.Email,
+                request.Code,
+                request.NewPassword),
+            cancellationToken);
+
+        return Ok(new
+        {
+            message = "Password has been reset successfully."
+        });
     }
 
     [Authorize]

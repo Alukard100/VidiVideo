@@ -10,6 +10,7 @@ import '../features/admin/presentation/reference_data_page.dart';
 import '../features/admin/presentation/refund_requests_page.dart';
 import '../features/admin/presentation/staff_management_page.dart';
 import '../features/admin/presentation/users_management_page.dart';
+import '../features/auth/presentation/forgot_password_page.dart';
 import '../features/auth/presentation/login_page.dart';
 import '../features/auth/presentation/register_page.dart';
 import '../features/mobile/presentation/create/create_video_page.dart';
@@ -41,6 +42,7 @@ class VidiVideoApp extends StatelessWidget {
       routes: {
         AppRoutes.login: (_) => const LoginPage(),
         AppRoutes.register: (_) => const RegisterPage(),
+        AppRoutes.forgotPassword: (_) => const ForgotPasswordPage(),
         AppRoutes.adminDashboard: (_) => const AdminDashboardPage(),
         AppRoutes.adminUsers: (_) => const UsersManagementPage(),
         AppRoutes.adminReports: (_) => const ContentReportsPage(),

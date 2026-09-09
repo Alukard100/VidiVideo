@@ -7,6 +7,7 @@ using VidiVideo.Application.Abstractions.Recommendations;
 using VidiVideo.Application.Abstractions.Repositories;
 using VidiVideo.Infrastructure.AccessValidators;
 using VidiVideo.Infrastructure.Authentication;
+using VidiVideo.Infrastructure.Email;
 using VidiVideo.Infrastructure.Media;
 using VidiVideo.Infrastructure.Messaging;
 using VidiVideo.Infrastructure.Payments;
@@ -28,10 +29,12 @@ public static class DependencyInjection
         services.AddDbContext<VidiVideoDbContext>(options => options.UseSqlServer(connectionString));
         services.Configure<RabbitMqOptions>(configuration.GetSection("RabbitMq"));
         services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
+        services.Configure<SmtpOptions>(configuration.GetSection("Smtp"));
 
         services.AddSingleton<IMessagePublisher, RabbitMqMessagePublisher>();
         services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
         services.AddScoped<ITokenGenerator, JwtTokenGenerator>();
+        services.AddScoped<IEmailSender, SmtpEmailSender>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ICountryRepository, CountryRepository>();

@@ -59,15 +59,15 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         }
 
         public async Task<int> CountFollowersAsync(Guid targetId)
-            => await _db.Follows.CountAsync(f => f.CreatorId == targetId);
+            => await _db.Follows.CountAsync(f => f.CreatorId == targetId && !f.IsDeleted);
 
         public async Task<int> CountFollowingAsync(Guid targetId)
-            => await _db.Follows.CountAsync(f => f.FollowerId == targetId);
+            => await _db.Follows.CountAsync(f => f.FollowerId == targetId && !f.IsDeleted);
 
         public async Task<HashSet<Guid>> GetFollowingCreatorIdsAsync(Guid userId)
         {
             var ids = await _db.Follows
-                .Where(f => f.FollowerId == userId)
+                .Where(f => f.FollowerId == userId && !f.IsDeleted)
                 .Select(f => f.CreatorId)
                 .ToListAsync();
 

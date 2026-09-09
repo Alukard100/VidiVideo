@@ -70,6 +70,8 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<CreatePayPalOnboardingCommand, PayPalOnboardingResult>, CreatePayPalOnboardingCommandHandler>();
         services.AddScoped<ICommandHandler<CompletePayPalOnboardingCommand, bool>, CompletePayPalOnboardingCommandHandler>();
         services.AddScoped<ICommandHandler<CreateEmojiCommand, ChannelEmojiDto>, CreateEmojiCommandHandler>();
+        services.AddScoped<ICommandHandler<ForgetPasswordCommand, bool>, ForgetPasswordCommandHandler>();
+        services.AddScoped<ICommandHandler<ResetPasswordCommand, bool>, ResetPasswordCommandHandler>();
         //Queries
         services.AddScoped<IQueryHandler<GetCountryByIdQuery, CountryDto>, GetCountryByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetCountriesQuery, PagedResult<CountryDto>>, GetCountriesQueryHandler>();

@@ -40,4 +40,30 @@ class AuthService {
     );
   }
 
+  Future<void> forgotPassword(
+    String email,
+  ) async {
+    await _apiClient.postJson(
+      '/api/auth/forgot-password',
+      {
+        'email': email,
+      },
+    );
+  }
+
+  Future<void> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    await _apiClient.postJson(
+      '/api/auth/reset-password',
+      {
+        'email': email,
+        'code': code,
+        'newPassword': newPassword,
+      },
+    );
+  }
+
 }
