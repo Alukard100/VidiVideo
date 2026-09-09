@@ -15,9 +15,11 @@ public sealed class GetHashtagsQueryHandler : IQueryHandler<GetHashtagsQuery, Pa
 
     public async Task<PagedResult<HashtagDto>> HandleAsync(GetHashtagsQuery query, CancellationToken cancellationToken)
     {
-        var hashtags = await _repo.GetAllHashtagsAsync(query.Page, query.PageSize, cancellationToken);
+        var search = string.IsNullOrWhiteSpace(query.Search) ? null : query.Search.Trim();
 
-        var count = await _repo.CountAsync(cancellationToken);
+        var hashtags = await _repo.GetAllHashtagsAsync(search, query.Page, query.PageSize, cancellationToken);
+
+        var count = await _repo.CountAsync(search, cancellationToken);
 
         var items = hashtags.Select(h => new HashtagDto(h.Id, h.Name)).ToList();
 

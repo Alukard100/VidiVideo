@@ -24,6 +24,9 @@ namespace VidiVideo.Application.Categories
 
             var name = command.Name.Trim();
 
+            if (name.Length > 80)
+                throw new ValidationException("Category name cannot exceed 80 characters");
+
             if (await _repo.ExistByNameAsync(name))
                 throw new ConflictException("Category already exists");
 

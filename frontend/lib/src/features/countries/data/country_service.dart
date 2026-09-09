@@ -11,27 +11,24 @@ class CountryService {
   final ApiClient _apiClient;
 
   Future<List<Country>> getAll() async {
-    final response = await _apiClient.getJson(
-      '/api/Country/getall',
-      queryParameters: {
-        'Page': '1',
-        'PageSize': '30',
-      },
-    );
+    const pageSize = 100;
+    final countries = <Country>[];
+    var page = 1;
 
-    final items = response['items'];
-
-    if (items is! List) {
-      throw const ApiException(
-        statusCode: 500,
-        message: 'Unexpected countries response.',
+    while (true) {
+      final result = await getPage(
+        page: page,
+        pageSize: pageSize,
       );
-    }
 
-    return items
-        .whereType<Map<String, dynamic>>()
-        .map(Country.fromJson)
-        .toList();
+      countries.addAll(result.items);
+
+      if (countries.length >= result.totalCount || result.items.isEmpty) {
+        return countries;
+      }
+
+      page++;
+    }
   }
 
   Future<PagedResult<Country>> getPage({

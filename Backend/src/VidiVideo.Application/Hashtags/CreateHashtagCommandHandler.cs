@@ -21,10 +21,15 @@ namespace VidiVideo.Application.Hashtags
                 throw new ValidationException(
                     "Cant be empty");
 
-            if (await _repository.ExistByNameAsync(command.Name))
+            var name = command.Name.Trim();
+
+            if (name.Length > 80)
+                throw new ValidationException("Hashtag name cannot exceed 80 characters");
+
+            if (await _repository.ExistByNameAsync(name))
                 throw new ConflictException("Already exists");
 
-            Hashtag hashtag = new(command.Name);
+            Hashtag hashtag = new(name);
 
             await _repository.CreateHashtagAsync(hashtag);
 

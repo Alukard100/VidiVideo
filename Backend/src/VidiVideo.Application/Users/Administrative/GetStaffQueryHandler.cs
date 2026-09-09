@@ -1,5 +1,7 @@
 ﻿using VidiVideo.Application.Abstractions.Repositories;
 using VidiVideo.Application.Common;
+using VidiVideo.Application.Exceptions;
+using VidiVideo.Domain.Constants;
 
 namespace VidiVideo.Application.Users.Administrative
 {
@@ -14,9 +16,12 @@ namespace VidiVideo.Application.Users.Administrative
         public async Task<PagedResult<StaffSummaryDto>> HandleAsync(GetStaffQuery query, CancellationToken cancellationToken)
         {
 
-            var staff = await _userRepository.GetStaffAsync(query.Page, query.PageSize, cancellationToken);
+            var search = string.IsNullOrWhiteSpace(query.Search) ? null : query.Search.Trim();
+            var role = NormalizeStaffRole(query.Role);
 
-            var count = await _userRepository.CountStaffAsync(cancellationToken);
+            var staff = await _userRepository.GetStaffAsync(search, role, query.Page, query.PageSize, cancellationToken);
+
+            var count = await _userRepository.CountStaffAsync(search, role, cancellationToken);
 
             var response = staff.Select(s => new StaffSummaryDto(
                 s.Id,
@@ -30,6 +35,20 @@ namespace VidiVideo.Application.Users.Administrative
 
             return new PagedResult<StaffSummaryDto>(response, query.Page, query.PageSize, count);
 
+        }
+
+        private static string? NormalizeStaffRole(string? role)
+        {
+            if (string.IsNullOrWhiteSpace(role))
+                return null;
+
+            return role.Trim().ToLowerInvariant() switch
+            {
+                "super admin" => AppRoles.SuperAdmin,
+                "admin" => AppRoles.Admin,
+                "moderator" => AppRoles.Moderator,
+                _ => throw new ValidationException("Invalid staff role filter")
+            };
         }
     }
 }

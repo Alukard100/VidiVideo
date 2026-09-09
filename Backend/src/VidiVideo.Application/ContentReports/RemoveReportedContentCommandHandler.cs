@@ -18,11 +18,11 @@ public sealed class RemoveReportedContentCommandHandler : ICommandHandler<Remove
 
     public async Task<bool> HandleAsync(RemoveReportedContentCommand command, CancellationToken cancellationToken)
     {
-        var isVideo = command.ContentType.Equals(
+        var isVideo = string.Equals(command.ContentType,
             "video",
             StringComparison.OrdinalIgnoreCase);
 
-        var isComment = command.ContentType.Equals(
+        var isComment = string.Equals(command.ContentType,
             "comment",
             StringComparison.OrdinalIgnoreCase);
 

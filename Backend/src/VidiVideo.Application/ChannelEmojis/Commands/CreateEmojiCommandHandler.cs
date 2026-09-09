@@ -35,8 +35,8 @@ public sealed class CreateEmojiCommandHandler : ICommandHandler<CreateEmojiComma
         var creator = await _userRepository.GetByIdAsync(userId) ?? throw new NotFoundException("User not found");
         if (!creator.HasConnectedPayPal) throw new ValidationException("Connect PayPal before creating channel emojis.");
 
+        if (string.IsNullOrWhiteSpace(command.Code)) throw new ValidationException("Emoji code is required.");
         var code = command.Code.Trim();
-        if (string.IsNullOrWhiteSpace(code)) throw new ValidationException("Emoji code is required.");
         if (code.Length > 32) throw new ValidationException("Emoji code cannot exceed 32 characters.");
         if (!code.All(c => char.IsLetterOrDigit(c) || c == '_')) throw new ValidationException("Emoji code may contain only letters, numbers and underscores.");
 

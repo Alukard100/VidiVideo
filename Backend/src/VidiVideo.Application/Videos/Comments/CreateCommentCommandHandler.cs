@@ -34,6 +34,9 @@ namespace VidiVideo.Application.Videos.Comments
             if (string.IsNullOrWhiteSpace(command.Content))
                 throw new ValidationException("Can't post an empty comment");
 
+            if (command.Content.Length > 500)
+                throw new ValidationException("Comment cannot exceed 500 characters");
+
             var creatorId = _currentUser.UserId ?? throw new UnauthorizedException("Must be logged in");
 
             var video = await _videoRepository.GetVideoByIdAsync(command.VideoId, cancellationToken) ?? throw new NotFoundException("Video doesn't exist");
@@ -51,7 +54,11 @@ namespace VidiVideo.Application.Videos.Comments
 
             await _repo.CreateCommentAsync(comment);
 
-            var notification = new Notification(video.CreatorId, $"New comment from {currentUser.DisplayName}", $"New comment on \"{(video.Caption.Length <= 8 ? video.Caption : video.Caption.Substring(0, 8) + "...")}\"", NotificationType.Comment);
+            var notificationTitle = $"New comment from {currentUser.DisplayName}";
+            if (notificationTitle.Length > 80)
+                notificationTitle = notificationTitle[..80];
+
+            var notification = new Notification(video.CreatorId, notificationTitle, $"New comment on \"{(video.Caption.Length <= 8 ? video.Caption : video.Caption.Substring(0, 8) + "...")}\"", NotificationType.Comment);
 
             await _notificationRepository.CreateAsync(notification);
 

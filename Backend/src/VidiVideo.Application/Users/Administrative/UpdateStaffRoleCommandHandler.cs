@@ -28,6 +28,9 @@ public sealed class UpdateStaffRoleCommandHandler : ICommandHandler<UpdateStaffR
         if (target.Role == AppRoles.SuperAdmin)
             throw new UnauthorizedException("Not allowed");
 
+        if (command.Role != AppRoles.Admin && command.Role != AppRoles.Moderator)
+            throw new ValidationException("Invalid staff role");
+
         target.UpdateRole(command.Role);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);

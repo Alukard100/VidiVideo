@@ -36,6 +36,13 @@ public sealed class UpdateMyProfileCommandHandler
         if (string.IsNullOrWhiteSpace(command.DisplayName))
             throw new ValidationException("Display name is required.");
 
+        var displayName = command.DisplayName.Trim();
+
+        if (displayName.Length > 100)
+            throw new ValidationException("Display name cannot exceed 100 characters.");
+
+        if (command.Bio?.Length > 500)
+            throw new ValidationException("Bio cannot exceed 500 characters.");
 
         if (command.CountryId.HasValue &&
             !await _countryRepository.ExistsByIdAsync(command.CountryId.Value))
@@ -44,7 +51,7 @@ public sealed class UpdateMyProfileCommandHandler
         }
 
         user.UpdateProfile(
-            command.DisplayName,
+            displayName,
             command.Bio,
             command.CountryId);
 

@@ -156,16 +156,16 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             }
         }
 
-        public async Task<List<AppUser>> GetStaffAsync(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
+        public async Task<List<AppUser>> GetStaffAsync(string? search, string? role, int page, int pageSize, CancellationToken cancellationToken = default)
         {
-            var staff = await _db.Users
-                .Where(u => u.Role != AppRoles.User)
+            var staff = await BuildStaffQuery(search, role)
                 .OrderBy(u =>
                     u.Role == AppRoles.SuperAdmin ? 0 :
                     u.Role == AppRoles.Admin ? 1 :
                     u.Role == AppRoles.Moderator ? 2 :
                     3)
                 .ThenBy(u => u.CreatedAtUtc)
+                .ThenBy(u => u.Id)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync(cancellationToken);
@@ -173,9 +173,31 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
             return staff;
         }
 
-        public async Task<int> CountStaffAsync(CancellationToken cancellationToken = default)
+        public async Task<int> CountStaffAsync(string? search, string? role, CancellationToken cancellationToken = default)
         {
-            return await _db.Users.CountAsync(u => u.Role != AppRoles.User, cancellationToken);
+            return await BuildStaffQuery(search, role).CountAsync(cancellationToken);
+        }
+
+        private IQueryable<AppUser> BuildStaffQuery(string? search, string? role)
+        {
+            var query = _db.Users
+                .AsNoTracking()
+                .Where(u => u.Role != AppRoles.User)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim();
+                query = query.Where(u =>
+                    u.UserName.Contains(term) ||
+                    u.DisplayName.Contains(term) ||
+                    u.Email.Contains(term));
+            }
+
+            if (!string.IsNullOrWhiteSpace(role))
+                query = query.Where(u => u.Role == role);
+
+            return query;
         }
     }
 }

@@ -16,12 +16,20 @@ namespace VidiVideo.Application.Countries
         }
         public async Task<Guid> HandleAsync(CreateCountryCommand command, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(command.Name) || string.IsNullOrWhiteSpace(command.Code) || command.Code.Length > 4)
-                throw new ValidationException(
-                    "Name and Code cannot be empty, Country code cannot have more than 4 characters");
+            if (string.IsNullOrWhiteSpace(command.Name))
+                throw new ValidationException("Country name is required");
+
+            if (string.IsNullOrWhiteSpace(command.Code))
+                throw new ValidationException("Country code is required");
 
             var name = command.Name.Trim();
-            var code = command.Code.ToUpperInvariant();
+            var code = command.Code.Trim().ToUpperInvariant();
+
+            if (name.Length > 80)
+                throw new ValidationException("Country name cannot exceed 80 characters");
+
+            if (code.Length > 4)
+                throw new ValidationException("Country code cannot exceed 4 characters");
 
             if (await _countryRepository.ExistsByCodeAsync(code))
             {
@@ -29,7 +37,7 @@ namespace VidiVideo.Application.Countries
                     "Country code already exists");
             }
 
-            Country country = new(name, command.Code);
+            Country country = new(name, code);
 
             await _countryRepository.AddAsync(country);
 

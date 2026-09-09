@@ -4,6 +4,7 @@ using VidiVideo.Application.Common;
 using VidiVideo.Application.Exceptions;
 using VidiVideo.Application.Hashtags;
 using VidiVideo.Domain.Entities;
+using VidiVideo.Domain.Enums;
 
 namespace VidiVideo.Application.Videos
 {
@@ -35,7 +36,17 @@ namespace VidiVideo.Application.Videos
             if (!await _repo.CheckOwnershipAsync(ownerId, command.VideoId, cancellationToken))
                 throw new UnauthorizedException("You are not the owner of this video");
 
-            if (!await _categoryRepository.ExistsByIdAsync(command.CategoryId)) throw new NotFoundException("Category doesn't exist");
+            if (string.IsNullOrWhiteSpace(command.Caption))
+                throw new ValidationException("Caption is required");
+
+            if (command.Caption.Length > 500)
+                throw new ValidationException("Caption cannot exceed 500 characters");
+
+            if (!Enum.IsDefined(command.Visibility))
+                throw new ValidationException("Invalid video visibility");
+
+            if (!await _categoryRepository.ExistsByIdAsync(command.CategoryId))
+                throw new NotFoundException("Category doesn't exist");
 
             if (command.Visibility == Domain.Enums.VideoVisibility.SubscribersOnly)
             {
@@ -47,9 +58,12 @@ namespace VidiVideo.Application.Videos
                 }
             }
 
-            video.Update(command.CategoryId, command.Caption, command.Visibility, command.IsPublished);
-
             var hashtagNames = HashtagParser.Extract(command.Caption);
+
+            if (hashtagNames.Any(name => name.Length > 80))
+                throw new ValidationException("Hashtag names cannot exceed 80 characters");
+
+            video.Update(command.CategoryId, command.Caption, command.Visibility, command.IsPublished);
 
             List<Hashtag> hashtags = [];
 

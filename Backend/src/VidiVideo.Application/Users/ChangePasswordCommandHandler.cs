@@ -25,6 +25,9 @@ public sealed class ChangePasswordCommandHandler : ICommandHandler<ChangePasswor
 
         var user = await _userRepo.GetProfileByIdAsync(userId) ?? throw new NotFoundException("Invalid");
 
+        if (string.IsNullOrWhiteSpace(command.OldPassword))
+            throw new ValidationException("Current password is required.");
+
         if (!_passwordHasher.Verify(command.OldPassword, user.PasswordHash))
         {
             throw new ValidationException(

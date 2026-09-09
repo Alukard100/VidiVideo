@@ -1,4 +1,5 @@
 import '../../../core/network/api_client.dart';
+import '../../../shared/models/paged_result.dart';
 import '../models/admin_staff_member.dart';
 
 class AdminStaffService {
@@ -8,28 +9,34 @@ class AdminStaffService {
 
   final ApiClient _apiClient;
 
-  Future<List<AdminStaffMember>> getStaff() async {
+  Future<PagedResult<AdminStaffMember>> getStaff({
+    String? search,
+    String? role,
+    int page = 1,
+    int pageSize = 10,
+  }) async {
     final response = await _apiClient.getJson(
       '/api/User/staff',
       queryParameters: {
-        'Page': '1',
-        'PageSize': '10',
+        'Page': page,
+        'PageSize': pageSize,
+        if (search != null && search.trim().isNotEmpty)
+          'Search': search.trim(),
+        if (role != null && role.trim().isNotEmpty) 'Role': role.trim(),
       },
     );
 
-    final items = response['items'];
-
-    if (items is! List) {
+    if (response is! Map<String, dynamic>) {
       throw const ApiException(
         statusCode: 500,
         message: 'Unexpected staff response.',
       );
     }
 
-    return items
-        .whereType<Map<String, dynamic>>()
-        .map(AdminStaffMember.fromJson)
-        .toList();
+    return PagedResult<AdminStaffMember>.fromJson(
+      response,
+      AdminStaffMember.fromJson,
+    );
   }
 
   Future<void> createStaff({

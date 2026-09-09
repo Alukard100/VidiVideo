@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../core/dependency/app_services.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/media_url.dart';
+import '../../../shared/models/paged_result.dart';
 import '../../../shared/widgets/responsive_scaffold.dart';
 import '../models/admin_staff_member.dart';
 import 'admin_navigation.dart';
@@ -23,7 +26,16 @@ class StaffManagementPage extends StatefulWidget {
 
 class _StaffManagementPageState
     extends State<StaffManagementPage> {
-  late Future<List<AdminStaffMember>> _staffFuture;
+  static const int _pageSize = 10;
+
+  final _searchController = TextEditingController();
+  Timer? _searchDebounce;
+
+  late Future<PagedResult<AdminStaffMember>> _staffFuture;
+
+  int _page = 1;
+  String? _search;
+  String? _role;
 
   String get _myRole =>
       AppServices.sessionStore.role ?? '';
@@ -38,14 +50,58 @@ class _StaffManagementPageState
   void initState() {
     super.initState();
 
-    _staffFuture =
-        AppServices.adminStaffService.getStaff();
+    _staffFuture = _load();
   }
 
-  void _refresh() {
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<PagedResult<AdminStaffMember>> _load() {
+    return AppServices.adminStaffService.getStaff(
+      search: _search,
+      role: _role,
+      page: _page,
+      pageSize: _pageSize,
+    );
+  }
+
+  void _refresh({bool firstPage = false}) {
     setState(() {
-      _staffFuture =
-          AppServices.adminStaffService.getStaff();
+      if (firstPage) {
+        _page = 1;
+      }
+
+      _staffFuture = _load();
+    });
+  }
+
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(
+      const Duration(milliseconds: 350),
+      () {
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {
+          _search = value.trim().isEmpty ? null : value.trim();
+          _page = 1;
+          _staffFuture = _load();
+        });
+      },
+    );
+  }
+
+  void _onRoleChanged(String? role) {
+    setState(() {
+      _role = role;
+      _page = 1;
+      _staffFuture = _load();
     });
   }
 
@@ -123,6 +179,20 @@ class _StaffManagementPageState
     try {
       await AppServices.adminStaffService
           .removeStaff(member.id);
+
+      if (!mounted) {
+        return;
+      }
+
+      final current = await _load();
+
+      if (!mounted) {
+        return;
+      }
+
+      if (current.items.isEmpty && _page > 1) {
+        _page--;
+      }
 
       _refresh();
     } on ApiException catch (exception) {
@@ -212,12 +282,11 @@ class _StaffManagementPageState
 
             const SizedBox(height: 20),
 
-            FutureBuilder<List<AdminStaffMember>>(
+            FutureBuilder<PagedResult<AdminStaffMember>>(
               future: _staffFuture,
               builder: (context, snapshot) {
-                final staff =
-                    snapshot.data ??
-                        const <AdminStaffMember>[];
+                final result = snapshot.data;
+                final staff = result?.items ?? const <AdminStaffMember>[];
 
                 return Column(
                   children: [
@@ -227,7 +296,7 @@ class _StaffManagementPageState
 
                     _buildTeamCard(
                       snapshot,
-                      staff,
+                      result,
                     ),
                   ],
                 );
@@ -270,9 +339,9 @@ class _StaffManagementPageState
       children: [
         Expanded(
           child: _RoleCard(
-            title: 'Super Admins',
+            title: 'Super Admins (page)',
             value: superAdmins,
-            subtitle: 'Full system access',
+            subtitle: 'Current page',
             icon: Icons.workspace_premium_outlined,
           ),
         ),
@@ -281,9 +350,9 @@ class _StaffManagementPageState
 
         Expanded(
           child: _RoleCard(
-            title: 'Admins',
+            title: 'Admins (page)',
             value: admins,
-            subtitle: 'Management access',
+            subtitle: 'Current page',
             icon:
                 Icons.shield_outlined,
           ),
@@ -293,9 +362,9 @@ class _StaffManagementPageState
 
         Expanded(
           child: _RoleCard(
-            title: 'Moderators',
+            title: 'Moderators (page)',
             value: moderators,
-            subtitle: 'Content moderation',
+            subtitle: 'Current page',
             icon:
                 Icons.group_outlined,
           ),
@@ -305,10 +374,11 @@ class _StaffManagementPageState
   }
 
   Widget _buildTeamCard(
-    AsyncSnapshot<List<AdminStaffMember>>
-        snapshot,
-    List<AdminStaffMember> staff,
+    AsyncSnapshot<PagedResult<AdminStaffMember>> snapshot,
+    PagedResult<AdminStaffMember>? result,
   ) {
+    final staff = result?.items ?? const <AdminStaffMember>[];
+
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -325,13 +395,61 @@ class _StaffManagementPageState
           crossAxisAlignment:
               CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Team Members',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight:
-                    FontWeight.w700,
-              ),
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Team Members',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 260,
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: _onSearchChanged,
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.search),
+                      hintText: 'Search staff...',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  width: 170,
+                  child: DropdownButtonFormField<String?>(
+                    initialValue: _role,
+                    isDense: true,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text('All roles'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Super Admin',
+                        child: Text('Super Admin'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Admin',
+                        child: Text('Admin'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Moderator',
+                        child: Text('Moderator'),
+                      ),
+                    ],
+                    onChanged: _onRoleChanged,
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 16),
@@ -383,10 +501,57 @@ class _StaffManagementPageState
                 ),
               )
             else
-              _buildTable(staff),
+              Column(
+                children: [
+                  _buildTable(staff),
+                  const SizedBox(height: 14),
+                  _buildPagination(result!),
+                ],
+              ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPagination(PagedResult<AdminStaffMember> result) {
+    final totalPages = result.totalCount == 0
+        ? 1
+        : (result.totalCount / result.pageSize).ceil();
+
+    return Row(
+      children: [
+        Text(
+          '${result.totalCount} total',
+          style: const TextStyle(color: Color(0xFF6B7280)),
+        ),
+        const Spacer(),
+        IconButton(
+          tooltip: 'Previous page',
+          onPressed: result.page > 1
+              ? () {
+                  setState(() {
+                    _page = result.page - 1;
+                    _staffFuture = _load();
+                  });
+                }
+              : null,
+          icon: const Icon(Icons.chevron_left),
+        ),
+        Text('Page ${result.page} of $totalPages'),
+        IconButton(
+          tooltip: 'Next page',
+          onPressed: result.page < totalPages
+              ? () {
+                  setState(() {
+                    _page = result.page + 1;
+                    _staffFuture = _load();
+                  });
+                }
+              : null,
+          icon: const Icon(Icons.chevron_right),
+        ),
+      ],
     );
   }
 

@@ -23,6 +23,14 @@ namespace VidiVideo.Application.ContentReports
 
         public async Task<Guid> HandleAsync(CreateContentReportCommand command, CancellationToken cancellationToken)
         {
+            if (string.IsNullOrWhiteSpace(command.Reason))
+                throw new ValidationException("Report reason is required");
+
+            var reason = command.Reason.Trim();
+
+            if (reason.Length > 500)
+                throw new ValidationException("Report reason cannot exceed 500 characters");
+
             if (command.CommentId is null && command.VideoId is null)
                 throw new ValidationException("Invalid request");
 
@@ -39,7 +47,7 @@ namespace VidiVideo.Application.ContentReports
                 if (!await _videoRepository.ExistsByIdAsync(videoId))
                     throw new NotFoundException("Invalid request");
 
-            var report = new Domain.Entities.ContentReport(creatorId, command.VideoId, command.CommentId, command.Reason);
+            var report = new Domain.Entities.ContentReport(creatorId, command.VideoId, command.CommentId, reason);
 
             await _repo.CreateAsync(report);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

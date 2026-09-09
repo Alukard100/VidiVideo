@@ -2,4 +2,8 @@
 
 namespace VidiVideo.Application.Users.Administrative;
 
-public sealed record GetStaffQuery : PagedRequest, IQuery<PagedResult<StaffSummaryDto>>;
+public sealed record GetStaffQuery : PagedRequest, IQuery<PagedResult<StaffSummaryDto>>
+{
+    public string? Search { get; init; }
+    public string? Role { get; init; }
+}

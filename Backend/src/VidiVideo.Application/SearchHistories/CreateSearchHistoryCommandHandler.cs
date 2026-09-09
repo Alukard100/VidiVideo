@@ -21,9 +21,17 @@ namespace VidiVideo.Application.SearchHistories
 
         public async Task<Guid> HandleAsync(CreateSearchHistoryCommand command, CancellationToken cancellationToken)
         {
+            if (string.IsNullOrWhiteSpace(command.Query))
+                throw new ValidationException("Search query is required");
+
+            var query = command.Query.Trim();
+
+            if (query.Length > 200)
+                throw new ValidationException("Search query cannot exceed 200 characters");
+
             var userId = _currentUser.UserId ?? throw new UnauthorizedException("Must be logged in");
 
-            var history = new SearchHistory(userId, command.Query);
+            var history = new SearchHistory(userId, query);
 
             await _repo.AddAsync(history);
 

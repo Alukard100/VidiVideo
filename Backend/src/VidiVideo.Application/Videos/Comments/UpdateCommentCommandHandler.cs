@@ -29,6 +29,9 @@ namespace VidiVideo.Application.Videos.Comments
             if (string.IsNullOrWhiteSpace(command.Content))
                 throw new ValidationException("New comment can't be empty");
 
+            if (command.Content.Length > 500)
+                throw new ValidationException("Comment cannot exceed 500 characters");
+
             var comment = await _repo.GetCommentByIdAsync(command.Id) ?? throw new NotFoundException("Comment doesn't exist");
             var video = await _videoRepository.GetVideoByIdAsync(comment.VideoId, cancellationToken) ?? throw new NotFoundException("Video doesn't exist");
 

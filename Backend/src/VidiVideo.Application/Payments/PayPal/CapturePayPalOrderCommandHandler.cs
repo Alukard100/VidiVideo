@@ -20,9 +20,17 @@ namespace VidiVideo.Application.Payments.PayPal
         }
         public async Task<bool> HandleAsync(CapturePayPalOrderCommand command, CancellationToken cancellationToken)
         {
+            if (string.IsNullOrWhiteSpace(command.OrderId))
+                throw new ValidationException("Order ID is required.");
+
+            var orderId = command.OrderId.Trim();
+
+            if (orderId.Length > 256)
+                throw new ValidationException("Order ID cannot exceed 256 characters.");
+
             var currentUserId = _currentUser.UserId ?? throw new UnauthorizedException("User must be logged in.");
 
-            var payment = await _paymentRepository.GetPaymentByProviderIdAsync(command.OrderId) ?? throw new NotFoundException("Payment doesn't exist");
+            var payment = await _paymentRepository.GetPaymentByProviderIdAsync(orderId) ?? throw new NotFoundException("Payment doesn't exist");
 
             var subscription = payment.Subscription;
 
@@ -42,7 +50,7 @@ namespace VidiVideo.Application.Payments.PayPal
 
             try
             {
-                captureOrder = await _payPalService.CaptureOrderAsync(command.OrderId);
+                captureOrder = await _payPalService.CaptureOrderAsync(orderId);
             }
             catch
             {

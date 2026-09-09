@@ -20,15 +20,33 @@ namespace VidiVideo.Application.ContentReports
 
         public async Task<bool> HandleAsync(ReviewContentReportCommand command, CancellationToken cancellationToken)
         {
+            if (!Enum.IsDefined(command.Status))
+            {
+                throw new ValidationException(
+                    "Invalid report status.");
+            }
+
+            if (command.Status == ReportStatus.Pending)
+            {
+                throw new ValidationException(
+                    "Reviewed report cannot remain pending.");
+            }
+
+            if (command.ResolutionNote?.Length > 500)
+            {
+                throw new ValidationException(
+                    "Resolution note cannot exceed 500 characters.");
+            }
+
             var reviewerId = _currentUser.UserId
                 ?? throw new UnauthorizedException(
                     "Not logged in.");
 
-            var isVideo = command.ContentType.Equals(
+            var isVideo = string.Equals(command.ContentType,
                 "video",
                 StringComparison.OrdinalIgnoreCase);
 
-            var isComment = command.ContentType.Equals(
+            var isComment = string.Equals(command.ContentType,
                 "comment",
                 StringComparison.OrdinalIgnoreCase);
 
@@ -36,12 +54,6 @@ namespace VidiVideo.Application.ContentReports
             {
                 throw new ValidationException(
                     "Invalid content type.");
-            }
-
-            if (command.Status == ReportStatus.Pending)
-            {
-                throw new ValidationException(
-                    "Reviewed report cannot remain pending.");
             }
 
             var reports = await _repo.GetByContentAsync(
@@ -63,7 +75,7 @@ namespace VidiVideo.Application.ContentReports
             {
                 report.Review(
                     reviewerId,
-                    command.ResolutionNote,
+                    command.ResolutionNote!,
                     command.Status);
             }
 

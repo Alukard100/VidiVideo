@@ -25,6 +25,9 @@ public sealed class UpdateUserStatusCommandHandler
         UpdateUserStatusCommand command,
         CancellationToken cancellationToken)
     {
+        if (!Enum.IsDefined(command.Status))
+            throw new ValidationException("Invalid user status.");
+
         var user =
             await _userRepository.GetByIdAsync(
                 command.UserId)

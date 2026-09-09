@@ -4,6 +4,7 @@ using VidiVideo.Application.Common;
 using VidiVideo.Application.Exceptions;
 using VidiVideo.Application.Hashtags;
 using VidiVideo.Domain.Entities;
+using VidiVideo.Domain.Enums;
 
 namespace VidiVideo.Application.Videos
 {
@@ -28,11 +29,26 @@ namespace VidiVideo.Application.Videos
 
         public async Task<Guid> HandleAsync(CreateVideoCommand command, CancellationToken cancellationToken)
         {
+            if (string.IsNullOrWhiteSpace(command.Caption))
+                throw new ValidationException("Caption is required");
+
+            if (command.Caption.Length > 500)
+                throw new ValidationException("Caption cannot exceed 500 characters");
+
             if (string.IsNullOrWhiteSpace(command.VideoUrl))
                 throw new ValidationException("VideoUrl is required");
 
+            if (command.VideoUrl.Length > 1024)
+                throw new ValidationException("VideoUrl cannot exceed 1024 characters");
+
             if (string.IsNullOrWhiteSpace(command.ThumbnailUrl))
                 throw new ValidationException("ThumbnailUrl is required");
+
+            if (command.ThumbnailUrl.Length > 1024)
+                throw new ValidationException("ThumbnailUrl cannot exceed 1024 characters");
+
+            if (!Enum.IsDefined(command.Visibility))
+                throw new ValidationException("Invalid video visibility");
 
             var creatorId = _currentUser.UserId ?? throw new UnauthorizedException("Must be logged in");
             var creator = await _userRepo.GetByIdAsync(creatorId) ?? throw new NotFoundException("Creator doesn't exist");
@@ -57,6 +73,9 @@ namespace VidiVideo.Application.Videos
                 throw new NotFoundException($"{command.CategoryId} not found");
 
             var hashtagNames = HashtagParser.Extract(command.Caption);
+
+            if (hashtagNames.Any(name => name.Length > 80))
+                throw new ValidationException("Hashtag names cannot exceed 80 characters");
 
             var videoHashtags = new List<VideoHashtag>();
 
