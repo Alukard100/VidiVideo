@@ -2,6 +2,7 @@
 using VidiVideo.Application.Abstractions.Repositories;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Exceptions;
+using VidiVideo.Domain.Entities;
 using VidiVideo.Domain.Enums;
 
 namespace VidiVideo.Application.ContentReports
@@ -11,11 +12,13 @@ namespace VidiVideo.Application.ContentReports
         private readonly IContentReportRepository _repo;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUser _currentUser;
-        public ReviewContentReportCommandHandler(IContentReportRepository repo, IUnitOfWork unitOfWork, ICurrentUser currentUser)
+        private readonly INotificationRepository _notificationRepository;
+        public ReviewContentReportCommandHandler(IContentReportRepository repo, IUnitOfWork unitOfWork, ICurrentUser currentUser, INotificationRepository notificationRepository)
         {
             _repo = repo;
             _unitOfWork = unitOfWork;
             _currentUser = currentUser;
+            _notificationRepository = notificationRepository;
         }
 
         public async Task<bool> HandleAsync(ReviewContentReportCommand command, CancellationToken cancellationToken)
@@ -77,6 +80,20 @@ namespace VidiVideo.Application.ContentReports
                     reviewerId,
                     command.ResolutionNote!,
                     command.Status);
+
+                var notification = new Notification(
+                    report.ReporterId,
+
+                    command.Status == ReportStatus.Resolved
+                        ? "Report resolved"
+                        : "Report rejected",
+
+                    string.IsNullOrWhiteSpace(command.ResolutionNote)
+                        ? "Your content report has been reviewed."
+                        : command.ResolutionNote,
+                    NotificationType.ContentReport);
+
+                await _notificationRepository.CreateAsync(notification);
             }
 
             await _unitOfWork.SaveChangesAsync(

@@ -240,28 +240,39 @@ class ApiClient {
         _buildUri(path, queryParameters),
       );
 
-      final sessionRevision = _addAuthorizationHeader(request.headers);
+      final sessionRevision =
+          _addAuthorizationHeader(request.headers);
 
       final response = await request.close();
 
       final bytes = await response.fold<List<int>>(
         <int>[],
-        (previous, element) =>
-            previous..addAll(element),
+        (previous, element) => previous..addAll(element),
       );
 
-      await _throwIfError(
-        statusCode: response.statusCode,
-        responseBody: utf8.decode(bytes),
-        requestSessionRevision: sessionRevision,
-      );
+      if (response.statusCode < 200 ||
+          response.statusCode >= 300) {
+        String responseBody;
+
+        try {
+          responseBody = utf8.decode(bytes);
+        } catch (_) {
+          responseBody = 'Request failed.';
+        }
+
+        await _throwIfError(
+          statusCode: response.statusCode,
+          responseBody: responseBody,
+          requestSessionRevision: sessionRevision,
+        );
+      }
 
       return Uint8List.fromList(bytes);
     } finally {
       client.close(force: true);
     }
   }
-
+  
   Future<Map<String, dynamic>> uploadMultipartFile({
     required String path,
     required String fieldName,

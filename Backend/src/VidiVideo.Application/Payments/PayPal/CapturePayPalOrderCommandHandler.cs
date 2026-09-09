@@ -2,6 +2,8 @@
 using VidiVideo.Application.Abstractions.Repositories;
 using VidiVideo.Application.Common;
 using VidiVideo.Application.Exceptions;
+using VidiVideo.Domain.Entities;
+using VidiVideo.Domain.Enums;
 
 namespace VidiVideo.Application.Payments.PayPal
 {
@@ -11,12 +13,14 @@ namespace VidiVideo.Application.Payments.PayPal
         private readonly IPaymentRepository _paymentRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUser _currentUser;
-        public CapturePayPalOrderCommandHandler(IPayPalService payPalService, IPaymentRepository paymentRepository, IUnitOfWork unitOfWork, ICurrentUser currentUser)
+        private readonly INotificationRepository _notificationRepository;
+        public CapturePayPalOrderCommandHandler(IPayPalService payPalService, IPaymentRepository paymentRepository, IUnitOfWork unitOfWork, ICurrentUser currentUser, INotificationRepository notificationRepository)
         {
             _payPalService = payPalService;
             _paymentRepository = paymentRepository;
             _unitOfWork = unitOfWork;
             _currentUser = currentUser;
+            _notificationRepository = notificationRepository;
         }
         public async Task<bool> HandleAsync(CapturePayPalOrderCommand command, CancellationToken cancellationToken)
         {
@@ -82,6 +86,21 @@ namespace VidiVideo.Application.Payments.PayPal
             {
                 payment.MarkCompleted(captureOrder.CaptureId);
                 subscription.Activate();
+
+                var notification = new Notification(
+                    subscription.SubscriberId,
+                    "Subscription activated",
+                    "Your payment was successful and your subscription is now active.",
+                    NotificationType.Subscription);
+
+                var creatorNotification = new Notification(
+                    subscription.CreatorId,
+                    "New subscriber",
+                    "A user has successfully subscribed to your channel.",
+                    NotificationType.Subscription);
+
+                await _notificationRepository.CreateAsync(notification);
+                await _notificationRepository.CreateAsync(creatorNotification);
 
                 await _unitOfWork.CommitAsync(cancellationToken);
 

@@ -15,6 +15,7 @@ class ReportContentDialog extends StatefulWidget {
 
 class _ReportContentDialogState
     extends State<ReportContentDialog> {
+  final _formKey = GlobalKey<FormState>();
   final _controller = TextEditingController();
 
   @override
@@ -27,11 +28,22 @@ class _ReportContentDialogState
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(widget.title),
-      content: TextField(
-        controller: _controller,
-        maxLines: 3,
-        decoration: const InputDecoration(
-          labelText: 'Reason',
+      content: Form(
+        key: _formKey,
+        child: TextFormField(
+          controller: _controller,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            labelText: 'Reason',
+          ),
+          validator: (value) {
+            if (value == null ||
+                value.trim().isEmpty) {
+              return 'Please enter a reason.';
+            }
+
+            return null;
+          },
         ),
       ),
       actions: [
@@ -42,14 +54,15 @@ class _ReportContentDialogState
         ),
         FilledButton(
           onPressed: () {
-            final reason =
-                _controller.text.trim();
-
-            if (reason.isEmpty) {
+            if (!(_formKey.currentState
+                    ?.validate() ??
+                false)) {
               return;
             }
 
-            Navigator.of(context).pop(reason);
+            Navigator.of(context).pop(
+              _controller.text.trim(),
+            );
           },
           child: const Text('Submit'),
         ),

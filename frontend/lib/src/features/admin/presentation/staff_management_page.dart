@@ -32,6 +32,7 @@ class _StaffManagementPageState
   Timer? _searchDebounce;
 
   late Future<PagedResult<AdminStaffMember>> _staffFuture;
+  late Future<List<int>> _statsFuture;
 
   int _page = 1;
   String? _search;
@@ -51,6 +52,7 @@ class _StaffManagementPageState
     super.initState();
 
     _staffFuture = _load();
+    _statsFuture = _loadStats();
   }
 
   @override
@@ -69,6 +71,32 @@ class _StaffManagementPageState
     );
   }
 
+  Future<List<int>> _loadStats() async {
+    final results = await Future.wait([
+      AppServices.adminStaffService.getStaff(
+        role: 'Super Admin',
+        page: 1,
+        pageSize: 1,
+      ),
+      AppServices.adminStaffService.getStaff(
+        role: 'Admin',
+        page: 1,
+        pageSize: 1,
+      ),
+      AppServices.adminStaffService.getStaff(
+        role: 'Moderator',
+        page: 1,
+        pageSize: 1,
+      ),
+    ]);
+
+    return [
+      results[0].totalCount,
+      results[1].totalCount,
+      results[2].totalCount,
+    ];
+  }
+
   void _refresh({bool firstPage = false}) {
     setState(() {
       if (firstPage) {
@@ -76,6 +104,7 @@ class _StaffManagementPageState
       }
 
       _staffFuture = _load();
+      _statsFuture = _loadStats();
     });
   }
 
@@ -285,12 +314,22 @@ class _StaffManagementPageState
             FutureBuilder<PagedResult<AdminStaffMember>>(
               future: _staffFuture,
               builder: (context, snapshot) {
+                
                 final result = snapshot.data;
-                final staff = result?.items ?? const <AdminStaffMember>[];
-
                 return Column(
                   children: [
-                    _buildStats(staff),
+                    FutureBuilder<List<int>>(
+                      future: _statsFuture,
+                      builder: (context, statsSnapshot) {
+                        final stats = statsSnapshot.data;
+
+                        return _buildStats(
+                          superAdmins: stats?[0] ?? 0,
+                          admins: stats?[1] ?? 0,
+                          moderators: stats?[2] ?? 0,
+                        );
+                      },
+                    ),
 
                     const SizedBox(height: 20),
 
@@ -308,40 +347,18 @@ class _StaffManagementPageState
     );
   }
 
-  Widget _buildStats(
-    List<AdminStaffMember> staff,
-  ) {
-    final superAdmins = staff
-        .where(
-          (x) =>
-              x.role.toLowerCase() ==
-              'super admin',
-        )
-        .length;
-
-    final admins = staff
-        .where(
-          (x) =>
-              x.role.toLowerCase() ==
-              'admin',
-        )
-        .length;
-
-    final moderators = staff
-        .where(
-          (x) =>
-              x.role.toLowerCase() ==
-              'moderator',
-        )
-        .length;
-
+ Widget _buildStats({
+    required int superAdmins,
+    required int admins,
+    required int moderators,
+  }) {
     return Row(
       children: [
         Expanded(
           child: _RoleCard(
-            title: 'Super Admins (page)',
+            title: 'Super Admins',
             value: superAdmins,
-            subtitle: 'Current page',
+            subtitle: 'Total',
             icon: Icons.workspace_premium_outlined,
           ),
         ),
@@ -350,11 +367,10 @@ class _StaffManagementPageState
 
         Expanded(
           child: _RoleCard(
-            title: 'Admins (page)',
+            title: 'Admins',
             value: admins,
-            subtitle: 'Current page',
-            icon:
-                Icons.shield_outlined,
+            subtitle: 'Total',
+            icon: Icons.shield_outlined,
           ),
         ),
 
@@ -362,11 +378,10 @@ class _StaffManagementPageState
 
         Expanded(
           child: _RoleCard(
-            title: 'Moderators (page)',
+            title: 'Moderators',
             value: moderators,
-            subtitle: 'Current page',
-            icon:
-                Icons.group_outlined,
+            subtitle: 'Total',
+            icon: Icons.group_outlined,
           ),
         ),
       ],

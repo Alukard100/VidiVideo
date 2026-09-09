@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:printing/printing.dart';
 
 import '../../../app/app_routes.dart';
 import '../../../core/dependency/app_services.dart';
@@ -183,6 +184,82 @@ class _AdminDashboardPageState
 
       debugPrint(
         'VIDEO REPORT ERROR: $exception',
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGeneratingVideos = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _printRevenueReport() async {
+    setState(() {
+      _isGeneratingRevenue = true;
+    });
+
+    try {
+      final bytes =
+          await AppServices.adminDashboardService
+              .getRevenueReport(
+        from: _reportPeriod.from,
+      );
+
+      await Printing.layoutPdf(
+        name: 'revenue-report.pdf',
+        onLayout: (_) async => bytes,
+      );
+    } on ApiException catch (exception) {
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Unable to generate revenue report',
+      );
+    } catch (exception) {
+      _showMessage(
+        'Unable to print revenue report.',
+      );
+
+      debugPrint(
+        'REVENUE REPORT PRINT ERROR: $exception',
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGeneratingRevenue = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _printVideoReport() async {
+    setState(() {
+      _isGeneratingVideos = true;
+    });
+
+    try {
+      final bytes =
+          await AppServices.adminDashboardService
+              .getVideoAnalyticsReport(
+        from: _reportPeriod.from,
+      );
+
+      await Printing.layoutPdf(
+        name: 'video-analytics-report.pdf',
+        onLayout: (_) async => bytes,
+      );
+    } on ApiException catch (exception) {
+      AppServices.errorHandler.showApiException(
+        exception,
+        title: 'Unable to generate video analytics report',
+      );
+    } catch (exception) {
+      _showMessage(
+        'Unable to print video analytics report.',
+      );
+
+      debugPrint(
+        'VIDEO REPORT PRINT ERROR: $exception',
       );
     } finally {
       if (mounted) {
@@ -458,25 +535,21 @@ class _AdminDashboardPageState
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12),
         side: const BorderSide(
-          color:
-              Color(0xFFE5E7EB),
+          color: Color(0xFFE5E7EB),
         ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
               'Generate Reports',
               style: TextStyle(
                 fontSize: 17,
-                fontWeight:
-                    FontWeight.w700,
+                fontWeight: FontWeight.w700,
               ),
             ),
 
@@ -485,30 +558,23 @@ class _AdminDashboardPageState
             const Text(
               'Export system analytics as PDF.',
               style: TextStyle(
-                color:
-                    Color(0xFF6B7280),
+                color: Color(0xFF6B7280),
                 fontSize: 13,
               ),
             ),
 
             const SizedBox(height: 20),
 
-            DropdownButtonFormField<
-                _ReportPeriod>(
-              initialValue:
-                  _reportPeriod,
-              decoration:
-                  const InputDecoration(
-                labelText:
-                    'Report period',
+            DropdownButtonFormField<_ReportPeriod>(
+              initialValue: _reportPeriod,
+              decoration: const InputDecoration(
+                labelText: 'Report period',
               ),
               items: [
-                for (final period
-                    in _ReportPeriod.values)
+                for (final period in _ReportPeriod.values)
                   DropdownMenuItem(
                     value: period,
-                    child:
-                        Text(period.label),
+                    child: Text(period.label),
                   ),
               ],
               onChanged: (value) {
@@ -522,52 +588,88 @@ class _AdminDashboardPageState
 
             const SizedBox(height: 18),
 
-            OutlinedButton.icon(
-              onPressed:
-                  _isGeneratingRevenue
-                      ? null
-                      : _downloadRevenueReport,
-              icon: _isGeneratingRevenue
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child:
-                          CircularProgressIndicator(
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Icon(
-                      Icons
-                          .picture_as_pdf_outlined,
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _isGeneratingRevenue
+                        ? null
+                        : _downloadRevenueReport,
+                    icon: _isGeneratingRevenue
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.picture_as_pdf_outlined,
+                          ),
+                    label: const Text(
+                      'Download Revenue Report',
                     ),
-              label: const Text(
-                'Revenue Report',
-              ),
+                  ),
+                ),
+
+                const SizedBox(width: 10),
+
+                SizedBox(
+                  width: 110,
+                  child: OutlinedButton.icon(
+                    onPressed: _isGeneratingRevenue
+                        ? null
+                        : _printRevenueReport,
+                    icon: const Icon(
+                      Icons.print_outlined,
+                    ),
+                    label: const Text('Print'),
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 10),
 
-            OutlinedButton.icon(
-              onPressed:
-                  _isGeneratingVideos
-                      ? null
-                      : _downloadVideoReport,
-              icon: _isGeneratingVideos
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child:
-                          CircularProgressIndicator(
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Icon(
-                      Icons
-                          .video_file_outlined,
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _isGeneratingVideos
+                        ? null
+                        : _downloadVideoReport,
+                    icon: _isGeneratingVideos
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.video_file_outlined,
+                          ),
+                    label: const Text(
+                      'Download Video Analytics Report',
                     ),
-              label: const Text(
-                'Video Analytics Report',
-              ),
+                  ),
+                ),
+
+                const SizedBox(width: 10),
+
+                SizedBox(
+                  width: 110,
+                  child: OutlinedButton.icon(
+                    onPressed: _isGeneratingVideos
+                        ? null
+                        : _printVideoReport,
+                    icon: const Icon(
+                      Icons.print_outlined,
+                    ),
+                    label: const Text('Print'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -575,6 +677,7 @@ class _AdminDashboardPageState
     );
   }
 
+  
   String _compactNumber(int value) {
     if (value >= 1000000) {
       return '${(value / 1000000).toStringAsFixed(1)}M';

@@ -117,6 +117,7 @@ public class VideoController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize]
     [HttpGet("following")]
     public async Task<IActionResult> Following(
     [FromQuery] GetFollowingFeedQuery query,

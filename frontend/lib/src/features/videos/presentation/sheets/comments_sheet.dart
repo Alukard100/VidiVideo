@@ -729,11 +729,19 @@ class _CommentsSheetState extends State<CommentsSheet> {
         ),
         child: Row(
           children: [
-            const CircleAvatar(
-              radius: 17,
-              child: Icon(
-                Icons.person_outline,
-                size: 18,
+            
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                enabled: !_isPosting,
+                minLines: 1,
+                maxLines: 3,
+                decoration:
+                    const InputDecoration(
+                  hintText:
+                      'Add a comment...',
+                  isDense: true,
+                ),
               ),
             ),
 
@@ -754,23 +762,6 @@ class _CommentsSheetState extends State<CommentsSheet> {
             ),
 
             const SizedBox(width: 4),
-
-            Expanded(
-              child: TextField(
-                controller: _controller,
-                enabled: !_isPosting,
-                minLines: 1,
-                maxLines: 3,
-                decoration:
-                    const InputDecoration(
-                  hintText:
-                      'Add a comment...',
-                  isDense: true,
-                ),
-              ),
-            ),
-
-            const SizedBox(width: 8),
 
             IconButton.filled(
               onPressed:

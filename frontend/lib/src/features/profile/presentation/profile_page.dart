@@ -246,6 +246,41 @@ class _ProfilePageState extends State<ProfilePage> {
     return;
   }
 
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text(
+          'Confirm subscription',
+        ),
+        content: Text(
+          'Continue to PayPal to subscribe to '
+          '${profile.displayName}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(false);
+            },
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(context).pop(true);
+            },
+            child: const Text(
+              'Continue to PayPal',
+            ),
+          ),
+        ],
+      );
+    },
+  );
+
+  if (!mounted || confirmed != true) {
+    return;
+  }
+
   try {
     final order =
       await AppServices.payPalPaymentService
@@ -307,8 +342,6 @@ class _ProfilePageState extends State<ProfilePage> {
       return;
     }
 
-    final currentUser = await _profileService.getMyProfile();
-
     if (!mounted) {
       return;
     }
@@ -324,11 +357,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
           usersFuture: type == _FollowListType.followers
             ? _profileService.getFollowers(
-                currentUserId: currentUser.id,
                 targetUserId: profile.id,
               )
             : _profileService.getFollowing(
-                currentUserId: currentUser.id,
                 targetUserId: profile.id,
             ),
 

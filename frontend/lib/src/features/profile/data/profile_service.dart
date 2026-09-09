@@ -95,14 +95,12 @@ class ProfileService {
   }
 
   Future<List<FollowUser>> getFollowers({
-    required String currentUserId,
     required String targetUserId,
     int page = 1,
     int pageSize = 50,
   }) {
     return _getFollowList(
       path: '/api/Follow/followers',
-      currentUserId: currentUserId,
       targetUserId: targetUserId,
       page: page,
       pageSize: pageSize,
@@ -110,14 +108,12 @@ class ProfileService {
   }
 
   Future<List<FollowUser>> getFollowing({
-    required String currentUserId,
     required String targetUserId,
     int page = 1,
     int pageSize = 50,
   }) {
     return _getFollowList(
       path: '/api/Follow/following',
-      currentUserId: currentUserId,
       targetUserId: targetUserId,
       page: page,
       pageSize: pageSize,
@@ -126,7 +122,6 @@ class ProfileService {
 
   Future<List<FollowUser>> _getFollowList({
     required String path,
-    required String currentUserId,
     required String targetUserId,
     required int page,
     required int pageSize,
@@ -134,7 +129,6 @@ class ProfileService {
     final response = await _apiClient.getJson(
       path,
       queryParameters: {
-        'CurrentUserId': currentUserId,
         'TargetUserId': targetUserId,
         'Page': page,
         'PageSize': pageSize,
