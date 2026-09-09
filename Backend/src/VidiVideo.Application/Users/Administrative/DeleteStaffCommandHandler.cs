@@ -20,7 +20,13 @@ public sealed class DeleteStaffCommandHandler : ICommandHandler<DeleteStaffComma
 
     public async Task<bool> HandleAsync(DeleteStaffCommand command, CancellationToken cancellationToken)
     {
+        if (!_currentUser.IsInRole(AppRoles.SuperAdmin) && !_currentUser.IsInRole(AppRoles.Admin))
+            throw new UnauthorizedException("Not allowed");
+
         var targetUser = await _userRepository.GetByIdAsync(command.TargetId) ?? throw new NotFoundException("Target doesn't exist");
+
+        if (targetUser.Role == AppRoles.User)
+            throw new ValidationException("Target account is not a staff account.");
 
         if (targetUser.Role == AppRoles.SuperAdmin)
             throw new UnauthorizedException("Not allowed");

@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore.Storage;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using VidiVideo.Application.Exceptions;
 
 namespace VidiVideo.Infrastructure.Persistence.Repositories
 {
@@ -15,7 +17,14 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task SaveChangesAsync(
             CancellationToken cancellationToken = default)
         {
-            await _db.SaveChangesAsync(cancellationToken);
+            try
+            {
+                await _db.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException)
+            {
+                throw new ConflictException("The operation could not be completed because the record is referenced by existing data.");
+            }
         }
 
         public async Task BeginAsync(CancellationToken cancellationToken = default)

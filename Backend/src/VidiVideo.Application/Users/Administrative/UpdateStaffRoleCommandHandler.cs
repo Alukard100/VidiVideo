@@ -22,6 +22,9 @@ public sealed class UpdateStaffRoleCommandHandler : ICommandHandler<UpdateStaffR
     {
         var target = await _userRepository.GetByIdAsync(command.TargetId) ?? throw new NotFoundException("User not found");
 
+        if (target.Role == AppRoles.User)
+            throw new ValidationException("Target account is not a staff account.");
+
         if (!_currentUser.IsInRole(AppRoles.SuperAdmin))
             throw new UnauthorizedException("Not allowed");
 
