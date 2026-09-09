@@ -32,7 +32,10 @@ namespace VidiVideo.Application.VideoViews
         }
         public async Task<Guid> HandleAsync(RecordVideoViewCommand command, CancellationToken cancellationToken)
         {
-            var video = await _videoRepo.GetVideoByIdAsync(command.VideoId) ?? throw new NotFoundException("Video not found");
+            if (command.WatchDurationSeconds < 0) throw new ValidationException("Watch duration cannot be negative.");
+            if (command.CompletionRate < 0m || command.CompletionRate > 1m) throw new ValidationException("Completion rate must be between 0 and 1.");
+
+            var video = await _videoRepo.GetVideoByIdAsync(command.VideoId, cancellationToken) ?? throw new NotFoundException("Video not found");
 
             var userId = _currentUser.UserId ?? throw new UnauthorizedException("Must be logged in");
             if (!await _userRepo.ExistsByIdAsync(userId))

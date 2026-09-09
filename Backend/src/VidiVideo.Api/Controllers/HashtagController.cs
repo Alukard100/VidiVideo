@@ -45,9 +45,9 @@ public class HashtagController : ControllerBase
     }
 
     [HttpGet("getall")]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAll([FromQuery] GetHashtagsQuery query, CancellationToken cancellationToken)
     {
-        var result = await _getHashtagsHandler.HandleAsync(new GetHashtagsQuery(), cancellationToken);
+        var result = await _getHashtagsHandler.HandleAsync(query, cancellationToken);
 
         return Ok(result);
     }

@@ -168,9 +168,9 @@ namespace VidiVideo.Api.Controllers
 
         [Authorize(Roles = $"{AppRoles.SuperAdmin},{AppRoles.Admin}")]
         [HttpGet("staff")]
-        public async Task<IActionResult> GetStaff(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetStaff([FromQuery] GetStaffQuery query, CancellationToken cancellationToken)
         {
-            var result = await _staffGetHandler.HandleAsync(new GetStaffQuery(), cancellationToken);
+            var result = await _staffGetHandler.HandleAsync(query, cancellationToken);
             return Ok(result);
         }
     }

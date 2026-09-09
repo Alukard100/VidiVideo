@@ -55,13 +55,13 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task<int> FollowersCountAsync(Guid userId)
         {
             return await _db.Follows
-                .CountAsync(x => x.CreatorId == userId);
+                .CountAsync(x => x.CreatorId == userId && !x.IsDeleted);
         }
 
         public async Task<int> FollowingCountAsync(Guid userId)
         {
             return await _db.Follows
-                .CountAsync(x => x.FollowerId == userId);
+                .CountAsync(x => x.FollowerId == userId && !x.IsDeleted);
         }
 
         public async Task<bool> HasActiveSubscriptionAsync(Guid subscriberId, Guid creatorId)
@@ -77,8 +77,8 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
         public async Task<List<AppUser>> GetFilteredUsersAsync(string? search, UserStatus? status, UserSortBy sortBy, SortDirection sortDirection, int _page = 1, int _pageSize = 20, CancellationToken cancellationToken = default)
         {
             var query = _db.Users.AsNoTracking()
-                .Include(u => u.Videos)
-                .Include(u => u.Followers)
+                .Include(u => u.Videos.Where(v => !v.IsDeleted))
+                .Include(u => u.Followers.Where(f => !f.IsDeleted))
                 .Where(u => u.Role == AppRoles.User)
                 .AsQueryable();
 
@@ -103,12 +103,12 @@ namespace VidiVideo.Infrastructure.Persistence.Repositories
                     : query.OrderByDescending(u => u.CreatedAtUtc),
 
                 UserSortBy.VideoCount => sortDirection == SortDirection.Ascending
-                    ? query.OrderBy(u => u.Videos.Count)
-                    : query.OrderByDescending(u => u.Videos.Count),
+                    ? query.OrderBy(u => u.Videos.Count(v => !v.IsDeleted))
+                    : query.OrderByDescending(u => u.Videos.Count(v => !v.IsDeleted)),
 
                 UserSortBy.FollowersCount => sortDirection == SortDirection.Ascending
-                    ? query.OrderBy(u => u.Followers.Count)
-                    : query.OrderByDescending(u => u.Followers.Count),
+                    ? query.OrderBy(u => u.Followers.Count(f => !f.IsDeleted))
+                    : query.OrderByDescending(u => u.Followers.Count(f => !f.IsDeleted)),
 
                 UserSortBy.Status => sortDirection == SortDirection.Ascending
                     ? query.OrderBy(u => u.Status)
